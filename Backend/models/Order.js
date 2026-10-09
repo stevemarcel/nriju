@@ -1,12 +1,13 @@
 import mongoose from "mongoose";
 import { addressSchema } from "./User.js";
+import { integerKobo } from "./Product.js";
 
 // Embedded order item — snapshot preserves price/name/image at purchase time
 const orderItemSchema = new mongoose.Schema(
   {
     product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
     name: { type: String, required: true },
-    price: { type: Number, required: true },
+    price: integerKobo(true), // kobo snapshot at order time
     quantity: { type: Number, required: true, min: 1 },
     image: { type: String, default: "" },
   },
@@ -31,11 +32,11 @@ const orderSchema = new mongoose.Schema(
       enum: ["own", "thirdparty", "pickup"],
       required: true,
     },
-    deliveryFee: { type: Number, default: 0, min: 0 },
-    subtotal: { type: Number, required: true, min: 0 },
-    discount: { type: Number, default: 0, min: 0 },
+    deliveryFee: { ...integerKobo(false), default: 0 }, // kobo; 0 for pickup
+    subtotal: integerKobo(true), // kobo
+    discount: { ...integerKobo(false), default: 0 }, // kobo
     coupon: { type: mongoose.Schema.Types.ObjectId, ref: "Coupon" },
-    total: { type: Number, required: true, min: 0 },
+    total: integerKobo(true), // kobo — always equals subtotal - discount + deliveryFee
     status: {
       type: String,
       enum: [

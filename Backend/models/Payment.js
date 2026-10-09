@@ -18,7 +18,11 @@ const paymentSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
-    }, // in kobo
+      validate: {
+        validator: Number.isInteger,
+        message: "Payment amount must be integer kobo.",
+      },
+    }, // integer kobo — Paystack expects this natively, passes through unchanged
     channel: {
       type: String,
       enum: ["card", "bank", "ussd", "qr"],
