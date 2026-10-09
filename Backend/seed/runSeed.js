@@ -32,7 +32,7 @@ const runSeed = async () => {
     // ------------------------------------------------------------
     // 1. Categories
     // ------------------------------------------------------------
-    const createdCategories = await Category.insertMany(categories);
+    const createdCategories = await Category.create(categories);
     console.log(`${createdCategories.length} categories seeded.`.green);
 
     const categoryMap = {};
@@ -43,7 +43,9 @@ const runSeed = async () => {
     // ------------------------------------------------------------
     // 2. Users
     // ------------------------------------------------------------
-    const createdUsers = await User.insertMany(users);
+    // Must use create(), NOT insertMany() — insertMany skips the
+    // pre("save") hook, which would store passwords in plaintext.
+    const createdUsers = await User.create(users);
     console.log(`${createdUsers.length} users seeded.`.green);
 
     const adminUser = createdUsers.find((u) => u.role === "superAdmin");
@@ -52,53 +54,56 @@ const runSeed = async () => {
     }
 
     // ------------------------------------------------------------
-    // 3. Products (with inventory batches)
+    // 3. Products
     // ------------------------------------------------------------
-    const productDocs = products.map((p) => ({
-      ...p,
-      category: categoryMap[p.categoryName],
+    // Must use create(), NOT insertMany() — insertMany skips the
+    // pre("save") hook, so slugs never generate and every product
+    // collides on the empty-string unique slug index.
+    //
+    // `stock` is not a Product field: stock is computed from
+    // Inventory batches. It lives in the seed data only to size the
+    // opening batch, so it is destructured out before insert.
+    const seedRows = products.map(({ stock, categoryName, ...rest }) => ({
+      ...rest,
+      category: categoryMap[categoryName],
       images: [],
       createdBy: adminUser._id,
       updatedBy: null,
     }));
 
-    const createdProducts = await Product.insertMany(productDocs);
+    const createdProducts = await Product.create(seedRows);
+    if (createdProducts.length !== products.length) {
+      throw new Error(
+        `Expected ${products.length} products, got ${createdProducts.length}.`,
+      );
+    }
     console.log(`${createdProducts.length} products seeded.`.green);
 
     // ------------------------------------------------------------
     // 4. Inventory batches — cooked items get short expiry,
     //    packaged items get long shelf life.
     // ------------------------------------------------------------
-    const inventoryDocs = [];
-    createdProducts.forEach((product) => {
-      const stock = product.stock || 10;
+    const inventoryDocs = createdProducts.map((product, i) => {
       const isCooked = product.productType === "cooked";
+      const quantity = products[i].stock;
+      const prefix = product.name.slice(0, 8).toUpperCase().replace(/\s+/g, "");
 
-      if (isCooked) {
-        // Fresh cooked: daily production, expires in 24-48 hours
-        inventoryDocs.push({
-          product: product._id,
-          batch: `FRESH-${product.name.slice(0, 8).toUpperCase()}-${Date.now()}`,
-          quantity: stock,
-          expiryDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          receivedDate: new Date(),
-          supplier: "Nriju Kitchen",
-          location: "Fresh Prep",
-          isActive: true,
-        });
-      } else {
-        // Packaged/frozen: wholesale restock, 6-12 months
-        inventoryDocs.push({
-          product: product._id,
-          batch: `WH-${product.name.slice(0, 8).toUpperCase()}-${Date.now()}`,
-          quantity: stock,
-          expiryDate: new Date(Date.now() + 180 * 24 * 60 * 60 * 1000),
-          receivedDate: new Date(),
-          supplier: "Nriju Warehouse",
-          location: "Aisle A",
-          isActive: true,
-        });
-      }
+      return {
+        product: product._id,
+        batch: isCooked
+          ? `FRESH-${prefix}-${Date.now()}`
+          : `WH-${prefix}-${Date.now()}`,
+        quantity,
+        // Fresh cooked: daily production, expires within 24 hours.
+        // Packaged/frozen: wholesale restock, roughly 6 months.
+        expiryDate: new Date(
+          Date.now() + (isCooked ? 24 : 180 * 24) * 60 * 60 * 1000,
+        ),
+        receivedDate: new Date(),
+        supplier: isCooked ? "Nriju Kitchen" : "Nriju Warehouse",
+        location: isCooked ? "Fresh Prep" : "Aisle A",
+        isActive: true,
+      };
     });
 
     const createdInventory = await Inventory.insertMany(inventoryDocs);

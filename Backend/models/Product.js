@@ -44,6 +44,12 @@ const productSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    region: {
+      type: String,
+      enum: ["Western", "Eastern", "South-South", "Northern", "Cross-regional"],
+      default: "Cross-regional",
+      index: true,
+    },
     images: [{ type: String }],
     tags: [{ type: String, index: true }],
     isActive: { type: Boolean, default: true, index: true },
