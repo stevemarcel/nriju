@@ -1,0 +1,20 @@
+# Dependencies
+node_modules
+
+# Environment
+.env
+
+# Build outputs
+client/dist
+client/node_modules
+
+# Uploads
+Backend/uploads
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode
+.idea

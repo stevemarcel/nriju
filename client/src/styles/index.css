@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  /* Nriju brand tokens — NR-04 */
+  --color-primary: #9A2B21;        /* Pepper Stew */
+  --color-secondary: #FCBB31;      /* Plantain */
+  --color-background: #FFF6E9;     /* Coconut */
+  --color-surface: #ffffff;
+  --color-text: #7b231b;           /* Smoked Pepper */
+  --color-text-muted: #af554d;     /* Tomato Foam */
+  --color-border: #7b231b20;
+
+  /* Typography */
+  --font-heading: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  /* Breakpoints — Tailwind default sm/md/lg/xl */
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-text font-body antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}

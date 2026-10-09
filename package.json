@@ -1,0 +1,44 @@
+{
+  "name": "nriju",
+  "version": "1.0.0",
+  "description": "Nriju — Nigerian prepared & cooked food store",
+  "type": "module",
+  "main": "Backend/server.js",
+  "scripts": {
+    "start": "node Backend/server.js",
+    "build": "npm install && npm install --include=dev --prefix client && npm run build --prefix client",
+    "server": "nodemon Backend/server.js",
+    "client": "npm run dev --prefix client",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "seed": "node Backend/seed/runSeed.js",
+    "test": "vitest run --config Backend/vitest.config.js",
+    "test:watch": "vitest --config Backend/vitest.config.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@getbrevo/brevo": "^6.0.3",
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.10.1",
+    "colors": "^1.4.0",
+    "cookie-parser": "^1.4.6",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-async-handler": "^1.2.0",
+    "express-rate-limit": "^7.5.0",
+    "express-validator": "^7.2.0",
+    "joi": "^17.13.1",
+    "jsonwebtoken": "^9.0.1",
+    "mongoose": "^8.7.0",
+    "multer": "^2.0.2",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "react-confetti": "^2.1.4",
+    "recharts": "^3.1.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.1",
+    "nodemon": "^3.0.1"
+  }
+}
