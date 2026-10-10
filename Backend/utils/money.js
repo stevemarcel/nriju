@@ -18,5 +18,4 @@ export const formatNaira = (kobo) =>
   })}`;
 
 // Coupon percent types store e.g. 10 for 10%. Rounding happens once, here.
-export const percentOfKobo = (koboAmount, percent) =>
-  Math.round((koboAmount * percent) / 100);
+export const percentOfKobo = (koboAmount, percent) => Math.round((koboAmount * percent) / 100);

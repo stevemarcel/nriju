@@ -65,8 +65,7 @@ const runSeed = async () => {
     const seedRows = products.map(({ stock, categoryName, ...rest }) => ({
       ...rest,
       price: toKobo(rest.price),
-      compareAtPrice:
-        rest.compareAtPrice != null ? toKobo(rest.compareAtPrice) : null,
+      compareAtPrice: rest.compareAtPrice != null ? toKobo(rest.compareAtPrice) : null,
       stock: 0, // provisional — recomputed from Inventory below
       category: categoryMap[categoryName],
       images: [],
@@ -76,9 +75,7 @@ const runSeed = async () => {
 
     const createdProducts = await Product.create(seedRows);
     if (createdProducts.length !== products.length) {
-      throw new Error(
-        `Expected ${products.length} products, got ${createdProducts.length}.`,
-      );
+      throw new Error(`Expected ${products.length} products, got ${createdProducts.length}.`);
     }
     console.log(`${createdProducts.length} products seeded.`.green);
 
@@ -94,13 +91,9 @@ const runSeed = async () => {
 
       return {
         product: product._id,
-        batch: isCooked
-          ? `FRESH-${prefix}-${Date.now()}`
-          : `WH-${prefix}-${Date.now()}`,
+        batch: isCooked ? `FRESH-${prefix}-${Date.now()}` : `WH-${prefix}-${Date.now()}`,
         quantity,
-        expiryDate: new Date(
-          Date.now() + (isCooked ? 24 : 180 * 24) * 60 * 60 * 1000,
-        ),
+        expiryDate: new Date(Date.now() + (isCooked ? 24 : 180 * 24) * 60 * 60 * 1000),
         receivedDate: new Date(),
         supplier: isCooked ? "Nriju Kitchen" : "Nriju Warehouse",
         location: isCooked ? "Fresh Prep" : "Aisle A",
@@ -119,9 +112,7 @@ const runSeed = async () => {
       totalAvailable += available;
       await product.save(); // runs hooks; stock already kobo-independent
     }
-    console.log(
-      `Product.stock recomputed from batches (${totalAvailable} total units).`.green,
-    );
+    console.log(`Product.stock recomputed from batches (${totalAvailable} total units).`.green);
 
     // ------------------------------------------------------------
     // 5. Coupons — money fields naira → kobo (minOrder, maxDiscount,

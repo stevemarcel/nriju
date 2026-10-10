@@ -12,8 +12,7 @@ const integerKobo = (required) => ({
   ...(required ? { required: [required, "Price is required"] } : {}),
   validate: {
     validator: (v) => v == null || Number.isInteger(v),
-    message:
-      "Prices must be stored as integer kobo. Convert naira with toKobo() before saving.",
+    message: "Prices must be stored as integer kobo. Convert naira with toKobo() before saving.",
   },
 });
 
@@ -40,7 +39,21 @@ const productSchema = new mongoose.Schema(
 
     unit: {
       type: String,
-      enum: ["portion", "bowl", "500ml", "litre", "pack", "bottle", "tub", "piece", "per kg", "1 Litre", "500ml bottle", "250g", "500g"],
+      enum: [
+        "portion",
+        "bowl",
+        "500ml",
+        "litre",
+        "pack",
+        "bottle",
+        "tub",
+        "piece",
+        "per kg",
+        "1 Litre",
+        "500ml bottle",
+        "250g",
+        "500g",
+      ],
       default: "portion",
       index: true,
     },

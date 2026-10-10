@@ -69,9 +69,4 @@ const clearWishlist = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Wishlist cleared" });
 });
 
-export {
-  getWishlist,
-  addToWishlist,
-  removeWishlistItem,
-  clearWishlist,
-};
+export { getWishlist, addToWishlist, removeWishlistItem, clearWishlist };

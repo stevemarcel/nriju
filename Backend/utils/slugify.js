@@ -5,9 +5,9 @@ const slugify = (str) => {
     .toString()
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, "")      // strip punctuation
-    .replace(/[\s_-]+/g, "-")       // spaces/underscores → single hyphen
-    .replace(/^-+|-+$/g, "");       // trim leading/trailing hyphens
+    .replace(/[^\w\s-]/g, "") // strip punctuation
+    .replace(/[\s_-]+/g, "-") // spaces/underscores → single hyphen
+    .replace(/^-+|-+$/g, ""); // trim leading/trailing hyphens
 };
 
 export default slugify;

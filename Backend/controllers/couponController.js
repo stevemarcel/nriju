@@ -36,7 +36,7 @@ const validateCoupon = asyncHandler(async (req, res) => {
   if (coupon.applicableCategories.length > 0 && items) {
     const itemCategoryIds = items.map((i) => i.categoryId);
     const applies = coupon.applicableCategories.some((cat) =>
-      itemCategoryIds.includes(cat._id.toString())
+      itemCategoryIds.includes(cat._id.toString()),
     );
     if (!applies) {
       res.status(400);
@@ -70,7 +70,17 @@ const getCoupons = asyncHandler(async (req, res) => {
 // @ROUTE       POST /api/v1/coupons
 // @ACCESS      Admin
 const createCoupon = asyncHandler(async (req, res) => {
-  const { code, type, value, minOrder, maxDiscount, expiryDate, usageLimit, applicableCategories, isActive } = req.body;
+  const {
+    code,
+    type,
+    value,
+    minOrder,
+    maxDiscount,
+    expiryDate,
+    usageLimit,
+    applicableCategories,
+    isActive,
+  } = req.body;
 
   const coupon = await Coupon.create({
     code,
@@ -98,7 +108,16 @@ const updateCoupon = asyncHandler(async (req, res) => {
     throw new Error("Coupon not found");
   }
 
-  const allowed = ["type", "value", "minOrder", "maxDiscount", "expiryDate", "usageLimit", "applicableCategories", "isActive"];
+  const allowed = [
+    "type",
+    "value",
+    "minOrder",
+    "maxDiscount",
+    "expiryDate",
+    "usageLimit",
+    "applicableCategories",
+    "isActive",
+  ];
   for (const key of allowed) {
     if (req.body[key] !== undefined) coupon[key] = req.body[key];
   }
@@ -122,10 +141,4 @@ const deleteCoupon = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Coupon deleted" });
 });
 
-export {
-  validateCoupon,
-  getCoupons,
-  createCoupon,
-  updateCoupon,
-  deleteCoupon,
-};
+export { validateCoupon, getCoupons, createCoupon, updateCoupon, deleteCoupon };

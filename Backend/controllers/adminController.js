@@ -9,24 +9,18 @@ import ActivityLog from "../models/ActivityLog.js";
 // @ROUTE       GET /api/v1/admin/stats
 // @ACCESS      Admin
 const getStats = asyncHandler(async (req, res) => {
-  const [
-    totalOrders,
-    totalProducts,
-    totalUsers,
-    pendingReviews,
-    recentOrders,
-    revenueAgg,
-  ] = await Promise.all([
-    Order.countDocuments(),
-    Product.countDocuments(),
-    User.countDocuments({ role: "customer" }),
-    Review.countDocuments({ status: "pending" }),
-    Order.find().sort("-createdAt").limit(5).populate("user", "name email"),
-    Order.aggregate([
-      { $match: { status: { $nin: ["pending", "cancelled", "refunded"] } } },
-      { $group: { _id: null, total: { $sum: "$total" } } },
-    ]),
-  ]);
+  const [totalOrders, totalProducts, totalUsers, pendingReviews, recentOrders, revenueAgg] =
+    await Promise.all([
+      Order.countDocuments(),
+      Product.countDocuments(),
+      User.countDocuments({ role: "customer" }),
+      Review.countDocuments({ status: "pending" }),
+      Order.find().sort("-createdAt").limit(5).populate("user", "name email"),
+      Order.aggregate([
+        { $match: { status: { $nin: ["pending", "cancelled", "refunded"] } } },
+        { $group: { _id: null, total: { $sum: "$total" } } },
+      ]),
+    ]);
 
   res.json({
     success: true,
@@ -53,10 +47,7 @@ const getUsers = asyncHandler(async (req, res) => {
   if (role) query.role = role;
   if (isActive !== undefined) query.isActive = isActive === "true";
   if (search) {
-    query.$or = [
-      { name: new RegExp(search, "i") },
-      { email: new RegExp(search, "i") },
-    ];
+    query.$or = [{ name: new RegExp(search, "i") }, { email: new RegExp(search, "i") }];
   }
 
   const users = await User.find(query)
@@ -124,9 +115,4 @@ const getActivityLogs = asyncHandler(async (req, res) => {
   });
 });
 
-export {
-  getStats,
-  getUsers,
-  updateUser,
-  getActivityLogs,
-};
+export { getStats, getUsers, updateUser, getActivityLogs };

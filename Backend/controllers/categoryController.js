@@ -74,10 +74,4 @@ const deleteCategory = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Category archived" });
 });
 
-export {
-  getCategories,
-  getCategoryBySlug,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-};
+export { getCategories, getCategoryBySlug, createCategory, updateCategory, deleteCategory };

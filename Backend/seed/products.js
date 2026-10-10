@@ -44,8 +44,7 @@ export default [
   },
   {
     name: "Semo - Fresh",
-    description:
-      "Smooth semolina swallow, light on the stomach. A reliable choice for any soup.",
+    description: "Smooth semolina swallow, light on the stomach. A reliable choice for any soup.",
     price: 500,
     unit: "portion",
     productType: "cooked",
@@ -74,8 +73,7 @@ export default [
   },
   {
     name: "Eba - Fresh",
-    description:
-      "Warm garri eba, turned fresh to the right firmness. A fast, filling staple.",
+    description: "Warm garri eba, turned fresh to the right firmness. A fast, filling staple.",
     price: 500,
     unit: "portion",
     productType: "cooked",
@@ -89,8 +87,7 @@ export default [
   },
   {
     name: "Fufu Powder - Packaged",
-    description:
-      "Dry cassava fufu flour. Just add hot water and knead. Shelf-stable for months.",
+    description: "Dry cassava fufu flour. Just add hot water and knead. Shelf-stable for months.",
     price: 1800,
     unit: "pack",
     productType: "packaged",
@@ -102,8 +99,7 @@ export default [
   },
   {
     name: "Amala Lafun - Packaged",
-    description:
-      "Fine yam flour (lafun) for making amala at home. No lumps, easy to turn.",
+    description: "Fine yam flour (lafun) for making amala at home. No lumps, easy to turn.",
     price: 1400,
     unit: "pack",
     productType: "packaged",
@@ -115,8 +111,7 @@ export default [
   },
   {
     name: "Pounded Yam Powder - Packaged",
-    description:
-      "Instant pounded yam flour with the texture of freshly pounded yam.",
+    description: "Instant pounded yam flour with the texture of freshly pounded yam.",
     price: 2200,
     unit: "pack",
     productType: "packaged",
@@ -128,8 +123,7 @@ export default [
   },
   {
     name: "Semolina - Packaged",
-    description:
-      "Premium semolina for smooth, quick swallows. Cooks in minutes.",
+    description: "Premium semolina for smooth, quick swallows. Cooks in minutes.",
     price: 1500,
     unit: "pack",
     productType: "packaged",
@@ -323,8 +317,7 @@ export default [
   // ---------------------------------------------------------------
   {
     name: "Ground Crayfish",
-    description:
-      "Finely ground smoked crayfish. The backbone of authentic Nigerian soup flavour.",
+    description: "Finely ground smoked crayfish. The backbone of authentic Nigerian soup flavour.",
     price: 1800,
     unit: "pack",
     productType: "packaged",
@@ -362,8 +355,7 @@ export default [
   },
   {
     name: "Ground Pepper (Ose)",
-    description:
-      "Hot dried pepper ground fine. Adjust your own heat level in any dish.",
+    description: "Hot dried pepper ground fine. Adjust your own heat level in any dish.",
     price: 1400,
     unit: "pack",
     productType: "packaged",
@@ -388,8 +380,7 @@ export default [
   },
   {
     name: "Thyme Leaves",
-    description:
-      "Dried whole thyme. Aromatic and versatile for rice, stews and roasts.",
+    description: "Dried whole thyme. Aromatic and versatile for rice, stews and roasts.",
     price: 1100,
     unit: "pack",
     productType: "packaged",
@@ -401,8 +392,7 @@ export default [
   },
   {
     name: "Curry Powder",
-    description:
-      "Mild curry blend suited to Nigerian cooking. Earthy, not overpowering.",
+    description: "Mild curry blend suited to Nigerian cooking. Earthy, not overpowering.",
     price: 1000,
     unit: "pack",
     productType: "packaged",
@@ -414,8 +404,7 @@ export default [
   },
   {
     name: "Salt (Iodized)",
-    description:
-      "Fine iodized cooking salt. Kitchen essential.",
+    description: "Fine iodized cooking salt. Kitchen essential.",
     price: 800,
     unit: "pack",
     productType: "packaged",
@@ -457,8 +446,7 @@ export default [
   },
   {
     name: "Coconut Oil",
-    description:
-      "Pure expeller-pressed coconut oil, food grade. 500ml jar.",
+    description: "Pure expeller-pressed coconut oil, food grade. 500ml jar.",
     price: 13000,
     unit: "500ml",
     productType: "packaged",
@@ -500,8 +488,7 @@ export default [
   },
   {
     name: "Puff Puff - Fresh",
-    description:
-      "Golden, airy fried dough balls cooked to order. Best eaten the same day.",
+    description: "Golden, airy fried dough balls cooked to order. Best eaten the same day.",
     price: 1000,
     unit: "portion",
     productType: "cooked",
@@ -545,8 +532,7 @@ export default [
   },
   {
     name: "Spring Rolls - Fresh",
-    description:
-      "Crisp vegetable and chicken spring rolls, fried to order.",
+    description: "Crisp vegetable and chicken spring rolls, fried to order.",
     price: 900,
     unit: "portion",
     productType: "cooked",
@@ -560,8 +546,7 @@ export default [
   },
   {
     name: "Plantain Chips",
-    description:
-      "Thin-sliced ripe plantain fried and lightly salted. Sealed pack stays crunchy.",
+    description: "Thin-sliced ripe plantain fried and lightly salted. Sealed pack stays crunchy.",
     price: 1500,
     unit: "pack",
     productType: "packaged",
@@ -573,8 +558,7 @@ export default [
   },
   {
     name: "Kuli Kuli",
-    description:
-      "Crunchy groundnut snack, deep-roasted with ginger and pepper. Long shelf life.",
+    description: "Crunchy groundnut snack, deep-roasted with ginger and pepper. Long shelf life.",
     price: 1300,
     unit: "pack",
     productType: "packaged",
@@ -599,8 +583,7 @@ export default [
   },
   {
     name: "Moi Moi - Fresh",
-    description:
-      "Steamed bean pudding with pepper, fish and egg. Soft, savoury and filling.",
+    description: "Steamed bean pudding with pepper, fish and egg. Soft, savoury and filling.",
     price: 950,
     unit: "portion",
     productType: "cooked",
@@ -614,8 +597,7 @@ export default [
   },
   {
     name: "Boli & Groundnut - Fresh",
-    description:
-      "Slow-roasted plantain served with roasted groundnut. Smoky, sweet and salty.",
+    description: "Slow-roasted plantain served with roasted groundnut. Smoky, sweet and salty.",
     price: 1100,
     unit: "portion",
     productType: "cooked",
@@ -646,8 +628,7 @@ export default [
   },
   {
     name: "Kunu Drink",
-    description:
-      "Classic Northern grain drink, smooth and lightly spiced. 500ml bottle.",
+    description: "Classic Northern grain drink, smooth and lightly spiced. 500ml bottle.",
     price: 1400,
     unit: "500ml bottle",
     productType: "packaged",
@@ -672,8 +653,7 @@ export default [
   },
   {
     name: "Fresh Juice - Orange",
-    description:
-      "Freshly pressed orange juice with no added sugar or water. 500ml bottle.",
+    description: "Freshly pressed orange juice with no added sugar or water. 500ml bottle.",
     price: 2000,
     unit: "500ml bottle",
     productType: "packaged",
@@ -685,8 +665,7 @@ export default [
   },
   {
     name: "Fresh Juice - Special Blend (Orange, Pineapple)",
-    description:
-      "Our house blend of orange and pineapple, pressed fresh. 500ml bottle.",
+    description: "Our house blend of orange and pineapple, pressed fresh. 500ml bottle.",
     price: 2500,
     unit: "500ml bottle",
     productType: "packaged",
@@ -715,8 +694,7 @@ export default [
   },
   {
     name: "Kika (Dried Fish)",
-    description:
-      "Sun-dried small fish, clean and well-preserved. Deep umami for soups. 500g pack.",
+    description: "Sun-dried small fish, clean and well-preserved. Deep umami for soups. 500g pack.",
     price: 2500,
     unit: "500g",
     productType: "packaged",
@@ -728,8 +706,7 @@ export default [
   },
   {
     name: "Dried Beef",
-    description:
-      "Air-dried beef strips, trimmed and clean. Long shelf life. 500g pack.",
+    description: "Air-dried beef strips, trimmed and clean. Long shelf life. 500g pack.",
     price: 3000,
     unit: "500g",
     productType: "packaged",
@@ -780,8 +757,7 @@ export default [
   },
   {
     name: "Frozen Mackerel",
-    description:
-      "Whole frozen mackerel (titus), cleaned and graded. Sold by weight.",
+    description: "Whole frozen mackerel (titus), cleaned and graded. Sold by weight.",
     price: 3000,
     unit: "per kg",
     productType: "packaged",
@@ -793,8 +769,7 @@ export default [
   },
   {
     name: "Frozen Beef",
-    description:
-      "Boneless frozen beef cuts, trimmed and portioned. Sold by weight.",
+    description: "Boneless frozen beef cuts, trimmed and portioned. Sold by weight.",
     price: 4500,
     unit: "per kg",
     productType: "packaged",
@@ -806,8 +781,7 @@ export default [
   },
   {
     name: "Frozen Goat Meat",
-    description:
-      "Tender frozen goat meat on the bone, prepared and portioned. Sold by weight.",
+    description: "Tender frozen goat meat on the bone, prepared and portioned. Sold by weight.",
     price: 5000,
     unit: "per kg",
     productType: "packaged",
@@ -819,8 +793,7 @@ export default [
   },
   {
     name: "Frozen Chicken",
-    description:
-      "Whole dressed frozen chicken, cut to your preference. Sold by weight.",
+    description: "Whole dressed frozen chicken, cut to your preference. Sold by weight.",
     price: 4900,
     unit: "per kg",
     productType: "packaged",
@@ -832,8 +805,7 @@ export default [
   },
   {
     name: "Grilled Fish - Fresh",
-    description:
-      "Whole tilapia marinated in-house and charcoal-grilled to order. Served hot.",
+    description: "Whole tilapia marinated in-house and charcoal-grilled to order. Served hot.",
     price: 1500,
     unit: "piece",
     productType: "cooked",

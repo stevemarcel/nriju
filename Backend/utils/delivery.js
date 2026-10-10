@@ -21,7 +21,7 @@ export const DELIVERY_RULES = {
   },
   // frozen (litre/portion cold chain, 3-4 working days): NOT used by the
   // approved 62-SKU catalog — the frozen fish/meat are sold packaged with a
-  // keep-thawed-untill-heating usage note. Define its rule only if we start
+  // keep-thawed-until-heating usage note. Define its rule only if we start
   // seeding true frozen SKUs, so cart rules never silently over-promise.
 };
 
@@ -29,10 +29,7 @@ export const DELIVERY_RULES = {
 export const allowedMethods = (productTypes) =>
   [...new Set(productTypes)]
     .map((t) => DELIVERY_RULES[t]?.methods || ["own", "pickup"]) // unknown type → safest (no third-party)
-    .reduce(
-      (acc, methods) => acc.filter((m) => methods.includes(m)),
-      ALL_METHODS,
-    );
+    .reduce((acc, methods) => acc.filter((m) => methods.includes(m)), ALL_METHODS);
 
 // Cart ETA is dictated by the most perishable item; cooked overrides packaged.
 export const cartEta = (productTypes) => {

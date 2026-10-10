@@ -91,15 +91,21 @@ const verifyPayment = asyncHandler(async (req, res) => {
 
   // Call Paystack verify endpoint
   const verifyRes = await new Promise((resolve, reject) => {
-    https.get(`${PAYSTACK_BASE}/transaction/verify/${encodeURIComponent(reference)}`, {
-      headers: {
-        Authorization: `Bearer ${PAYSTACK_SECRET}`,
-      },
-    }, (resHttps) => {
-      let data = "";
-      resHttps.on("data", (chunk) => (data += chunk));
-      resHttps.on("end", () => resolve(JSON.parse(data)));
-    }).on("error", reject);
+    https
+      .get(
+        `${PAYSTACK_BASE}/transaction/verify/${encodeURIComponent(reference)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${PAYSTACK_SECRET}`,
+          },
+        },
+        (resHttps) => {
+          let data = "";
+          resHttps.on("data", (chunk) => (data += chunk));
+          resHttps.on("end", () => resolve(JSON.parse(data)));
+        },
+      )
+      .on("error", reject);
   });
 
   if (!verifyRes.status) {
@@ -171,8 +177,4 @@ const handleWebhook = asyncHandler(async (req, res) => {
   res.status(200).json({ received: true });
 });
 
-export {
-  initializePayment,
-  verifyPayment,
-  handleWebhook,
-};
+export { initializePayment, verifyPayment, handleWebhook };

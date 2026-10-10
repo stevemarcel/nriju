@@ -54,10 +54,7 @@ const markRead = asyncHandler(async (req, res) => {
 // @ROUTE       PATCH /api/v1/notifications/read-all
 // @ACCESS      Authenticated
 const markAllRead = asyncHandler(async (req, res) => {
-  await Notification.updateMany(
-    { user: req.user._id, read: false },
-    { $set: { read: true } },
-  );
+  await Notification.updateMany({ user: req.user._id, read: false }, { $set: { read: true } });
 
   res.json({ success: true, message: "All notifications marked as read" });
 });
@@ -79,9 +76,4 @@ const createNotification = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, data: notification });
 });
 
-export {
-  getNotifications,
-  markRead,
-  markAllRead,
-  createNotification,
-};
+export { getNotifications, markRead, markAllRead, createNotification };

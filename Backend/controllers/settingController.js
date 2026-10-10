@@ -78,9 +78,4 @@ const updateSettings = asyncHandler(async (req, res) => {
   res.json({ success: true, data: updated });
 });
 
-export {
-  getPublicSettings,
-  getSettings,
-  updateSetting,
-  updateSettings,
-};
+export { getPublicSettings, getSettings, updateSetting, updateSettings };

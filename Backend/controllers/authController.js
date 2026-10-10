@@ -2,11 +2,7 @@ import asyncHandler from "express-async-handler";
 import User from "../models/User.js";
 import EmailVerificationToken from "../models/EmailVerificationToken.js";
 import PasswordResetToken from "../models/PasswordResetToken.js";
-import {
-  generateToken,
-  setAuthCookie,
-  clearAuthCookie,
-} from "../utils/token.js";
+import { generateToken, setAuthCookie, clearAuthCookie } from "../utils/token.js";
 import { generateToken as genSecret } from "../utils/crypto.js";
 import { sendEmail, emailVerificationEmail, passwordResetEmail } from "../services/emailService.js";
 
@@ -103,7 +99,10 @@ const forgotPassword = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
   if (!user) {
     // Don't reveal whether the email exists
-    return res.json({ success: true, message: "If that email exists, a reset link has been sent." });
+    return res.json({
+      success: true,
+      message: "If that email exists, a reset link has been sent.",
+    });
   }
 
   await PasswordResetToken.deleteMany({ user: user._id }); // invalidate old tokens

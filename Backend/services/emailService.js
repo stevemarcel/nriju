@@ -53,4 +53,10 @@ const orderConfirmationEmail = (order, name) => ({
   text: `Order ${order.orderNumber} received. Total: ₦${(order.total / 100).toLocaleString()}`,
 });
 
-export { send, send as sendEmail, emailVerificationEmail, passwordResetEmail, orderConfirmationEmail };
+export {
+  send,
+  send as sendEmail,
+  emailVerificationEmail,
+  passwordResetEmail,
+  orderConfirmationEmail,
+};

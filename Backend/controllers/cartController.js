@@ -96,10 +96,4 @@ const clearCart = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Cart cleared" });
 });
 
-export {
-  getCart,
-  addToCart,
-  updateCartItem,
-  removeCartItem,
-  clearCart,
-};
+export { getCart, addToCart, updateCartItem, removeCartItem, clearCart };

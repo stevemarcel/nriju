@@ -63,7 +63,9 @@ const createOrder = asyncHandler(async (req, res) => {
     let discountKobo = 0;
     let coupon = null;
     if (couponCode) {
-      coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true }).session(session);
+      coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true }).session(
+        session,
+      );
       if (!coupon) {
         throw new Error("Invalid coupon code");
       }
@@ -71,7 +73,9 @@ const createOrder = asyncHandler(async (req, res) => {
         throw new Error("Coupon has expired");
       }
       if (subtotalKobo < coupon.minOrder) {
-        throw new Error(`Minimum order for this coupon is ₦${(coupon.minOrder / 100).toLocaleString()}`);
+        throw new Error(
+          `Minimum order for this coupon is ₦${(coupon.minOrder / 100).toLocaleString()}`,
+        );
       }
       discountKobo = coupon.discountKoboFor(subtotalKobo);
     }
@@ -82,19 +86,24 @@ const createOrder = asyncHandler(async (req, res) => {
     const totalKobo = subtotalKobo - discountKobo + deliveryFeeKobo;
 
     // Create the order
-    const order = await Order.create([{
-      user: req.user._id,
-      items: orderItems,
-      shippingAddress,
-      deliveryMethod,
-      deliveryFee: deliveryFeeKobo,
-      subtotal: subtotalKobo,
-      discount: discountKobo,
-      coupon: coupon?._id,
-      total: totalKobo,
-      paymentMethod,
-      status: "pending",
-    }], { session });
+    const order = await Order.create(
+      [
+        {
+          user: req.user._id,
+          items: orderItems,
+          shippingAddress,
+          deliveryMethod,
+          deliveryFee: deliveryFeeKobo,
+          subtotal: subtotalKobo,
+          discount: discountKobo,
+          coupon: coupon?._id,
+          total: totalKobo,
+          paymentMethod,
+          status: "pending",
+        },
+      ],
+      { session },
+    );
 
     // Deduct stock FIFO
     for (const item of items) {
@@ -182,9 +191,4 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   res.json({ success: true, data: order });
 });
 
-export {
-  createOrder,
-  getMyOrders,
-  getOrderById,
-  updateOrderStatus,
-};
+export { createOrder, getMyOrders, getOrderById, updateOrderStatus };

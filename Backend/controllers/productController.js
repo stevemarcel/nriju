@@ -6,16 +6,7 @@ import { productSummary } from "../utils/format.js";
 // @ROUTE       GET /api/v1/products
 // @ACCESS      Public
 const getProducts = asyncHandler(async (req, res) => {
-  const {
-    category,
-    search,
-    minPrice,
-    maxPrice,
-    type,
-    sort,
-    page = 1,
-    limit = 20,
-  } = req.query;
+  const { category, search, minPrice, maxPrice, type, sort, page = 1, limit = 20 } = req.query;
 
   const query = Product.find({ isActive: true });
   if (category) query.where("category").equals(category);
@@ -62,9 +53,7 @@ const getFeatured = asyncHandler(async (req, res) => {
 // @ROUTE       GET /api/v1/products/:slug
 // @ACCESS      Public
 const getProductBySlug = asyncHandler(async (req, res) => {
-  const product = await Product.findOne({ slug: req.params.slug }).populate(
-    "category",
-  );
+  const product = await Product.findOne({ slug: req.params.slug }).populate("category");
   if (!product || !product.isActive) {
     res.status(404);
     throw new Error("Product not found");
@@ -155,11 +144,4 @@ const deleteProduct = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Product archived" });
 });
 
-export {
-  getProducts,
-  getFeatured,
-  getProductBySlug,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-};
+export { getProducts, getFeatured, getProductBySlug, createProduct, updateProduct, deleteProduct };

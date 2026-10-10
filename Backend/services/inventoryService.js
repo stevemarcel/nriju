@@ -55,9 +55,7 @@ export const deductStockFIFO = async (productId, quantity, session) => {
   }
 
   if (need > 0) {
-    throw new Error(
-      `Insufficient stock — short by ${need}. Product ${productId}`,
-    );
+    throw new Error(`Insufficient stock — short by ${need}. Product ${productId}`);
   }
   return recomputeStock(productId, session);
 };

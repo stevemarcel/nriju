@@ -14,9 +14,7 @@ const getInventory = asyncHandler(async (req, res) => {
   if (isActive !== undefined) query.isActive = isActive === "true";
   if (expiryBefore) query.expiryDate = { $lt: new Date(expiryBefore) };
 
-  const batches = await Inventory.find(query)
-    .populate("product", "name sku")
-    .sort("expiryDate");
+  const batches = await Inventory.find(query).populate("product", "name sku").sort("expiryDate");
 
   res.json({ success: true, data: batches });
 });

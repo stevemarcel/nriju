@@ -110,8 +110,7 @@ const moderateReview = asyncHandler(async (req, res) => {
       product: review.product,
       status: "approved",
     });
-    const avg =
-      reviews.reduce((acc, item) => item.rating + acc, 0) / reviews.length;
+    const avg = reviews.reduce((acc, item) => item.rating + acc, 0) / reviews.length;
 
     await Product.findByIdAndUpdate(review.product, {
       averageRating: avg,
@@ -122,9 +121,4 @@ const moderateReview = asyncHandler(async (req, res) => {
   res.json({ success: true, data: review });
 });
 
-export {
-  getProductReviews,
-  submitReview,
-  updateReview,
-  moderateReview,
-};
+export { getProductReviews, submitReview, updateReview, moderateReview };
