@@ -17,3 +17,7 @@ export const store = configureStore({
       serializableCheck: false,
     }),
 });
+
+// Typed hooks used across the app (Header, CartDrawer, guards, admin pages).
+export const useAppDispatch = () => useDispatch();
+export const useAppSelector = useSelector;
