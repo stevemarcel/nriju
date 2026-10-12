@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
-import ProductCard from "../../components/sections/ProductCard";
+import { ProductCard } from "../../components/sections/ProductCard";
 import { ArrowRight, Truck, Clock, ShieldCheck } from "lucide-react";
 
 const HomePage = () => {
@@ -33,8 +33,8 @@ const HomePage = () => {
             Authentic Taste, Cooked Fresh Daily.
           </h1>
           <p className="text-white/80 text-lg md:text-xl mb-8">
-            From slow-cooked stews and pounded yam to seasoned snacks and chilled drinks —
-            delivered hot to your door or ready for pickup.
+            From slow-cooked stews and pounded yam to seasoned snacks and chilled drinks — delivered
+            hot to your door or ready for pickup.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
@@ -87,7 +87,10 @@ const HomePage = () => {
         <section className="py-12 container mx-auto px-4">
           <div className="flex items-center justify-between mb-6">
             <h2 className="font-heading text-2xl font-bold">Categories</h2>
-            <Link to="/shop" className="text-primary hover:underline text-sm font-medium flex items-center gap-1">
+            <Link
+              to="/shop"
+              className="text-primary hover:underline text-sm font-medium flex items-center gap-1"
+            >
               View all <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -119,7 +122,10 @@ const HomePage = () => {
                 <h2 className="font-heading text-2xl font-bold">Popular Dishes</h2>
                 <p className="text-text-muted text-sm">Customer favorites, cooked to perfection</p>
               </div>
-              <Link to="/shop" className="text-primary hover:underline text-sm font-medium flex items-center gap-1">
+              <Link
+                to="/shop"
+                className="text-primary hover:underline text-sm font-medium flex items-center gap-1"
+              >
                 View all <ArrowRight className="w-4 h-4" />
               </Link>
             </div>

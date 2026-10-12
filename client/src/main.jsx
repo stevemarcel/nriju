@@ -9,7 +9,7 @@ import { Toaster } from "sonner";
 
 import { store } from "./store/store";
 import { queryClient } from "./services/queryClient";
-import App from "./App";
+import { App } from "./App";
 
 import "@fontsource-variable/manrope";
 import "@fontsource-variable/bricolage-grotesque";

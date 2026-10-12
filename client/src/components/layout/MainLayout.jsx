@@ -1,8 +1,8 @@
 import { Outlet } from "react-router-dom";
-import Header from "./Header";
-import Footer from "./Footer";
-import MobileTabBar from "./MobileTabBar";
-import CartDrawer from "../shared/CartDrawer";
+import { Header } from "./Header";
+import { Footer } from "./Footer";
+import { MobileTabBar } from "./MobileTabBar";
+import { CartDrawer } from "../shared/CartDrawer";
 
 const MainLayout = () => {
   return (
