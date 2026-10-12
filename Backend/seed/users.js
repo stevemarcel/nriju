@@ -4,7 +4,7 @@ export default [
   {
     name: "Nriju Super Admin",
     email: "just.stevemarcel@gmail.com",
-    password: "Admin@123",
+    password: "", // Leave password empty for security reasons; set it manually in production.
     role: "superAdmin",
     isVerified: true,
     phone: "+2348012345678",
@@ -12,7 +12,7 @@ export default [
   {
     name: "Store Manager",
     email: "npmruntesting@gmail.com",
-    password: "Manager@123",
+    password: "", // Leave password empty for security reasons; set it manually in production.
     role: "admin",
     isVerified: true,
     phone: "+2348023456789",
@@ -20,7 +20,7 @@ export default [
   {
     name: "New Horizon",
     email: "graphicsnewhorizon@gmail.com",
-    password: "Customer@123",
+    password: "", // Leave password empty for security reasons; set it manually in production.
     role: "customer",
     isVerified: true,
     phone: "+2348034567890",
@@ -28,7 +28,7 @@ export default [
   {
     name: "Steve Svile",
     email: "stevesvile@gmail.com",
-    password: "Test@123",
+    password: "", // Leave password empty for security reasons; set it manually in production.
     role: "customer",
     isVerified: true,
     phone: "+2348045678901",
@@ -36,7 +36,7 @@ export default [
   {
     name: "Shark Colours",
     email: "just.shark.24.7@gmail.com",
-    password: "Demo@123",
+    password: "", // Leave password empty for security reasons; set it manually in production.
     role: "customer",
     isVerified: true,
     phone: "+2348056789012",
