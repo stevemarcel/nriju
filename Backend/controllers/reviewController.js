@@ -121,4 +121,32 @@ const moderateReview = asyncHandler(async (req, res) => {
   res.json({ success: true, data: review });
 });
 
-export { getProductReviews, submitReview, updateReview, moderateReview };
+// @DESCRIPTION List every review across the catalogue (admin), with
+// product/user populated so the moderation queue is readable at a glance.
+// @ROUTE       GET /api/v1/reviews/all
+// @ACCESS      Admin
+const getAllReviews = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 20, status } = req.query;
+
+  const query = {};
+  if (status) query.status = status;
+
+  const skip = (Number(page) - 1) * Number(limit);
+  const [reviews, total] = await Promise.all([
+    Review.find(query)
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(Number(limit))
+      .populate("user", "name email")
+      .populate("product", "name slug"),
+    Review.countDocuments(query),
+  ]);
+
+  res.json({
+    success: true,
+    data: reviews,
+    meta: { page: Number(page), limit: Number(limit), total },
+  });
+});
+
+export { getProductReviews, submitReview, updateReview, moderateReview, getAllReviews };

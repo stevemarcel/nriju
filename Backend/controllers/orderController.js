@@ -191,4 +191,37 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   res.json({ success: true, data: order });
 });
 
-export { createOrder, getMyOrders, getOrderById, updateOrderStatus };
+// @DESCRIPTION List every order (admin). Distinct from getMyOrders, which
+// is scoped to the caller — admins need the full picture for fulfilment.
+// @ROUTE       GET /api/v1/orders/all
+// @ACCESS      Admin
+const getAllOrders = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 20, status, search } = req.query;
+
+  const query = {};
+  if (status) query.status = status;
+  if (search) {
+    query.$or = [
+      { orderNumber: new RegExp(search, "i") },
+      { "shippingAddress.name": new RegExp(search, "i") },
+    ];
+  }
+
+  const orders = await Order.find(query)
+    .sort("-createdAt")
+    .skip((Number(page) - 1) * Number(limit))
+    .limit(Number(limit))
+    .populate("user", "name email")
+    .populate("items.product", "name images")
+    .populate("coupon", "code");
+
+  const total = await Order.countDocuments(query);
+
+  res.json({
+    success: true,
+    data: orders,
+    meta: { page: Number(page), limit: Number(limit), total },
+  });
+});
+
+export { createOrder, getMyOrders, getOrderById, updateOrderStatus, getAllOrders };

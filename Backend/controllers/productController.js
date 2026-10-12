@@ -130,6 +130,30 @@ const updateProduct = asyncHandler(async (req, res) => {
   res.json({ success: true, data: productSummary(product) });
 });
 
+// @DESCRIPTION List every product, including archived ones (admin). The
+// public listing filters out inactive products; admins need to see them.
+// @ROUTE       GET /api/v1/products/all
+// @ACCESS      Admin
+const getAllProducts = asyncHandler(async (req, res) => {
+  const { page = 1, limit = 20, search, isActive } = req.query;
+
+  const query = {};
+  if (isActive !== undefined) query.isActive = isActive === "true";
+  if (search) query.$or = [{ name: new RegExp(search, "i") }, { tags: new RegExp(search, "i") }];
+
+  const skip = (Number(page) - 1) * Number(limit);
+  const [products, total] = await Promise.all([
+    Product.find(query).sort("-createdAt").skip(skip).limit(Number(limit)).populate("category"),
+    Product.countDocuments(query),
+  ]);
+
+  res.json({
+    success: true,
+    data: products.map(productSummary),
+    meta: { page: Number(page), limit: Number(limit), total },
+  });
+});
+
 // @DESCRIPTION Soft-delete a product (admin)
 // @ROUTE       DELETE /api/v1/products/:id
 // @ACCESS      Admin
@@ -144,4 +168,12 @@ const deleteProduct = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Product archived" });
 });
 
-export { getProducts, getFeatured, getProductBySlug, createProduct, updateProduct, deleteProduct };
+export {
+  getProducts,
+  getFeatured,
+  getProductBySlug,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getAllProducts,
+};

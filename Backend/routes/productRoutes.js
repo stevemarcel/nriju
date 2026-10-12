@@ -6,6 +6,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  getAllProducts,
 } from "../controllers/productController.js";
 import { admin } from "../middleware/auth.js";
 
@@ -13,6 +14,8 @@ const router = Router();
 
 router.get("/", getProducts);
 router.get("/featured", getFeatured);
+// NOTE: /all must sit above /:slug — otherwise Express treats "all" as a slug.
+router.get("/all", admin, getAllProducts);
 router.get("/:slug", getProductBySlug);
 router.post("/", admin, createProduct);
 router.put("/:id", admin, updateProduct);
