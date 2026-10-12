@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import api from "../services/api";
+import api from "../../services/api";
 import { CheckCircle, ShoppingBag, MapPin, Truck, Calendar, FileText } from "lucide-react";
 
 const CheckoutSuccessPage = () => {
