@@ -25,6 +25,7 @@ const DeliveryPage = lazy(() => import("./pages/public/DeliveryPage"));
 const ReturnsPage = lazy(() => import("./pages/public/ReturnsPage"));
 const PrivacyPage = lazy(() => import("./pages/public/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/public/TermsPage"));
+const CheckoutSuccessPage = lazy(() => import("./pages/public/CheckoutSuccessPage"));
 
 const AccountDashboard = lazy(() => import("./pages/account/AccountDashboard"));
 const AccountOrders = lazy(() => import("./pages/account/AccountOrders"));
@@ -87,6 +88,7 @@ const App = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
 
           {/* ── Account area (authenticated) ────────────────────── */}
           <Route
