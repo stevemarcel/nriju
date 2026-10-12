@@ -1,14 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "./store/store";
 import { fetchMe, clearAuth } from "./slices/authSlice";
 import { MainLayout } from "./components/layout/MainLayout";
 import { ProtectedRoute } from "./components/guards/ProtectedRoute";
 import { AdminRoute } from "./components/guards/AdminRoute";
+import { AdminLayout } from "./components/layout/AdminLayout";
 import { ErrorBoundary } from "./components/layout/ErrorBoundary";
 
 // Lazy-load route chunks so the initial bundle stays small.
-import { lazy } from "react";
 const HomePage = lazy(() => import("./pages/public/HomePage"));
 const ShopPage = lazy(() => import("./pages/public/ShopPage"));
 const ProductDetailPage = lazy(() => import("./pages/public/ProductDetailPage"));
@@ -17,7 +17,6 @@ const LoginPage = lazy(() => import("./pages/public/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/public/RegisterPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/public/ForgotPasswordPage"));
 const ResetPasswordPage = lazy(() => import("./pages/public/ResetPasswordPage"));
-const CheckoutPage = lazy(() => import("./pages/public/CheckoutPage"));
 
 const AboutPage = lazy(() => import("./pages/public/AboutPage"));
 const ContactPage = lazy(() => import("./pages/public/ContactPage"));
@@ -66,130 +65,75 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <Routes>
-        {/* ── Public storefront ──────────────────────────────── */}
-        <Route element={<MainLayout />}>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/shop" element={<ShopPage />} />
-          <Route path="/product/:slug" element={<ProductDetailPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/faq" element={<FAQPage />} />
-          <Route path="/delivery" element={<DeliveryPage />} />
-          <Route path="/returns" element={<ReturnsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-        </Route>
+      <Suspense fallback={<div className="min-h-screen bg-background" />}>
+        <Routes>
+          {/* ── Public storefront ──────────────────────────────── */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/shop" element={<ShopPage />} />
+            <Route path="/product/:slug" element={<ProductDetailPage />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/delivery" element={<DeliveryPage />} />
+            <Route path="/returns" element={<ReturnsPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
+          </Route>
 
-        {/* ── Auth pages (own layout, no sticky nav) ──────────── */}
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
+          {/* ── Auth pages (own layout, no sticky nav) ──────────── */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-        {/* ── Checkout (authenticated) ────────────────────────── */}
-        <Route
-          path="/checkout"
-          element={
-            <ProtectedRoute>
-              <CheckoutPage />
-            </ProtectedRoute>
-          }
-        />
+          {/* ── Account area (authenticated) ────────────────────── */}
+          <Route
+            path="/account"
+            element={
+              <ProtectedRoute>
+                <AccountDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/orders"
+            element={
+              <ProtectedRoute>
+                <AccountOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/profile"
+            element={
+              <ProtectedRoute>
+                <AccountProfile />
+              </ProtectedRoute>
+            }
+          />
 
-        {/* ── Account area (authenticated) ────────────────────── */}
-        <Route
-          path="/account"
-          element={
-            <ProtectedRoute>
-              <AccountDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/account/orders"
-          element={
-            <ProtectedRoute>
-              <AccountOrders />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/account/profile"
-          element={
-            <ProtectedRoute>
-              <AccountProfile />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* ── Admin area ──────────────────────────────────────── */}
-        <Route
-          path="/admin"
-          element={
-            <AdminRoute>
-              <AdminDashboard />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/products"
-          element={
-            <AdminRoute>
-              <AdminProducts />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/orders"
-          element={
-            <AdminRoute>
-              <AdminOrders />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/customers"
-          element={
-            <AdminRoute>
-              <AdminCustomers />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <AdminRoute>
-              <AdminUsers />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/reviews"
-          element={
-            <AdminRoute>
-              <AdminReviews />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/coupons"
-          element={
-            <AdminRoute>
-              <AdminCoupons />
-            </AdminRoute>
-          }
-        />
-        <Route
-          path="/admin/settings"
-          element={
-            <AdminRoute>
-              <AdminSettings />
-            </AdminRoute>
-          }
-        />
-      </Routes>
+          {/* ── Admin area ──────────────────────────────────────── */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="products" element={<AdminProducts />} />
+            <Route path="orders" element={<AdminOrders />} />
+            <Route path="customers" element={<AdminCustomers />} />
+            <Route path="users" element={<AdminUsers />} />
+            <Route path="reviews" element={<AdminReviews />} />
+            <Route path="coupons" element={<AdminCoupons />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </ErrorBoundary>
   );
 };

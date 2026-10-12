@@ -21,3 +21,5 @@ export const store = configureStore({
 // Typed hooks used across the app (Header, CartDrawer, guards, admin pages).
 export const useAppDispatch = () => useDispatch();
 export const useAppSelector = useSelector;
+
+export default store;
