@@ -10,9 +10,7 @@
     "server": "nodemon Backend/server.js",
     "client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "seed": "node Backend/seed/runSeed.js",
-    "test": "vitest run --config Backend/vitest.config.js",
-    "test:watch": "vitest --config Backend/vitest.config.js"
+    "seed": "node Backend/seed/runSeed.js"
   },
   "keywords": [],
   "author": "",
