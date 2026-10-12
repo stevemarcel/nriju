@@ -1,4 +1,5 @@
 import { configureStore } from "@reduxjs/toolkit";
+import { useDispatch, useSelector } from "react-redux";
 import authReducer from "../slices/authSlice";
 import cartReducer from "../slices/cartSlice";
 import wishlistReducer from "../slices/wishlistSlice";
