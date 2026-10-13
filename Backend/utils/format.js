@@ -18,7 +18,9 @@ export const productSummary = (product) => ({
   unit: product.unit,
   productType: product.productType,
   stock: product.stock,
-  category: product.category?._id ?? product.category,
+  // Preserve the populated category object (name/slug) rather than
+  // collapsing it to its _id — the storefront renders category.name.
+  category: product.category?._id ? product.category : product.category,
   region: product.region,
   images: product.images,
   tags: product.tags,

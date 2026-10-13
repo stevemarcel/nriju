@@ -18,7 +18,12 @@ const MobileTabBar = () => {
     { to: "/", label: "Home", icon: Home },
     { to: "/shop", label: "Shop", icon: Search },
     { to: "/cart", label: "Cart", icon: ShoppingBag, badge: cartCount },
-    { to: "/account", label: "Wishlist", icon: Heart, badge: wishlistCount },
+    {
+      to: user ? "/account/wishlist" : "/login",
+      label: "Wishlist",
+      icon: Heart,
+      badge: wishlistCount,
+    },
     { to: user ? "/account" : "/login", label: "Account", icon: User },
   ];
 

@@ -31,6 +31,7 @@ const AccountDashboard = lazy(() => import("./pages/account/AccountDashboard"));
 const AccountOrders = lazy(() => import("./pages/account/AccountOrders"));
 const AccountProfile = lazy(() => import("./pages/account/AccountProfile"));
 const ChangePassword = lazy(() => import("./pages/account/ChangePassword"));
+const WishlistPage = lazy(() => import("./pages/account/WishlistPage"));
 
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
@@ -122,6 +123,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <ChangePassword />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/wishlist"
+            element={
+              <ProtectedRoute>
+                <WishlistPage />
               </ProtectedRoute>
             }
           />

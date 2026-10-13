@@ -8,13 +8,12 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center mb-4">
               <img
                 src="/assets/logos/nriju-logo-light.png"
                 alt="Nriju"
                 className="w-9 h-9 object-contain"
               />
-              <span className="font-heading text-xl font-bold">Nriju</span>
             </div>
             <p className="text-white/60 text-sm">
               Fresh Nigerian meals, soups, swallows, proteins and snacks - delivered or ready for

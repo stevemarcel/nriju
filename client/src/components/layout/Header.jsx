@@ -50,13 +50,12 @@ const Header = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center">
             <img
               src="/assets/logos/nriju-logo-full-colour.png"
               alt="Nriju"
               className="w-9 h-9 object-contain"
             />
-            <span className="font-heading text-xl font-bold text-text">Nriju</span>
           </Link>
 
           {/* Desktop Nav */}

@@ -16,6 +16,7 @@ import {
   CreditCard,
   ExternalLink,
   Shield,
+  Star,
 } from "lucide-react";
 import { formatNaira } from "../../utils/formatMoney";
 
@@ -54,22 +55,22 @@ const AccountDashboard = () => {
     <div className="min-h-screen bg-background-soft">
       {/* Top breadcrumb bar */}
       <div className="bg-surface border-b border-border-soft">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="container mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             <Link
               to="/"
-              className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
+              className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors whitespace-nowrap"
             >
               <ArrowLeft className="w-4 h-4" />
               <span className="text-sm font-medium">Back to Store</span>
             </Link>
-            <span className="text-text-muted text-sm">/</span>
-            <span className="text-sm text-text-muted">Account</span>
+            <span className="text-text-muted text-sm hidden sm:inline">/</span>
+            <span className="text-sm text-text-muted hidden sm:inline">Account</span>
           </div>
           {isAdmin && (
             <Link
               to="/admin"
-              className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 text-primary text-xs font-bold rounded-lg border border-primary/10 hover:bg-primary/10 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 text-primary text-xs font-bold rounded-lg border border-primary/10 hover:bg-primary/10 transition-colors whitespace-nowrap"
             >
               <Shield className="w-3.5 h-3.5" />
               ADMIN DASHBOARD
@@ -97,7 +98,11 @@ const AccountDashboard = () => {
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-3xl bg-primary/5 flex items-center justify-center mb-6 ring-4 ring-background-soft group-hover:ring-primary/10 transition-all overflow-hidden">
                     {user?.avatar ? (
-                      <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                      <img
+                        src={user.avatar}
+                        alt={user.name}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <span className="font-heading text-4xl font-bold text-primary/30">
                         {user?.name?.charAt(0)?.toUpperCase() || "U"}
@@ -156,6 +161,23 @@ const AccountDashboard = () => {
                       <span className="text-sm font-semibold text-text">My Orders</span>
                     </div>
                     <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors" />
+                  </Link>
+                  <Link
+                    to="/account/wishlist"
+                    className="flex items-center justify-between w-full px-5 py-4 bg-background-soft rounded-xl hover:bg-primary/5 transition-colors group"
+                  >
+                    <div className="flex items-center gap-3">
+                      <Heart className="w-5 h-5 text-primary" />
+                      <span className="text-sm font-semibold text-text">Wish List</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {wishlistItems.length > 0 && (
+                        <span className="w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                          {wishlistItems.length}
+                        </span>
+                      )}
+                      <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors" />
+                    </div>
                   </Link>
                   <Link
                     to="/account/profile"
@@ -258,7 +280,9 @@ const AccountDashboard = () => {
                       <div className="text-sm font-semibold text-text">
                         {defaultAddress.line1}
                         {defaultAddress.line2 && (
-                          <span className="block text-text-muted mt-0.5">{defaultAddress.line2}</span>
+                          <span className="block text-text-muted mt-0.5">
+                            {defaultAddress.line2}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -273,7 +297,9 @@ const AccountDashboard = () => {
                         <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
                           State
                         </div>
-                        <div className="text-sm font-semibold text-text">{defaultAddress.state}</div>
+                        <div className="text-sm font-semibold text-text">
+                          {defaultAddress.state}
+                        </div>
                       </div>
                     </div>
                     <div>
@@ -363,7 +389,7 @@ const AccountDashboard = () => {
         </div>
 
         {/* BOTTOM: Wish List - Full Width */}
-        <div className="bg-surface rounded-2xl border border-border-soft p-8">
+        <div className="hidden md:block bg-surface rounded-2xl border border-border-soft p-8">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/5 rounded-lg">
