@@ -148,4 +148,4 @@ const AdminSettings = () => {
   );
 };
 
-export { AdminSettings };
+export default AdminSettings;

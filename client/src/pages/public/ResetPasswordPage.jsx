@@ -135,4 +135,4 @@ const ResetPasswordPage = () => {
   );
 };
 
-export { ResetPasswordPage };
+export default ResetPasswordPage;

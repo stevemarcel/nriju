@@ -149,4 +149,4 @@ const AdminReviews = () => {
   );
 };
 
-export { AdminReviews };
+export default AdminReviews;

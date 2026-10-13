@@ -129,4 +129,4 @@ const AccountProfile = () => {
   );
 };
 
-export { AccountProfile };
+export default AccountProfile;

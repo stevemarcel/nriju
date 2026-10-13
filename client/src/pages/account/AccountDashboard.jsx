@@ -119,4 +119,4 @@ const AccountDashboard = () => {
   );
 };
 
-export { AccountDashboard };
+export default AccountDashboard;

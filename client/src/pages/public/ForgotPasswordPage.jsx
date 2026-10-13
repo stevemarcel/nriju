@@ -94,4 +94,4 @@ const ForgotPasswordPage = () => {
   );
 };
 
-export { ForgotPasswordPage };
+export default ForgotPasswordPage;

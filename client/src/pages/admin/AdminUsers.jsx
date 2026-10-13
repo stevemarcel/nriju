@@ -194,4 +194,4 @@ const AdminUsers = () => {
   );
 };
 
-export { AdminUsers };
+export default AdminUsers;

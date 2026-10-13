@@ -120,4 +120,4 @@ const AdminCustomers = () => {
   );
 };
 
-export { AdminCustomers };
+export default AdminCustomers;

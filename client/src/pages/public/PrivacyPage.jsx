@@ -134,4 +134,4 @@ const PrivacyPage = () => {
   );
 };
 
-export { PrivacyPage };
+export default PrivacyPage;

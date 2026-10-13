@@ -136,4 +136,4 @@ const DeliveryPage = () => {
   );
 };
 
-export { DeliveryPage };
+export default DeliveryPage;

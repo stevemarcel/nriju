@@ -165,4 +165,4 @@ const CheckoutSuccessPage = () => {
   );
 };
 
-export { CheckoutSuccessPage };
+export default CheckoutSuccessPage;

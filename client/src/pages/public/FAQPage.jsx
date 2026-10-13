@@ -102,4 +102,4 @@ const FAQPage = () => {
   );
 };
 
-export { FAQPage };
+export default FAQPage;

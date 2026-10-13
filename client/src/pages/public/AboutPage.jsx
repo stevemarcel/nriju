@@ -14,8 +14,8 @@ const AboutPage = () => {
             Bringing Lagos to Your Table
           </h1>
           <p className="text-white/80 text-lg">
-            Nriju started with one pot and a simple idea: Nigerian food should taste
-            like it came from a home kitchen, not a factory.
+            Nriju started with one pot and a simple idea: Nigerian food should taste like it came
+            from a home kitchen, not a factory.
           </p>
         </div>
       </section>
@@ -24,16 +24,18 @@ const AboutPage = () => {
       <section className="py-16 container mx-auto px-4">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div>
-            <h2 className="font-heading text-3xl font-bold mb-4">Cooked with care, delivered with pride</h2>
+            <h2 className="font-heading text-3xl font-bold mb-4">
+              Cooked with care, delivered with pride
+            </h2>
             <p className="text-text-muted leading-relaxed mb-4">
-              Every dish is prepped the same day it goes out. Our stews simmer for hours,
-              our swallows are pounded fresh, and our soups are made from recipes passed
-              down through generations — not a packet in sight.
+              Every dish is prepped the same day it goes out. Our stews simmer for hours, our
+              swallows are pounded fresh, and our soups are made from recipes passed down through
+              generations — not a packet in sight.
             </p>
             <p className="text-text-muted leading-relaxed">
-              We source our ingredients locally wherever we can, and we partner with
-              small producers across Lagos and beyond. When you order from Nriju, you're
-              supporting real cooks and real families.
+              We source our ingredients locally wherever we can, and we partner with small producers
+              across Lagos and beyond. When you order from Nriju, you're supporting real cooks and
+              real families.
             </p>
           </div>
           <div className="aspect-square bg-surface rounded-2xl border border-border flex items-center justify-center text-8xl">
@@ -106,4 +108,4 @@ const AboutPage = () => {
   );
 };
 
-export { AboutPage };
+export default AboutPage;

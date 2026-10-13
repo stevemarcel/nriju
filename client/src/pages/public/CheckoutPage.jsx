@@ -523,7 +523,7 @@ const OrderSummary = ({
       <div className="space-y-2 text-sm mb-4">
         {items.map((i) => (
           <div key={i.product} className="flex justify-between">
-            <span className="text-text-muted truncate max-w-[180px]">
+            <span className="text-text-muted truncate max-w-45">
               {i.name} × {i.quantity}
             </span>
             <span className="font-medium text-text">{formatNaira(i.price * i.quantity)}</span>
@@ -572,4 +572,4 @@ const OrderSummary = ({
   );
 };
 
-export { CheckoutPage };
+export default CheckoutPage;

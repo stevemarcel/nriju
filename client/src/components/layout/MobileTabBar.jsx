@@ -52,4 +52,4 @@ const MobileTabBar = () => {
   );
 };
 
-export { MobileTabBar };
+export default MobileTabBar;

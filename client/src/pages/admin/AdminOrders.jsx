@@ -292,4 +292,4 @@ const OrderDetailModal = ({ order, statusMap, statusOptions, onClose, onUpdated 
   );
 };
 
-export { AdminOrders };
+export default AdminOrders;

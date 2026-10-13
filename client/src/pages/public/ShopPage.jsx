@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
-import { ProductCard } from "../../components/sections/ProductCard";
+import ProductCard from "../../components/sections/ProductCard";
 import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
 
 const ShopPage = () => {
@@ -221,4 +221,4 @@ const ShopPage = () => {
   );
 };
 
-export { ShopPage };
+export default ShopPage;

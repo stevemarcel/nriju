@@ -142,4 +142,4 @@ const TermsPage = () => {
   );
 };
 
-export { TermsPage };
+export default TermsPage;

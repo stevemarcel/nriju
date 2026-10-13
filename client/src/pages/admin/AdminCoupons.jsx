@@ -338,4 +338,4 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
   );
 };
 
-export { AdminCoupons };
+export default AdminCoupons;

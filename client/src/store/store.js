@@ -19,7 +19,11 @@ export const store = configureStore({
 });
 
 // Typed hooks used across the app (Header, CartDrawer, guards, admin pages).
-export const useAppDispatch = () => useDispatch();
+// NOTE: useAppDispatch must be the hook itself (not a wrapper) so it returns
+// the stable dispatch reference react-redux provides. Wrapping it in an
+// arrow would create a new function every render, which breaks effects that
+// depend on dispatch (e.g. App's fetchMe bootstrap) and causes render loops.
+export const useAppDispatch = useDispatch;
 export const useAppSelector = useSelector;
 
 export default store;

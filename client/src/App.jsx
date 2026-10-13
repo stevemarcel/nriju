@@ -1,12 +1,12 @@
 import { useEffect, lazy, Suspense } from "react";
-import { Routes, Route, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "./store/store";
 import { fetchMe, clearAuth } from "./slices/authSlice";
-import { MainLayout } from "./components/layout/MainLayout";
-import { ProtectedRoute } from "./components/guards/ProtectedRoute";
-import { AdminRoute } from "./components/guards/AdminRoute";
-import { AdminLayout } from "./components/layout/AdminLayout";
-import { ErrorBoundary } from "./components/layout/ErrorBoundary";
+import MainLayout from "./components/layout/MainLayout";
+import ProtectedRoute from "./components/guards/ProtectedRoute";
+import AdminRoute from "./components/guards/AdminRoute";
+import AdminLayout from "./components/layout/AdminLayout";
+import ErrorBoundary from "./components/layout/ErrorBoundary";
 
 // Lazy-load route chunks so the initial bundle stays small.
 const HomePage = lazy(() => import("./pages/public/HomePage"));
@@ -43,6 +43,7 @@ const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
 const App = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Bootstrap the session on first load — rehydrate user from the JWT cookie.
   useEffect(() => {
@@ -53,11 +54,11 @@ const App = () => {
   useEffect(() => {
     const onUnauthorized = () => {
       dispatch(clearAuth());
-      window.location.href = "/login";
+      navigate("/login", { state: { from: location } });
     };
     window.addEventListener("auth:unauthorized", onUnauthorized);
     return () => window.removeEventListener("auth:unauthorized", onUnauthorized);
-  }, [dispatch]);
+  }, [dispatch, navigate, location]);
 
   // Scroll to top on every route change.
   useEffect(() => {

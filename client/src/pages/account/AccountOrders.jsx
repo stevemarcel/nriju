@@ -150,4 +150,4 @@ const AccountOrders = () => {
   );
 };
 
-export { AccountOrders };
+export default AccountOrders;

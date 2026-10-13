@@ -10,7 +10,7 @@ import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import "./config/passport.js";
 import { notFound, errorHandler } from "./middleware/error.js";
-import { authLimiter, apiLimiter } from "./middleware/rateLimit.js";
+import { apiLimiter } from "./middleware/rateLimit.js";
 import activityLog from "./middleware/activityLog.js";
 
 // Routes
@@ -42,8 +42,10 @@ app.use(activityLog);
 // Passport for Google OAuth
 app.use(passport.initialize());
 
-// API rate limiting
-app.use("/api/v1/auth", authLimiter);
+// API rate limiting. Auth endpoints are limited per-route inside
+// authRoutes.js (login/register/forgot-password only) — NOT at the
+// router level, otherwise GET /auth/me (called on every app mount to
+// rehydrate the session) would trip the limit and lock out users.
 app.use("/api/v1", apiLimiter);
 
 // API Routes

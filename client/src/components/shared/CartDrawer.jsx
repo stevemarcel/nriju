@@ -139,4 +139,4 @@ const CartDrawer = () => {
   );
 };
 
-export { CartDrawer };
+export default CartDrawer;

@@ -426,7 +426,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 }
                 rows={2}
                 placeholder="https://..."
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm resize-y font-mono text-xs"
+                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm resize-y font-mono"
               />
             </div>
 
@@ -493,4 +493,4 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
   );
 };
 
-export { AdminProducts };
+export default AdminProducts;

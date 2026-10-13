@@ -96,4 +96,4 @@ const ReturnsPage = () => {
   );
 };
 
-export { ReturnsPage };
+export default ReturnsPage;
