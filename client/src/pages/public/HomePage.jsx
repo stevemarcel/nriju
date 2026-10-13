@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
-import { ProductCard } from "../../components/sections/ProductCard";
+import ProductCard from "../../components/sections/ProductCard";
 import { ArrowRight, Truck, Clock, ShieldCheck } from "lucide-react";
 
 const HomePage = () => {

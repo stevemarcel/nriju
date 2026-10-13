@@ -88,7 +88,7 @@ const FAQPage = () => {
         <div className="mt-12 text-center bg-surface rounded-2xl border border-border p-8">
           <h3 className="font-heading text-xl font-bold mb-2">Still have a question?</h3>
           <p className="text-text-muted text-sm mb-6">
-            Our team is here to help — drop us a line anytime.
+            Our team is here to help - drop us a line anytime.
           </p>
           <a
             href="mailto:orders@nriju.com"

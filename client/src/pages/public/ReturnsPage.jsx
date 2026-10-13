@@ -32,7 +32,7 @@ const ReturnsPage = () => {
             {
               icon: RefreshCw,
               title: "Freshness Guarantee",
-              desc: "Cold, wrong, or incomplete orders are remade or refunded — no questions.",
+              desc: "Cold, wrong, or incomplete orders are remade or refunded - no questions.",
             },
             {
               icon: CheckCircle,

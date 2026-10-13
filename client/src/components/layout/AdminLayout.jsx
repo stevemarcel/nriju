@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { clearAuth } from "../../slices/authSlice";
+import api from "../../services/api";
 import {
   LayoutDashboard,
   Package,
@@ -34,7 +35,10 @@ const AdminLayout = () => {
   const { user } = useAppSelector((s) => s.auth);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch {}
     dispatch(clearAuth());
     navigate("/login");
   };

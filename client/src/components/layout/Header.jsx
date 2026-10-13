@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { toggleCartDrawer, setMobileMenu } from "../../slices/uiSlice";
 import { clearAuth } from "../../slices/authSlice";
+import api from "../../services/api";
 import { ShoppingBag, User, Menu, X } from "lucide-react";
 
 const Header = () => {
@@ -13,7 +14,10 @@ const Header = () => {
 
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch {}
     dispatch(clearAuth());
     window.location.href = "/login";
   };

@@ -15,7 +15,7 @@ const Footer = () => {
               <span className="font-heading text-xl font-bold">Nriju</span>
             </div>
             <p className="text-white/60 text-sm">
-              Fresh Nigerian meals, soups, swallows, proteins and snacks — delivered or ready for
+              Fresh Nigerian meals, soups, swallows, proteins and snacks - delivered or ready for
               pickup.
             </p>
           </div>

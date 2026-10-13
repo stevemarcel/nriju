@@ -35,7 +35,7 @@ const DeliveryPage = () => {
             {
               icon: Truck,
               title: "Own Fleet",
-              desc: "Our own drivers handle cooked orders — same day, hot to your door.",
+              desc: "Our own drivers handle cooked orders - same day, hot to your door.",
             },
             {
               icon: Package,
