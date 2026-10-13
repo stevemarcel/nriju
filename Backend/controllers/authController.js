@@ -183,6 +183,73 @@ const getMe = asyncHandler(async (req, res) => {
   res.json({ success: true, data: user });
 });
 
+// @DESCRIPTION Add a new shipping address
+// @ROUTE       POST /api/v1/auth/me/addresses
+// @ACCESS      Authenticated
+const addAddress = asyncHandler(async (req, res) => {
+  const { label, name, phone, line1, line2, city, state, isDefault } = req.body;
+  const user = await User.findById(req.user._id);
+
+  if (isDefault && user.addresses) {
+    user.addresses.forEach((a) => (a.isDefault = false));
+  }
+
+  const newAddress = {
+    label: label || "home",
+    name: name || user.name,
+    phone: phone || user.phone,
+    line1,
+    line2: line2 || "",
+    city,
+    state,
+    isDefault: isDefault || false,
+  };
+
+  if (!user.addresses) user.addresses = [];
+  user.addresses.push(newAddress);
+  await user.save();
+
+  res.status(201).json({ success: true, data: user });
+});
+
+// @DESCRIPTION Update user profile
+// @ROUTE       PUT /api/v1/auth/me
+// @ACCESS      Authenticated
+const updateMe = asyncHandler(async (req, res) => {
+  const { name, email, phone } = req.body;
+  const user = await User.findById(req.user._id);
+
+  if (name) user.name = name;
+  if (email) user.email = email;
+  if (phone) user.phone = phone;
+
+  await user.save();
+
+  res.json({ success: true, data: user });
+});
+
+// @DESCRIPTION Remove a shipping address
+// @ROUTE       DELETE /api/v1/auth/me/addresses/:addressId
+// @ACCESS      Authenticated
+const deleteAddress = asyncHandler(async (req, res) => {
+  const { addressId } = req.params;
+  const user = await User.findById(req.user._id);
+
+  if (!user.addresses)
+    return res.status(404).json({ success: false, message: "No addresses found" });
+
+  const index = user.addresses.findIndex((a) => a._id.toString() === addressId);
+  if (index === -1) {
+    res.status(404);
+    throw new Error("Address not found");
+  }
+
+  user.addresses.splice(index, 1);
+  await user.save();
+
+  res.json({ success: true, data: user });
+});
+
 export {
   register,
   login,
@@ -193,4 +260,7 @@ export {
   changePassword,
   googleCallback,
   getMe,
+  updateMe,
+  addAddress,
+  deleteAddress,
 };

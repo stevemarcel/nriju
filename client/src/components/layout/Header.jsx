@@ -3,7 +3,20 @@ import { useAppSelector, useAppDispatch } from "../../store/store";
 import { toggleCartDrawer, setMobileMenu } from "../../slices/uiSlice";
 import { clearAuth } from "../../slices/authSlice";
 import api from "../../services/api";
-import { ShoppingBag, User, Menu, X, Shield, Package, LogOut, Home, Search, Soup, Beef, Wheat } from "lucide-react";
+import {
+  ShoppingBag,
+  User,
+  Menu,
+  X,
+  Shield,
+  Package,
+  LogOut,
+  Home,
+  Search,
+  Soup,
+  Beef,
+  Wheat,
+} from "lucide-react";
 
 const Header = () => {
   const dispatch = useAppDispatch();
@@ -38,9 +51,11 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-white font-bold text-lg">N</span>
-            </div>
+            <img
+              src="/assets/logos/nriju-logo-full-colour.png"
+              alt="Nriju"
+              className="w-9 h-9 object-contain"
+            />
             <span className="font-heading text-xl font-bold text-text">Nriju</span>
           </Link>
 

@@ -63,9 +63,11 @@ const AdminLayout = () => {
       >
         <div className="p-6 hidden lg:block">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-white font-bold text-lg">N</span>
-            </div>
+            <img
+              src="/assets/logos/nriju-logo-light.png"
+              alt="Nriju"
+              className="w-9 h-9 object-contain"
+            />
             <span className="font-heading text-xl font-bold">Nriju Admin</span>
           </Link>
         </div>

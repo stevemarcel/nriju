@@ -26,12 +26,19 @@ api.interceptors.response.use(
       window.dispatchEvent(new CustomEvent("auth:unauthorized"));
     } else if (status === 403) {
       toast.error("You do not have permission to do that.");
+    } else if (status === 404) {
+      toast.error("Resource not found. Please try again.");
     } else if (status >= 500) {
-      toast.error("Something went wrong. Please try again.");
+      toast.error("Server error. Please try again later.");
     } else if (status === 409) {
       toast.error(error?.response?.data?.message || "Conflict — item may be out of stock.");
+    } else if (status === 422) {
+      const msg = error?.response?.data?.message;
+      toast.error(msg || "Please check your input and try again.");
     } else if (status === 429) {
       toast.error("Too many attempts. Please wait a moment.");
+    } else if (error?.code === "ERR_NETWORK") {
+      toast.error("Cannot connect to server. Make sure the backend is running on port 5000.");
     }
 
     return Promise.reject(error);

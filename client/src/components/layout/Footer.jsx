@@ -9,9 +9,11 @@ const Footer = () => {
           {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center">
-                <span className="text-white font-bold text-lg">N</span>
-              </div>
+              <img
+                src="/assets/logos/nriju-logo-light.png"
+                alt="Nriju"
+                className="w-9 h-9 object-contain"
+              />
               <span className="font-heading text-xl font-bold">Nriju</span>
             </div>
             <p className="text-white/60 text-sm">

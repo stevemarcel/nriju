@@ -10,6 +10,9 @@ import {
   changePassword,
   googleCallback,
   getMe,
+  updateMe,
+  addAddress,
+  deleteAddress,
 } from "../controllers/authController.js";
 import { auth } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rateLimit.js";
@@ -30,5 +33,8 @@ router.get(
   googleCallback,
 );
 router.get("/me", auth, getMe);
+router.put("/me", auth, updateMe);
+router.post("/me/addresses", auth, addAddress);
+router.delete("/me/addresses/:addressId", auth, deleteAddress);
 
 export default router;

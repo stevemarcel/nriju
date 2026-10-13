@@ -8,7 +8,7 @@ const auth = asyncHandler(async (req, res, next) => {
 
   if (!token) {
     res.status(401);
-    throw new Error("Not authenticated — no token");
+    throw new Error("Please log in to continue");
   }
 
   let decoded;
@@ -16,13 +16,13 @@ const auth = asyncHandler(async (req, res, next) => {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
     res.status(401);
-    throw new Error("Not authenticated — invalid token");
+    throw new Error("Your session has expired. Please log in again");
   }
 
   const user = await User.findById(decoded.userId).select("-password");
   if (!user) {
     res.status(401);
-    throw new Error("Not authenticated — user not found");
+    throw new Error("User account not found");
   }
   if (!user.isActive) {
     res.status(401);

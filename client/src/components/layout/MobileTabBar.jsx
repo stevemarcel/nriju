@@ -1,20 +1,24 @@
 import { Link, useLocation } from "react-router-dom";
 import { useAppSelector } from "../../store/store";
-import { ShoppingBag, User, Home, Search } from "lucide-react";
+import { ShoppingBag, User, Home, Search, Heart } from "lucide-react";
 
 const MobileTabBar = () => {
   const location = useLocation();
   const { user } = useAppSelector((s) => s.auth);
   const { items } = useAppSelector((s) => s.cart);
+  const { items: wishlist } = useAppSelector((s) => s.wishlist);
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
+  const wishlistCount = wishlist.length;
 
   // Hide tab bar on account and admin pages to avoid duplication with Header mobile menu
-  const hideTabs = location.pathname.startsWith("/account") || location.pathname.startsWith("/admin");
+  const hideTabs =
+    location.pathname.startsWith("/account") || location.pathname.startsWith("/admin");
 
   const tabs = [
     { to: "/", label: "Home", icon: Home },
     { to: "/shop", label: "Shop", icon: Search },
     { to: "/cart", label: "Cart", icon: ShoppingBag, badge: cartCount },
+    { to: "/account", label: "Wishlist", icon: Heart, badge: wishlistCount },
     { to: user ? "/account" : "/login", label: "Account", icon: User },
   ];
 
