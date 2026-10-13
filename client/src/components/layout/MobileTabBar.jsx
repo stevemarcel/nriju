@@ -8,12 +8,17 @@ const MobileTabBar = () => {
   const { items } = useAppSelector((s) => s.cart);
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
 
+  // Hide tab bar on account and admin pages to avoid duplication with Header mobile menu
+  const hideTabs = location.pathname.startsWith("/account") || location.pathname.startsWith("/admin");
+
   const tabs = [
     { to: "/", label: "Home", icon: Home },
     { to: "/shop", label: "Shop", icon: Search },
     { to: "/cart", label: "Cart", icon: ShoppingBag, badge: cartCount },
     { to: user ? "/account" : "/login", label: "Account", icon: User },
   ];
+
+  if (hideTabs) return null;
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border z-40">

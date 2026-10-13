@@ -5,10 +5,12 @@
   --color-primary: #9a2b21; /* Pepper Stew */
   --color-secondary: #fcbb31; /* Plantain */
   --color-background: #fff6e9; /* Coconut */
+  --color-background-soft: #fefaf3; /* Light Coconut — closer to white, for account/admin pages */
   --color-surface: #ffffff;
   --color-text: #7b231b; /* Smoked Pepper */
   --color-text-muted: #af554d; /* Tomato Foam */
   --color-border: #7b231b20;
+  --color-border-soft: #f0e6d8;
 
   /* Typography */
   --font-heading: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;

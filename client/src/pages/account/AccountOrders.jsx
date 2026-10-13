@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
 import { Link } from "react-router-dom";
-import { Package, Search, Filter } from "lucide-react";
+import { Package, Search, Filter, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { formatNaira } from "../../utils/formatMoney";
 
@@ -40,6 +40,12 @@ const AccountOrders = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
+        <Link
+          to="/account"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg text-sm font-medium text-text hover:border-primary hover:bg-background transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Account
+        </Link>
         <h1 className="font-heading text-3xl font-bold text-text">My Orders</h1>
         <p className="text-text-muted mt-1">Track and manage your Nriju orders.</p>
       </div>

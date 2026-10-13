@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
 import api from "../../services/api";
-import { User, Mail, Phone, Lock, Save, CheckCircle, AlertCircle } from "lucide-react";
+import { User, Mail, Phone, Lock, Save, CheckCircle, AlertCircle, ArrowLeft } from "lucide-react";
 
 const AccountProfile = () => {
   const dispatch = useAppDispatch();
@@ -41,6 +41,12 @@ const AccountProfile = () => {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <div className="mb-8">
+        <Link
+          to="/account"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-surface border border-border rounded-lg text-sm font-medium text-text hover:border-primary hover:bg-background transition-colors mb-6"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Account
+        </Link>
         <h1 className="font-heading text-3xl font-bold text-text">Profile & Settings</h1>
         <p className="text-text-muted mt-1">Update your personal details and account settings.</p>
       </div>

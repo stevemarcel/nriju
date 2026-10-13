@@ -1,33 +1,35 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { toggleCartDrawer, setMobileMenu } from "../../slices/uiSlice";
 import { clearAuth } from "../../slices/authSlice";
 import api from "../../services/api";
-import { ShoppingBag, User, Menu, X } from "lucide-react";
+import { ShoppingBag, User, Menu, X, Shield, Package, LogOut, Home, Search, Soup, Beef, Wheat } from "lucide-react";
 
 const Header = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
   const { user, loading } = useAppSelector((s) => s.auth);
   const { mobileMenuOpen } = useAppSelector((s) => s.ui);
   const { items } = useAppSelector((s) => s.cart);
 
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
+  const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
 
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
     } catch {}
     dispatch(clearAuth());
-    window.location.href = "/login";
+    navigate("/login");
   };
 
   const navLinks = [
-    { to: "/", label: "Home" },
-    { to: "/shop", label: "Shop" },
-    { to: "/shop?category=swallows", label: "Swallows" },
-    { to: "/shop?category=soups-stews", label: "Soups" },
-    { to: "/shop?category=proteins", label: "Proteins" },
+    { to: "/", label: "Home", icon: Home },
+    { to: "/shop", label: "Shop", icon: Search },
+    { to: "/shop?category=swallows", label: "Swallows", icon: Wheat },
+    { to: "/shop?category=soups-stews", label: "Soups", icon: Soup },
+    { to: "/shop?category=proteins", label: "Proteins", icon: Beef },
   ];
 
   return (
@@ -85,21 +87,29 @@ const Header = () => {
                 <div className="absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
                   <Link
                     to="/account"
-                    className="block px-4 py-2 text-sm text-text hover:bg-background"
+                    className="block px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                   >
-                    Account
+                    <User className="w-4 h-4 text-text-muted" /> Account
                   </Link>
                   <Link
                     to="/account/orders"
-                    className="block px-4 py-2 text-sm text-text hover:bg-background"
+                    className="block px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                   >
-                    Orders
+                    <Package className="w-4 h-4 text-text-muted" /> Orders
                   </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      className="block px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    >
+                      <Shield className="w-4 h-4 text-text-muted" /> Admin
+                    </Link>
+                  )}
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-primary hover:bg-background"
+                    className="block w-full text-left px-4 py-2 text-sm text-primary hover:bg-background flex items-center gap-2"
                   >
-                    Logout
+                    <LogOut className="w-4 h-4" /> Logout
                   </button>
                 </div>
               </div>
@@ -132,18 +142,54 @@ const Header = () => {
                   key={link.to}
                   to={link.to}
                   onClick={() => dispatch(setMobileMenu(false))}
-                  className="px-3 py-2 rounded-lg text-text hover:bg-background"
+                  className="px-3 py-2 rounded-lg text-text hover:bg-background flex items-center gap-2"
                 >
+                  {link.icon && <link.icon className="w-4 h-4 text-text-muted" />}
                   {link.label}
                 </Link>
               ))}
-              {!user && (
+              {user ? (
+                <>
+                  <Link
+                    to="/account"
+                    onClick={() => dispatch(setMobileMenu(false))}
+                    className="px-3 py-2 rounded-lg text-text hover:bg-background flex items-center gap-2"
+                  >
+                    <User className="w-4 h-4 text-text-muted" /> Account
+                  </Link>
+                  <Link
+                    to="/account/orders"
+                    onClick={() => dispatch(setMobileMenu(false))}
+                    className="px-3 py-2 rounded-lg text-text hover:bg-background flex items-center gap-2"
+                  >
+                    <Package className="w-4 h-4 text-text-muted" /> Orders
+                  </Link>
+                  {isAdmin && (
+                    <Link
+                      to="/admin"
+                      onClick={() => dispatch(setMobileMenu(false))}
+                      className="px-3 py-2 rounded-lg text-text hover:bg-background flex items-center gap-2"
+                    >
+                      <Shield className="w-4 h-4 text-text-muted" /> Admin
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => {
+                      dispatch(setMobileMenu(false));
+                      handleLogout();
+                    }}
+                    className="text-left px-3 py-2 rounded-lg text-primary hover:bg-background flex items-center gap-2"
+                  >
+                    <LogOut className="w-4 h-4" /> Logout
+                  </button>
+                </>
+              ) : (
                 <Link
                   to="/login"
                   onClick={() => dispatch(setMobileMenu(false))}
-                  className="px-3 py-2 rounded-lg text-text hover:bg-background"
+                  className="px-3 py-2 rounded-lg text-text hover:bg-background flex items-center gap-2"
                 >
-                  Login
+                  <User className="w-4 h-4 text-text-muted" /> Login
                 </Link>
               )}
             </nav>
