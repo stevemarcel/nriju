@@ -117,7 +117,7 @@ const AdminProducts = () => {
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-background/50">
+                <tr className="bg-background-soft/50">
                   <th className="text-left font-medium py-3 px-4">Product</th>
                   <th className="text-left font-medium py-3 px-4">Category</th>
                   <th className="text-right font-medium py-3 px-4">Price</th>
@@ -129,7 +129,7 @@ const AdminProducts = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {products.map((p) => (
-                  <tr key={p._id} className="hover:bg-background/30">
+                  <tr key={p._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         {p.images?.[0] ? (
@@ -139,7 +139,7 @@ const AdminProducts = () => {
                             className="w-12 h-12 rounded-lg object-cover"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-lg bg-background flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-lg bg-background-soft flex items-center justify-center">
                             <Package className="w-5 h-5 text-text-muted" />
                           </div>
                         )}
@@ -169,14 +169,14 @@ const AdminProducts = () => {
                       <div className="flex justify-center gap-1">
                         <button
                           onClick={() => toggleModal({ edit: p })}
-                          className="w-7 h-7 rounded bg-background hover:bg-primary/10 text-primary"
+                          className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
                           title="Edit"
                         >
                           <Edit className="w-3.5 h-3.5 mx-auto" />
                         </button>
                         <button
                           onClick={() => handleArchive(p)}
-                          className="w-7 h-7 rounded bg-background hover:bg-primary/10 text-primary"
+                          className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
                           title={p.isActive ? "Archive" : "Restore"}
                         >
                           {p.isActive ? (
@@ -295,7 +295,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
           <h2 className="font-heading text-xl font-bold text-text">
             {mode === "create" ? "Add Product" : `Edit "${product?.name}"`}
           </h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-background">
+          <button onClick={onClose} className="p-1 rounded hover:bg-background-soft">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -312,7 +312,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 required
                 value={form.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               />
             </div>
             <div className="sm:col-span-2">
@@ -321,7 +321,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 value={form.description}
                 onChange={(e) => handleChange("description", e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm resize-y"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm resize-y"
               />
             </div>
 
@@ -333,7 +333,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 required
                 value={form.price}
                 onChange={(e) => handleChange("price", e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               />
             </div>
             <div>
@@ -345,7 +345,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 step="0.01"
                 value={form.compareAtPrice}
                 onChange={(e) => handleChange("compareAtPrice", e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               />
             </div>
 
@@ -354,7 +354,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
               <select
                 value={form.unit}
                 onChange={(e) => handleChange("unit", e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               >
                 {[
                   "portion",
@@ -382,7 +382,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
               <select
                 value={form.productType}
                 onChange={(e) => handleChange("productType", e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               >
                 <option value="cooked">Cooked</option>
                 <option value="packaged">Packaged</option>
@@ -396,7 +396,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 required
                 value={form.category}
                 onChange={(e) => handleChange("category", e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               >
                 <option value="">— Select category —</option>
                 {categories.map((c) => (
@@ -426,7 +426,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 }
                 rows={2}
                 placeholder="https://..."
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm resize-y font-mono"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm resize-y font-mono"
               />
             </div>
 
@@ -439,7 +439,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 value={form.tags}
                 onChange={(e) => handleChange("tags", e.target.value)}
                 placeholder="jollof, party"
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               />
             </div>
 
@@ -475,7 +475,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-text-muted hover:bg-background rounded-lg"
+              className="px-4 py-2 text-sm text-text-muted hover:bg-background-soft rounded-lg"
             >
               Cancel
             </button>

@@ -98,7 +98,7 @@ const AdminUsers = () => {
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-background/50">
+                <tr className="bg-background-soft/50">
                   <th className="text-left font-medium py-3 px-4">User</th>
                   <th className="text-left font-medium py-3 px-4">Email</th>
                   <th className="text-left font-medium py-3 px-4">Role</th>
@@ -109,7 +109,7 @@ const AdminUsers = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {users.map((u) => (
-                  <tr key={u._id} className="hover:bg-background/30">
+                  <tr key={u._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4">
                       <span className="font-medium text-text">{u.name}</span>
                       {u.role === "superAdmin" && (
@@ -154,7 +154,7 @@ const AdminUsers = () => {
                       <div className="flex justify-center gap-1">
                         <button
                           onClick={() => toggleRole(u)}
-                          className={`w-7 h-7 rounded bg-background hover:bg-primary/10 ${
+                          className={`w-7 h-7 rounded bg-background-soft hover:bg-primary/10 ${
                             u.role === "admin" ? "text-blue-600" : "text-slate-600"
                           } ${u.role === "superAdmin" ? "opacity-40 cursor-not-allowed" : ""}`}
                           title={u.role === "superAdmin" ? "Protected" : "Toggle role"}
@@ -168,7 +168,7 @@ const AdminUsers = () => {
                         </button>
                         <button
                           onClick={() => toggleActive(u)}
-                          className={`w-7 h-7 rounded bg-background hover:bg-primary/10 ${
+                          className={`w-7 h-7 rounded bg-background-soft hover:bg-primary/10 ${
                             u.isActive ? "text-emerald-600" : "text-rose-600"
                           }`}
                           title={u.isActive ? "Deactivate" : "Activate"}

@@ -97,7 +97,7 @@ const AdminOrders = () => {
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-background/50">
+                <tr className="bg-background-soft/50">
                   <th className="text-left font-medium py-3 px-4">Order</th>
                   <th className="text-left font-medium py-3 px-4">Customer</th>
                   <th className="text-center font-medium py-3 px-4">Items</th>
@@ -109,7 +109,7 @@ const AdminOrders = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {orders.map((o) => (
-                  <tr key={o._id} className="hover:bg-background/30">
+                  <tr key={o._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4">
                       <span className="font-medium text-text">{o.orderNumber || "—"}</span>
                       <span className="block text-xs text-text-muted">{o.deliveryMethod}</span>
@@ -131,7 +131,7 @@ const AdminOrders = () => {
                     <td className="py-3 px-4 text-center">
                       <button
                         onClick={() => setDetailOrder(o)}
-                        className="w-7 h-7 rounded bg-background hover:bg-primary/10 text-primary"
+                        className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
                         title="View"
                       >
                         <Eye className="w-3.5 h-3.5 mx-auto" />
@@ -183,7 +183,7 @@ const OrderDetailModal = ({ order, statusMap, statusOptions, onClose, onUpdated 
       <div className="bg-surface rounded-2xl border border-border w-full max-w-3xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h2 className="font-heading text-xl font-bold text-text">Order {order.orderNumber}</h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-background">
+          <button onClick={onClose} className="p-1 rounded hover:bg-background-soft">
             <Package className="w-5 h-5" />
           </button>
         </div>
@@ -194,7 +194,7 @@ const OrderDetailModal = ({ order, statusMap, statusOptions, onClose, onUpdated 
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg text-sm"
               >
                 {statusOptions.map((s) => (
                   <option key={s.value} value={s.value}>
@@ -211,7 +211,7 @@ const OrderDetailModal = ({ order, statusMap, statusOptions, onClose, onUpdated 
                 type="text"
                 value={trackingCode}
                 onChange={(e) => setTrackingCode(e.target.value)}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg text-sm"
                 placeholder="Leave blank to clear"
               />
             </div>
@@ -275,7 +275,7 @@ const OrderDetailModal = ({ order, statusMap, statusOptions, onClose, onUpdated 
         <div className="p-5 border-t border-border flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-text-muted hover:bg-background rounded-lg"
+            className="px-4 py-2 text-sm text-text-muted hover:bg-background-soft rounded-lg"
           >
             Close
           </button>

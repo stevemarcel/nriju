@@ -6,10 +6,11 @@ import CartDrawer from "../shared/CartDrawer";
 
 const MainLayout = () => {
   const location = useLocation();
-  const hideTabs = location.pathname.startsWith("/account") || location.pathname.startsWith("/admin");
+  const hideTabs =
+    location.pathname.startsWith("/account") || location.pathname.startsWith("/admin");
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background-soft">
       <Header />
       <main className={`flex-1 ${hideTabs ? "pb-0" : "pb-20 md:pb-0"}`}>
         <Outlet />

@@ -85,7 +85,7 @@ const AdminDashboard = () => {
             <h2 className="font-heading font-semibold">Revenue (excluding cancelled/refunded)</h2>
           </div>
           {isPending ? (
-            <div className="h-10 bg-background rounded animate-pulse mt-4" />
+            <div className="h-10 bg-background-soft rounded animate-pulse mt-4" />
           ) : (
             <div className="font-heading text-3xl font-bold mt-4">{formatNaira(stats.revenue)}</div>
           )}

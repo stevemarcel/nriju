@@ -91,7 +91,7 @@ const AdminReviews = () => {
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-background/50">
+                <tr className="bg-background-soft/50">
                   <th className="text-left font-medium py-3 px-4">Product</th>
                   <th className="text-left font-medium py-3 px-4">Reviewer</th>
                   <th className="center font-medium py-3 px-4">Rating</th>
@@ -102,7 +102,7 @@ const AdminReviews = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {reviews.map((r) => (
-                  <tr key={r._id} className="hover:bg-background/30">
+                  <tr key={r._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4 text-text">{r.product?.name || "—"}</td>
                     <td className="py-3 px-4 text-text-muted">{r.user?.name || "—"}</td>
                     <td className="py-3 px-4 text-center">

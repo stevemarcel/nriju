@@ -71,7 +71,7 @@ const AdminCoupons = () => {
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-background/50">
+                <tr className="bg-background-soft/50">
                   <th className="text-left font-medium py-3 px-4">Code</th>
                   <th className="text-left font-medium py-3 px-4">Type</th>
                   <th className="text-right font-medium py-3 px-4">Value</th>
@@ -83,7 +83,7 @@ const AdminCoupons = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {coupons.map((c) => (
-                  <tr key={c._id} className="hover:bg-background/30">
+                  <tr key={c._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4">
                       <span className="font-medium text-text">{c.code}</span>
                       <span className="block text-xs text-text-muted">
@@ -110,7 +110,7 @@ const AdminCoupons = () => {
                       <div className="flex justify-center gap-1">
                         <button
                           onClick={() => setModal({ edit: c })}
-                          className="w-7 h-7 rounded bg-background hover:bg-primary/10 text-primary"
+                          className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
                           title="Edit"
                         >
                           <Edit className="w-3.5 h-3.5 mx-auto" />
@@ -122,7 +122,7 @@ const AdminCoupons = () => {
                               invalidate();
                             }
                           }}
-                          className="w-7 h-7 rounded bg-background hover:bg-rose-100 text-rose-600"
+                          className="w-7 h-7 rounded bg-background-soft hover:bg-rose-100 text-rose-600"
                           title="Delete"
                         >
                           <Trash2 className="w-3.5 h-3.5 mx-auto" />
@@ -215,7 +215,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
           <h2 className="font-heading text-xl font-bold text-text">
             {mode === "create" ? "Add Coupon" : `Edit "${coupon?.code}"`}
           </h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-background">
+          <button onClick={onClose} className="p-1 rounded hover:bg-background-soft">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -231,7 +231,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
                 required
                 value={form.code}
                 onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase() })}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm font-mono"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm font-mono"
               />
             </div>
 
@@ -240,7 +240,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
               <select
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               >
                 <option value="percent">Percent (%)</option>
                 <option value="flat">Flat amount</option>
@@ -257,7 +257,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
                 required
                 value={form.value}
                 onChange={(e) => setForm({ ...form, value: e.target.value })}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               />
             </div>
 
@@ -268,7 +268,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
                 step="0.01"
                 value={form.minOrder}
                 onChange={(e) => setForm({ ...form, minOrder: e.target.value })}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               />
             </div>
             <div>
@@ -278,7 +278,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
                 step="0.01"
                 value={form.maxDiscount}
                 onChange={(e) => setForm({ ...form, maxDiscount: e.target.value })}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               />
             </div>
 
@@ -289,7 +289,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
                 required
                 value={form.expiryDate}
                 onChange={(e) => setForm({ ...form, expiryDate: e.target.value })}
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
               />
             </div>
             <div>
@@ -301,7 +301,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
                 onChange={(e) =>
                   setForm({ ...form, usageLimit: e.target.value ? Number(e.target.value) : "" })
                 }
-                className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
                 placeholder="Unlimited"
               />
             </div>
@@ -320,7 +320,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-text-muted hover:bg-background rounded-lg"
+              className="px-4 py-2 text-sm text-text-muted hover:bg-background-soft rounded-lg"
             >
               Cancel
             </button>

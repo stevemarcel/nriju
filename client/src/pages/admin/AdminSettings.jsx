@@ -89,7 +89,7 @@ const AdminSettings = () => {
             )}
             <button
               onClick={handleReset}
-              className="px-4 py-2 text-sm text-text-muted border border-border rounded-lg hover:bg-background inline-flex items-center gap-2"
+              className="px-4 py-2 text-sm text-text-muted border border-border rounded-lg hover:bg-background-soft inline-flex items-center gap-2"
             >
               <RotateCcw className="w-4 h-4" /> Reset
             </button>
@@ -119,7 +119,7 @@ const AdminSettings = () => {
                     value={current ?? ""}
                     onChange={(e) => handleChange(k.key, e.target.value)}
                     rows={4}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm resize-y"
+                    className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm resize-y"
                   />
                 ) : k.type === "boolean" ? (
                   <label className="inline-flex items-center gap-2 text-sm">
@@ -136,7 +136,7 @@ const AdminSettings = () => {
                     step={k.type === "money" ? "0.01" : undefined}
                     value={current ?? ""}
                     onChange={(e) => handleChange(k.key, e.target.value)}
-                    className="w-full px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
+                    className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
                   />
                 )}
               </div>

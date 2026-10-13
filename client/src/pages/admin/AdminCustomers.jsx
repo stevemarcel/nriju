@@ -60,7 +60,7 @@ const AdminCustomers = () => {
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-background/50">
+                <tr className="bg-background-soft/50">
                   <th className="text-left font-medium py-3 px-4">Customer</th>
                   <th className="text-left font-medium py-3 px-4">Email</th>
                   <th className="text-left font-medium py-3 px-4">Phone</th>
@@ -71,7 +71,7 @@ const AdminCustomers = () => {
               </thead>
               <tbody className="divide-y divide-border">
                 {customers.map((u) => (
-                  <tr key={u._id} className="hover:bg-background/30">
+                  <tr key={u._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         {u.avatar ? (
@@ -81,7 +81,7 @@ const AdminCustomers = () => {
                             className="w-9 h-9 rounded-full object-cover"
                           />
                         ) : (
-                          <div className="w-9 h-9 rounded-full bg-background flex items-center justify-center">
+                          <div className="w-9 h-9 rounded-full bg-background-soft flex items-center justify-center">
                             <Users className="w-4 h-4 text-text-muted" />
                           </div>
                         )}
