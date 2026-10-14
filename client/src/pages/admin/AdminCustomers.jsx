@@ -81,8 +81,8 @@ const AdminCustomers = () => {
                             className="w-9 h-9 rounded-full object-cover"
                           />
                         ) : (
-                          <div className="w-9 h-9 rounded-full bg-background-soft flex items-center justify-center">
-                            <Users className="w-4 h-4 text-text-muted" />
+                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-sm">
+                            {u.name?.charAt(0).toUpperCase() || "U"}
                           </div>
                         )}
                         <span className="font-medium text-text">{u.name}</span>

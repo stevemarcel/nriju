@@ -50,7 +50,7 @@ const CartPage = () => {
                     className="w-full h-full object-cover rounded-lg"
                   />
                 ) : (
-                  <ShoppingBag className="w-8 h-8 text-text-muted" />
+                  <span className="text-3xl">🍲</span>
                 )}
               </div>
 

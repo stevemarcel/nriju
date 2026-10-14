@@ -73,7 +73,7 @@ const CartDrawer = () => {
                         className="w-full h-full object-cover rounded-lg"
                       />
                     ) : (
-                      <ShoppingBag className="w-6 h-6 text-text-muted" />
+                      <span className="text-2xl">🍲</span>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">

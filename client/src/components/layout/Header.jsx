@@ -95,7 +95,17 @@ const Header = () => {
             ) : user ? (
               <div className="relative group">
                 <button className="flex items-center gap-2 p-1 rounded-lg hover:bg-surface">
-                  <User className="w-5 h-5 text-text" />
+                  {user?.avatar ? (
+                    <img
+                      src={user.avatar}
+                      alt={user.name}
+                      className="w-8 h-8 rounded-full object-cover ring-2 ring-border"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-sm ring-2 ring-border">
+                      {user?.name?.charAt(0).toUpperCase() || "U"}
+                    </div>
+                  )}
                   <span className="hidden sm:block text-sm text-text">{user.name}</span>
                 </button>
                 <div className="absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">

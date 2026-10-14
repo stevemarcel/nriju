@@ -85,7 +85,7 @@ const CheckoutSuccessPage = () => {
                     />
                   ) : (
                     <div className="w-14 h-14 rounded-lg bg-background flex items-center justify-center">
-                      <ShoppingBag className="w-5 h-5 text-text-muted" />
+                      <span className="text-2xl">🍲</span>
                     </div>
                   )}
                   <div className="flex-1 min-w-0">

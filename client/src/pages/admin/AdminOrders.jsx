@@ -229,7 +229,7 @@ const OrderDetailModal = ({ order, statusMap, statusOptions, onClose, onUpdated 
                       className="w-12 h-12 rounded object-cover"
                     />
                   ) : (
-                    <Package className="w-5 h-5 text-text-muted" />
+                    <span className="text-2xl">🍲</span>
                   )}
                   <div className="flex-1 min-w-0">
                     <span className="text-sm font-medium text-text">{item.name}</span>
