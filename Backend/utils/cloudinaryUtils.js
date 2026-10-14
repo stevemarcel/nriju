@@ -28,7 +28,9 @@ export const uploadBuffer = (buffer, folder) =>
         { folder, resource_type: "image", use_filename: true, unique_filename: false },
         (error, result) => {
           if (error) return reject(error);
-          resolve(result);
+          // Strip extension if present to avoid 404s
+          const publicIdWithoutExt = result.public_id.replace(/\.[^/.]+$/, "");
+          resolve({ ...result, public_id: publicIdWithoutExt });
         },
       )
       .end(buffer);

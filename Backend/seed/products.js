@@ -23,7 +23,7 @@ export default [
     maxDailyQty: 150,
     stock: 150,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/akara-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/akara-fresh.webp",
     ],
     categoryName: "Swallows",
     region: "Western",
@@ -41,7 +41,7 @@ export default [
     maxDailyQty: 120,
     stock: 120,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/amala-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/amala-fresh.webp",
     ],
     categoryName: "Swallows",
     region: "Western",
@@ -58,7 +58,7 @@ export default [
     maxDailyQty: 130,
     stock: 130,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/amala-lafun-packaged?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/amala-lafun-packaged.webp",
     ],
     categoryName: "Swallows",
     region: "Western",
@@ -76,7 +76,7 @@ export default [
     maxDailyQty: 100,
     stock: 100,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/banga-soup-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/banga-soup-fresh.webp",
     ],
     categoryName: "Swallows",
     region: "Western",
@@ -93,7 +93,7 @@ export default [
     maxDailyQty: 140,
     stock: 140,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/bitter-leaf-soup-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/bitter-leaf-soup-fresh.webp",
     ],
     categoryName: "Swallows",
     region: "Eastern",
@@ -108,7 +108,7 @@ export default [
     productType: "packaged",
     stock: 300,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/boli-pepper-stew-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/boli-pepper-stew-fresh.webp",
     ],
     categoryName: "Swallows",
     region: "Western",
@@ -123,7 +123,7 @@ export default [
     productType: "packaged",
     stock: 280,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/bouillon-cubes-knorr?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/bouillon-cubes-knorr.webp",
     ],
     categoryName: "Swallows",
     region: "Western",
@@ -138,7 +138,7 @@ export default [
     productType: "packaged",
     stock: 200,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/chin-chin?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/chin-chin.webp",
     ],
     categoryName: "Swallows",
     region: "Western",
@@ -153,7 +153,7 @@ export default [
     productType: "packaged",
     stock: 260,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/coconut-oil?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/coconut-oil.webp",
     ],
     categoryName: "Swallows",
     region: "Eastern",
@@ -169,7 +169,7 @@ export default [
     productType: "packaged",
     stock: 350,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/curry-powder?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/curry-powder.webp",
     ],
     categoryName: "Swallows",
     region: "Western",
@@ -191,7 +191,7 @@ export default [
     maxDailyQty: 90,
     stock: 90,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/dried-beef?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/dried-beef.webp",
     ],
     categoryName: "Soups & Stews",
     region: "Western",
@@ -209,7 +209,7 @@ export default [
     maxDailyQty: 70,
     stock: 70,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/dried-goat-meat?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/dried-goat-meat.webp",
     ],
     categoryName: "Soups & Stews",
     region: "Western",
@@ -227,7 +227,7 @@ export default [
     maxDailyQty: 80,
     stock: 80,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/eba-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/eba-fresh.webp",
     ],
     categoryName: "Soups & Stews",
     region: "Western",
@@ -243,7 +243,7 @@ export default [
     productType: "packaged",
     stock: 220,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/edikang-ikong-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/edikang-ikong-fresh.webp",
     ],
     categoryName: "Soups & Stews",
     region: "Western",
@@ -261,7 +261,7 @@ export default [
     maxDailyQty: 75,
     stock: 75,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/egusi-soup-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/egusi-soup-fresh.webp",
     ],
     categoryName: "Soups & Stews",
     region: "Western",
@@ -279,7 +279,7 @@ export default [
     maxDailyQty: 60,
     stock: 60,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/egusi-soup-mix?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/egusi-soup-mix.webp",
     ],
     categoryName: "Soups & Stews",
     region: "South-South",
@@ -297,7 +297,7 @@ export default [
     maxDailyQty: 60,
     stock: 60,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/ewedu-soup-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/ewedu-soup-fresh.webp",
     ],
     categoryName: "Soups & Stews",
     region: "Eastern",
@@ -315,7 +315,7 @@ export default [
     maxDailyQty: 70,
     stock: 70,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fresh-juice-orange?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/fresh-juice-orange.webp",
     ],
     categoryName: "Soups & Stews",
     region: "Eastern",
@@ -333,7 +333,7 @@ export default [
     maxDailyQty: 65,
     stock: 65,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fresh-juice-special-blend?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/fresh-juice-special-blend.webp",
     ],
     categoryName: "Soups & Stews",
     region: "Western",
@@ -351,7 +351,7 @@ export default [
     maxDailyQty: 50,
     stock: 50,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-beef?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/frozen-beef.webp",
     ],
     categoryName: "Soups & Stews",
     region: "South-South",
@@ -367,7 +367,7 @@ export default [
     productType: "packaged",
     stock: 240,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-catfish?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/frozen-catfish.webp",
     ],
     categoryName: "Soups & Stews",
     region: "Western",
@@ -386,7 +386,7 @@ export default [
     productType: "packaged",
     stock: 300,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-chicken?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/frozen-chicken.webp",
     ],
     categoryName: "Seasonings",
     region: "South-South",
@@ -402,7 +402,7 @@ export default [
     productType: "packaged",
     stock: 260,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-goat-meat?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/frozen-goat-meat.webp",
     ],
     categoryName: "Seasonings",
     region: "Western",
@@ -418,7 +418,7 @@ export default [
     productType: "packaged",
     stock: 280,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-mackerel?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/frozen-mackerel.webp",
     ],
     categoryName: "Seasonings",
     region: "Northern",
@@ -433,7 +433,7 @@ export default [
     productType: "packaged",
     stock: 290,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-tilapia?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/frozen-tilapia.webp",
     ],
     categoryName: "Seasonings",
     region: "Eastern",
@@ -449,7 +449,7 @@ export default [
     productType: "packaged",
     stock: 400,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fufu-akpu-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/fufu-akpu-fresh.webp",
     ],
     categoryName: "Seasonings",
     region: "Western",
@@ -464,7 +464,7 @@ export default [
     productType: "packaged",
     stock: 250,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fufu-powder-packaged?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/fufu-powder-packaged.webp",
     ],
     categoryName: "Seasonings",
     region: "Western",
@@ -479,7 +479,7 @@ export default [
     productType: "packaged",
     stock: 250,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/garri-packaged?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/garri-packaged.webp",
     ],
     categoryName: "Seasonings",
     region: "Western",
@@ -494,7 +494,7 @@ export default [
     productType: "packaged",
     stock: 500,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/gbegiri-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/gbegiri-fresh.webp",
     ],
     categoryName: "Seasonings",
     region: "Eastern",
@@ -514,7 +514,7 @@ export default [
     productType: "packaged",
     stock: 180,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/Golden-Lidded%20Ground%20Pepper%20Jar?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/Golden-Lidded%20Ground%20Pepper%20Jar.webp",
     ],
     categoryName: "Oils & Fats",
     region: "South-South",
@@ -530,7 +530,7 @@ export default [
     productType: "packaged",
     stock: 150,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/grilled-fish-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/grilled-fish-fresh.webp",
     ],
     categoryName: "Oils & Fats",
     region: "Northern",
@@ -545,7 +545,7 @@ export default [
     productType: "packaged",
     stock: 60,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/ground-crayfish?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/ground-crayfish.webp",
     ],
     categoryName: "Oils & Fats",
     region: "South-South",
@@ -561,7 +561,7 @@ export default [
     productType: "packaged",
     stock: 90,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kika-dried-fish?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/kika-dried-fish.webp",
     ],
     categoryName: "Oils & Fats",
     region: "Northern",
@@ -581,7 +581,7 @@ export default [
     productType: "packaged",
     stock: 280,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kilishi?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/kilishi.webp",
     ],
     categoryName: "Snacks",
     region: "Western",
@@ -598,7 +598,7 @@ export default [
     maxDailyQty: 100,
     stock: 100,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kings-groundnut-oil?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/kings-groundnut-oil.webp",
     ],
     categoryName: "Snacks",
     region: "Western",
@@ -616,7 +616,7 @@ export default [
     maxDailyQty: 90,
     stock: 90,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kuli-kuli?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/kuli-kuli.webp",
     ],
     categoryName: "Snacks",
     region: "Western",
@@ -634,7 +634,7 @@ export default [
     maxDailyQty: 80,
     stock: 80,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kunu-drink?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/kunu-drink.webp",
     ],
     categoryName: "Snacks",
     region: "Western",
@@ -651,7 +651,7 @@ export default [
     maxDailyQty: 90,
     stock: 90,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/locust-beans-iru?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/locust-beans-iru.webp",
     ],
     categoryName: "Snacks",
     region: "Eastern",
@@ -666,7 +666,7 @@ export default [
     productType: "packaged",
     stock: 260,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/meat-pie-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/meat-pie-fresh.webp",
     ],
     categoryName: "Snacks",
     region: "Western",
@@ -681,7 +681,7 @@ export default [
     productType: "packaged",
     stock: 240,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/moi-moi-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/moi-moi-fresh.webp",
     ],
     categoryName: "Snacks",
     region: "Northern",
@@ -697,7 +697,7 @@ export default [
     productType: "packaged",
     stock: 180,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/obe-ata-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/obe-ata-fresh.webp",
     ],
     categoryName: "Snacks",
     region: "Northern",
@@ -714,7 +714,7 @@ export default [
     maxDailyQty: 85,
     stock: 85,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/obe-ata-soup-mix?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/obe-ata-soup-mix.webp",
     ],
     categoryName: "Snacks",
     region: "Western",
@@ -731,7 +731,7 @@ export default [
     maxDailyQty: 100,
     stock: 100,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/ogbono-soup-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/ogbono-soup-fresh.webp",
     ],
     categoryName: "Snacks",
     region: "Western",
@@ -751,7 +751,7 @@ export default [
     productType: "packaged",
     stock: 220,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/okra-soup-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/okra-soup-fresh.webp",
     ],
     categoryName: "Drinks",
     region: "Northern",
@@ -766,7 +766,7 @@ export default [
     productType: "packaged",
     stock: 180,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/palm-oil-red?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/palm-oil-red.webp",
     ],
     categoryName: "Drinks",
     region: "Northern",
@@ -782,7 +782,7 @@ export default [
     productType: "packaged",
     stock: 170,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/peppered-chicken-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/peppered-chicken-fresh.webp",
     ],
     categoryName: "Drinks",
     region: "Northern",
@@ -797,7 +797,7 @@ export default [
     productType: "packaged",
     stock: 140,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/peppered-meat-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/peppered-meat-fresh.webp",
     ],
     categoryName: "Drinks",
     region: "Western",
@@ -812,7 +812,7 @@ export default [
     productType: "packaged",
     stock: 130,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/plantain-chips?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/plantain-chips.webp",
     ],
     categoryName: "Drinks",
     region: "Western",
@@ -832,7 +832,7 @@ export default [
     productType: "packaged",
     stock: 150,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/pounded-yam-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/pounded-yam-fresh.webp",
     ],
     categoryName: "Proteins",
     region: "South-South",
@@ -847,7 +847,7 @@ export default [
     productType: "packaged",
     stock: 160,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/pounded-yam-powder-packaged?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/pounded-yam-powder-packaged.webp",
     ],
     categoryName: "Proteins",
     region: "Northern",
@@ -862,7 +862,7 @@ export default [
     productType: "packaged",
     stock: 120,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/puff-puff-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/puff-puff-fresh.webp",
     ],
     categoryName: "Proteins",
     region: "Western",
@@ -878,7 +878,7 @@ export default [
     productType: "packaged",
     stock: 110,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/salt-iodized?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/salt-iodized.webp",
     ],
     categoryName: "Proteins",
     region: "Western",
@@ -894,7 +894,7 @@ export default [
     productType: "packaged",
     stock: 90,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/semo-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/semo-fresh.webp",
     ],
     categoryName: "Proteins",
     region: "Western",
@@ -910,7 +910,7 @@ export default [
     productType: "packaged",
     stock: 80,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/semolina-packaged?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/semolina-packaged.webp",
     ],
     categoryName: "Proteins",
     region: "Western",
@@ -925,7 +925,7 @@ export default [
     productType: "packaged",
     stock: 100,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/shea-butter?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/shea-butter.webp",
     ],
     categoryName: "Proteins",
     region: "South-South",
@@ -940,7 +940,7 @@ export default [
     productType: "packaged",
     stock: 85,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/spring-rolls-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/spring-rolls-fresh.webp",
     ],
     categoryName: "Proteins",
     region: "Western",
@@ -955,7 +955,7 @@ export default [
     productType: "packaged",
     stock: 70,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/stockfish-dried?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/stockfish-dried.webp",
     ],
     categoryName: "Proteins",
     region: "Western",
@@ -970,7 +970,7 @@ export default [
     productType: "packaged",
     stock: 95,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/suya-beef-fresh?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/suya-beef-fresh.webp",
     ],
     categoryName: "Proteins",
     region: "Western",
@@ -987,7 +987,7 @@ export default [
     maxDailyQty: 60,
     stock: 60,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/thyme-leaves?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/thyme-leaves.webp",
     ],
     categoryName: "Proteins",
     region: "South-South",
@@ -1005,7 +1005,7 @@ export default [
     maxDailyQty: 80,
     stock: 80,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/tiger-nut-drink?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/tiger-nut-drink.webp",
     ],
     categoryName: "Proteins",
     region: "Northern",
@@ -1023,7 +1023,7 @@ export default [
     maxDailyQty: 70,
     stock: 70,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/yaji-suya-spice?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/yaji-suya-spice.webp",
     ],
     categoryName: "Proteins",
     region: "Western",
@@ -1041,7 +1041,7 @@ export default [
     maxDailyQty: 65,
     stock: 65,
     images: [
-      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/zobo-drink?_a=BAMAROUs0",
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/nriju/products/zobo-drink.webp",
     ],
     categoryName: "Proteins",
     region: "Western",
