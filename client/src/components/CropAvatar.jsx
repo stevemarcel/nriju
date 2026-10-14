@@ -124,7 +124,7 @@ const CropAvatar = ({ onCropped, initialSrc, name }) => {
             alt="Crop preview"
             crossOrigin="anonymous"
             onLoad={handleImageLoad}
-            className="max-w-[320px] max-h-[320px] rounded-lg"
+            className="max-w-[320px] max-h-80 rounded-lg"
           />
         </ReactCrop>
       </div>
