@@ -12,6 +12,7 @@ import {
   getMe,
   updateMe,
   addAddress,
+  deleteAvatar,
   deleteAddress,
 } from "../controllers/authController.js";
 import { auth } from "../middleware/auth.js";
@@ -36,6 +37,7 @@ router.get(
 router.get("/me", auth, getMe);
 router.put("/me", auth, updateMe);
 router.post("/me/avatar", auth, uploadAvatar, updateMe);
+router.delete("/me/avatar", auth, deleteAvatar);
 router.post("/me/addresses", auth, addAddress);
 router.delete("/me/addresses/:addressId", auth, deleteAddress);
 

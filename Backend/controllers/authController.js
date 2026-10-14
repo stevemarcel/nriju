@@ -246,6 +246,26 @@ const updateMe = asyncHandler(async (req, res) => {
   res.json({ success: true, data: user });
 });
 
+// @DESCRIPTION Delete user avatar
+// @ROUTE       DELETE /api/v1/auth/me/avatar
+// @ACCESS      Authenticated
+const deleteAvatar = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  if (user.avatarPublicId) {
+    await deleteFromCloudinary(user.avatarPublicId);
+  }
+  user.avatar = "";
+  user.avatarPublicId = "";
+  await user.save();
+
+  res.json({ success: true, data: user });
+});
+
 // @DESCRIPTION Remove a shipping address
 // @ROUTE       DELETE /api/v1/auth/me/addresses/:addressId
 // @ACCESS      Authenticated
@@ -280,5 +300,6 @@ export {
   getMe,
   updateMe,
   addAddress,
+  deleteAvatar,
   deleteAddress,
 };
