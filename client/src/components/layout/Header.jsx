@@ -54,7 +54,7 @@ const Header = () => {
             <img
               src="/assets/logos/nriju-logo-full-colour.png"
               alt="Nriju"
-              className="w-9 h-9 object-contain"
+              className="w-20 h-full object-contain"
             />
           </Link>
 
@@ -94,7 +94,10 @@ const Header = () => {
               <div className="w-8 h-8 rounded-full bg-surface animate-pulse" />
             ) : user ? (
               <div className="relative group">
-                <button className="flex items-center gap-2 p-1 rounded-lg hover:bg-surface">
+                <button
+                  className="flex items-center gap-2 p-1 rounded-lg hover:bg-surface"
+                  onClick={() => dispatch(setMobileMenu(!mobileMenuOpen))}
+                >
                   {user?.avatar ? (
                     <img
                       src={user.avatar}
@@ -108,30 +111,37 @@ const Header = () => {
                   )}
                   <span className="hidden sm:block text-sm text-text">{user.name}</span>
                 </button>
-                <div className="absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
+
+                <div
+                  className={`absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-border transition-all ${
+                    mobileMenuOpen
+                      ? "opacity-100 visible"
+                      : "opacity-0 invisible group-hover:opacity-100 group-hover:visible"
+                  }`}
+                >
                   <Link
                     to="/account"
-                    className="block px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    className=" px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                   >
                     <User className="w-4 h-4 text-text-muted" /> Account
                   </Link>
                   <Link
                     to="/account/orders"
-                    className="block px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    className=" px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                   >
                     <Package className="w-4 h-4 text-text-muted" /> Orders
                   </Link>
                   {isAdmin && (
                     <Link
                       to="/admin"
-                      className="block px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                      className=" px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                     >
                       <Shield className="w-4 h-4 text-text-muted" /> Admin
                     </Link>
                   )}
                   <button
                     onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-primary hover:bg-background flex items-center gap-2"
+                    className=" w-full text-left px-4 py-2 text-sm text-primary hover:bg-background flex items-center gap-2"
                   >
                     <LogOut className="w-4 h-4" /> Logout
                   </button>
@@ -148,7 +158,7 @@ const Header = () => {
 
             {/* Mobile menu */}
             <button
-              className="md:hidden p-2 rounded-lg hover:bg-surface"
+              className="hidden p-2 rounded-lg hover:bg-surface"
               onClick={() => dispatch(setMobileMenu(!mobileMenuOpen))}
               aria-label="Toggle menu"
             >
@@ -158,7 +168,7 @@ const Header = () => {
         </div>
 
         {/* Mobile menu */}
-        {mobileMenuOpen && (
+        {/* {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-border">
             <nav className="flex flex-col gap-2">
               {navLinks.map((link) => (
@@ -218,7 +228,7 @@ const Header = () => {
               )}
             </nav>
           </div>
-        )}
+        )} */}
       </div>
     </header>
   );

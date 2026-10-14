@@ -12,7 +12,7 @@ const Footer = () => {
               <img
                 src="/assets/logos/nriju-logo-light.png"
                 alt="Nriju"
-                className="w-9 h-9 object-contain"
+                className="w-40 h-full object-contain"
               />
             </div>
             <p className="text-white/60 text-sm">

@@ -11,8 +11,9 @@ const MobileTabBar = () => {
   const wishlistCount = wishlist.length;
 
   // Hide tab bar on account and admin pages to avoid duplication with Header mobile menu
-  const hideTabs =
-    location.pathname.startsWith("/account") || location.pathname.startsWith("/admin");
+  // const hideTabs =
+  //   location.pathname.startsWith("/account") || location.pathname.startsWith("/admin");
+  const hideTabs = location.pathname.startsWith("/admin");
 
   const tabs = [
     { to: "/", label: "Home", icon: Home },

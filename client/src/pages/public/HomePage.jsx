@@ -33,7 +33,7 @@ const HomePage = () => {
             Authentic Taste, Cooked Fresh Daily.
           </h1>
           <p className="text-white/80 text-lg md:text-xl mb-8">
-            From slow-cooked stews and pounded yam to seasoned snacks and chilled drinks — delivered
+            From slow-cooked stews and pounded yam to seasoned snacks and chilled drinks - delivered
             hot to your door or ready for pickup.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
