@@ -1,5 +1,6 @@
 import asyncHandler from "express-async-handler";
 import Product from "../models/Product.js";
+import Category from "../models/Category.js";
 import { productSummary } from "../utils/format.js";
 
 // @DESCRIPTION List active products with filters, search, sort and pagination
@@ -9,7 +10,13 @@ const getProducts = asyncHandler(async (req, res) => {
   const { category, search, minPrice, maxPrice, type, sort, page = 1, limit = 20 } = req.query;
 
   const query = Product.find({ isActive: true });
-  if (category) query.where("category").equals(category);
+  // The storefront filters by category *slug*, but Product.category is an
+  // ObjectId — resolve the slug to its _id before filtering, otherwise the
+  // equals() call throws a CastError (400).
+  if (category) {
+    const cat = await Category.findOne({ slug: category, isActive: true });
+    if (cat) query.where("category").equals(cat._id);
+  }
   if (search) query.where("name").regex(new RegExp(search, "i"));
   if (minPrice) query.where("price").gte(Number(minPrice));
   if (maxPrice) query.where("price").lte(Number(maxPrice));

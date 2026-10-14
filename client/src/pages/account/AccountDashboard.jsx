@@ -403,7 +403,7 @@ const AccountDashboard = () => {
               </div>
             </div>
             <Link
-              to="/shop"
+              to="/account/wishlist"
               className="text-xs font-bold text-primary uppercase tracking-widest hover:underline"
             >
               View all

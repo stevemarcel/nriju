@@ -1,8 +1,21 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// A bare ObjectId string in `category` is a legacy artifact from an older
+// API that collapsed the populated category to its _id. The storefront
+// renders category.name, so drop the raw ID rather than displaying it.
+const normalizeCategory = (item) => {
+  if (item && typeof item.category === "string") {
+    const { category, ...rest } = item;
+    return rest;
+  }
+  return item;
+};
+
 const loadWishlist = () => {
   try {
-    return JSON.parse(localStorage.getItem("nriju_wishlist") || "[]");
+    return (JSON.parse(localStorage.getItem("nriju_wishlist") || "[]") || []).map(
+      normalizeCategory,
+    );
   } catch {
     return [];
   }
