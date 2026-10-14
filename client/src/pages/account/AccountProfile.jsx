@@ -5,6 +5,7 @@ import { setUser } from "../../slices/authSlice";
 import api from "../../services/api";
 import { toast } from "sonner";
 import CropAvatar from "../../components/CropAvatar";
+import formatTimeAgo from "../../utils/formatTimeAgo";
 import {
   User,
   Mail,
@@ -64,9 +65,12 @@ const AccountProfile = () => {
     e.preventDefault();
     setError("");
     setSaving(true);
+
     try {
       const res = await api.put("/auth/me", form);
+
       dispatch(setUser(res.data.data));
+
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err) {
@@ -324,7 +328,7 @@ const AccountProfile = () => {
               </Link>
             </div>
 
-            <div className="pt-2 flex items-center gap-3">
+            <div className="pt-2 sm:flex gap-2 items-center ">
               <button
                 type="submit"
                 disabled={saving}
@@ -333,8 +337,8 @@ const AccountProfile = () => {
                 <Save className="w-4 h-4" />
                 {saving ? "Saving..." : "Save Changes"}
               </button>
-              <span className="text-xs text-text-muted">
-                {saving ? "Please wait..." : "Last saved: recently"}
+              <span className="text-xs flex text-text-muted pt-3 sm:pt-0">
+                {saving ? "Saving..." : `Last saved: ${formatTimeAgo(user?.updatedAt)}`}
               </span>
             </div>
           </form>
