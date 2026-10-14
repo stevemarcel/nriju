@@ -338,7 +338,7 @@ const CropAvatar = ({
                   Loading your current photo…
                 </div>
               ) : src ? (
-                <div className="flex max-w-full items-center justify-center">
+                <div className="flex max-h-full items-center justify-center">
                   <ReactCrop
                     crop={crop}
                     onChange={(_, percentCrop) => setCrop(percentCrop)}
@@ -391,7 +391,7 @@ const CropAvatar = ({
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={busy || loadingSource}
-                className="inline-flex items-center gap-2 rounded-lg border border-border-soft bg-surface px-4 py-2.5 text-sm font-semibold text-text transition-colors hover:bg-background-soft disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-lg border border-border-soft bg-surface px-4 py-2.5 text-sm font-semibold text-text transition-colors hover:bg-background-soft disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Upload className="h-4 w-4" />
                 Change
@@ -399,8 +399,8 @@ const CropAvatar = ({
               <button
                 type="button"
                 onClick={closeEditor}
-                disabled={busy}
-                className="inline-flex items-center gap-2 rounded-lg border border-border-soft bg-surface px-4 py-2.5 text-sm font-semibold text-text transition-colors hover:bg-background-soft disabled:opacity-50"
+                disabled={busy || loadingSource}
+                className="inline-flex items-center gap-2 rounded-lg border border-border-soft bg-surface px-4 py-2.5 text-sm font-semibold text-text transition-colors hover:bg-background-soft disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -440,11 +440,11 @@ const CropAvatar = ({
               id="delete-avatar-title"
               className="text-center font-heading text-xl font-bold text-text"
             >
-              Delete profile photo?
+              Remove profile photo?
             </h2>
             <p className="mt-2 text-center text-sm leading-6 text-text-muted">
-              Your profile will show your initials instead. This removes the saved photo from your
-              account and attempts to delete the image from Cloudinary.
+              Your profile will show your initials instead of your photo. You can upload a new photo
+              anytime.
             </p>
 
             {visibleError && (
@@ -466,7 +466,7 @@ const CropAvatar = ({
                 disabled={busy}
                 className="rounded-lg border border-border-soft bg-surface px-5 py-2.5 text-sm font-semibold text-text transition-colors hover:bg-background-soft disabled:opacity-50"
               >
-                Cancel
+                Keep photo
               </button>
               <button
                 type="button"
@@ -479,7 +479,7 @@ const CropAvatar = ({
                 ) : (
                   <Trash2 className="h-4 w-4" />
                 )}
-                {isDeleting ? "Deleting…" : "Yes, delete photo"}
+                {isDeleting ? "Removing..." : "Remove photo"}
               </button>
             </div>
           </section>

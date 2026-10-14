@@ -208,10 +208,6 @@ const getAvatarSource = asyncHandler(async (req, res) => {
     throw new Error("No profile picture has been saved.");
   }
 
-  // TODO: Remove these console logs after debugging Cloudinary download issues
-  console.log("Avatar URL:", user.avatar);
-  console.log("Avatar public ID:", user.avatarPublicId);
-
   try {
     const { buffer, contentType } = await downloadAvatarFromCloudinary(user.avatarPublicId);
     res.set({
