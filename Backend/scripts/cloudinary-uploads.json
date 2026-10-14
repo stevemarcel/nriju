@@ -1,0 +1,526 @@
+{
+  "products": [
+    {
+      "original": "akara-fresh.webp",
+      "publicId": "nriju/products/akara-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/akara-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "amala-fresh.webp",
+      "publicId": "nriju/products/amala-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/amala-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "amala-lafun-packaged.webp",
+      "publicId": "nriju/products/amala-lafun-packaged",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/amala-lafun-packaged?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "banga-soup-fresh.webp",
+      "publicId": "nriju/products/banga-soup-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/banga-soup-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "bitter-leaf-soup-fresh.webp",
+      "publicId": "nriju/products/bitter-leaf-soup-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/bitter-leaf-soup-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "boli-pepper-stew-fresh.webp",
+      "publicId": "nriju/products/boli-pepper-stew-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/boli-pepper-stew-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "bouillon-cubes-knorr.webp",
+      "publicId": "nriju/products/bouillon-cubes-knorr",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/bouillon-cubes-knorr?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "chin-chin.webp",
+      "publicId": "nriju/products/chin-chin",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/chin-chin?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "coconut-oil.webp",
+      "publicId": "nriju/products/coconut-oil",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/coconut-oil?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "curry-powder.webp",
+      "publicId": "nriju/products/curry-powder",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/curry-powder?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "dried-beef.webp",
+      "publicId": "nriju/products/dried-beef",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/dried-beef?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "dried-goat-meat.webp",
+      "publicId": "nriju/products/dried-goat-meat",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/dried-goat-meat?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "eba-fresh.webp",
+      "publicId": "nriju/products/eba-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/eba-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "edikang-ikong-fresh.webp",
+      "publicId": "nriju/products/edikang-ikong-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/edikang-ikong-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "egusi-soup-fresh.webp",
+      "publicId": "nriju/products/egusi-soup-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/egusi-soup-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "egusi-soup-mix.webp",
+      "publicId": "nriju/products/egusi-soup-mix",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/egusi-soup-mix?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "ewedu-soup-fresh.webp",
+      "publicId": "nriju/products/ewedu-soup-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/ewedu-soup-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "fresh-juice-orange.webp",
+      "publicId": "nriju/products/fresh-juice-orange",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fresh-juice-orange?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "fresh-juice-special-blend.webp",
+      "publicId": "nriju/products/fresh-juice-special-blend",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fresh-juice-special-blend?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "frozen-beef.webp",
+      "publicId": "nriju/products/frozen-beef",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-beef?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "frozen-catfish.webp",
+      "publicId": "nriju/products/frozen-catfish",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-catfish?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "frozen-chicken.webp",
+      "publicId": "nriju/products/frozen-chicken",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-chicken?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "frozen-goat-meat.webp",
+      "publicId": "nriju/products/frozen-goat-meat",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-goat-meat?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "frozen-mackerel.webp",
+      "publicId": "nriju/products/frozen-mackerel",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-mackerel?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "frozen-tilapia.webp",
+      "publicId": "nriju/products/frozen-tilapia",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-tilapia?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "fufu-akpu-fresh.webp",
+      "publicId": "nriju/products/fufu-akpu-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fufu-akpu-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "fufu-powder-packaged.webp",
+      "publicId": "nriju/products/fufu-powder-packaged",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fufu-powder-packaged?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "garri-packaged.webp",
+      "publicId": "nriju/products/garri-packaged",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/garri-packaged?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "gbegiri-fresh.webp",
+      "publicId": "nriju/products/gbegiri-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/gbegiri-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "Golden-Lidded Ground Pepper Jar.webp",
+      "publicId": "nriju/products/Golden-Lidded Ground Pepper Jar",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/Golden-Lidded%20Ground%20Pepper%20Jar?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "grilled-fish-fresh.webp",
+      "publicId": "nriju/products/grilled-fish-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/grilled-fish-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "ground-crayfish.webp",
+      "publicId": "nriju/products/ground-crayfish",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/ground-crayfish?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "kika-dried-fish.webp",
+      "publicId": "nriju/products/kika-dried-fish",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kika-dried-fish?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "kilishi.webp",
+      "publicId": "nriju/products/kilishi",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kilishi?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "kings-groundnut-oil.webp",
+      "publicId": "nriju/products/kings-groundnut-oil",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kings-groundnut-oil?_a=BAMAROUs0",
+      "width": 932,
+      "height": 934
+    },
+    {
+      "original": "kuli-kuli.webp",
+      "publicId": "nriju/products/kuli-kuli",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kuli-kuli?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "kunu-drink.webp",
+      "publicId": "nriju/products/kunu-drink",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kunu-drink?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "locust-beans-iru.webp",
+      "publicId": "nriju/products/locust-beans-iru",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/locust-beans-iru?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "meat-pie-fresh.webp",
+      "publicId": "nriju/products/meat-pie-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/meat-pie-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "moi-moi-fresh.webp",
+      "publicId": "nriju/products/moi-moi-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/moi-moi-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "obe-ata-fresh.webp",
+      "publicId": "nriju/products/obe-ata-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/obe-ata-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "obe-ata-soup-mix.webp",
+      "publicId": "nriju/products/obe-ata-soup-mix",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/obe-ata-soup-mix?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "ogbono-soup-fresh.webp",
+      "publicId": "nriju/products/ogbono-soup-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/ogbono-soup-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "okra-soup-fresh.webp",
+      "publicId": "nriju/products/okra-soup-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/okra-soup-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "palm-oil-red.webp",
+      "publicId": "nriju/products/palm-oil-red",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/palm-oil-red?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "peppered-chicken-fresh.webp",
+      "publicId": "nriju/products/peppered-chicken-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/peppered-chicken-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "peppered-meat-fresh.webp",
+      "publicId": "nriju/products/peppered-meat-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/peppered-meat-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "plantain-chips.webp",
+      "publicId": "nriju/products/plantain-chips",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/plantain-chips?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "pounded-yam-fresh.webp",
+      "publicId": "nriju/products/pounded-yam-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/pounded-yam-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "pounded-yam-powder-packaged.webp",
+      "publicId": "nriju/products/pounded-yam-powder-packaged",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/pounded-yam-powder-packaged?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "puff-puff-fresh.webp",
+      "publicId": "nriju/products/puff-puff-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/puff-puff-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "salt-iodized.webp",
+      "publicId": "nriju/products/salt-iodized",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/salt-iodized?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "semo-fresh.webp",
+      "publicId": "nriju/products/semo-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/semo-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "semolina-packaged.webp",
+      "publicId": "nriju/products/semolina-packaged",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/semolina-packaged?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "shea-butter.webp",
+      "publicId": "nriju/products/shea-butter",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/shea-butter?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "spring-rolls-fresh.webp",
+      "publicId": "nriju/products/spring-rolls-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/spring-rolls-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "stockfish-dried.webp",
+      "publicId": "nriju/products/stockfish-dried",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/stockfish-dried?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "suya-beef-fresh.webp",
+      "publicId": "nriju/products/suya-beef-fresh",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/suya-beef-fresh?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "thyme-leaves.webp",
+      "publicId": "nriju/products/thyme-leaves",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/thyme-leaves?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "tiger-nut-drink.webp",
+      "publicId": "nriju/products/tiger-nut-drink",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/tiger-nut-drink?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "yaji-suya-spice.webp",
+      "publicId": "nriju/products/yaji-suya-spice",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/yaji-suya-spice?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    },
+    {
+      "original": "zobo-drink.webp",
+      "publicId": "nriju/products/zobo-drink",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/zobo-drink?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 1200
+    }
+  ],
+  "categories": [
+    {
+      "original": "cat-drinks-hero.webp",
+      "publicId": "nriju/categories/cat-drinks-hero",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_630,q_auto,w_1200/cat-drinks-hero?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "original": "cat-oils-fats-hero.webp",
+      "publicId": "nriju/categories/cat-oils-fats-hero",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_630,q_auto,w_1200/cat-oils-fats-hero?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "original": "cat-proteins-hero.webp",
+      "publicId": "nriju/categories/cat-proteins-hero",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_630,q_auto,w_1200/cat-proteins-hero?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "original": "cat-seasonings-hero.webp",
+      "publicId": "nriju/categories/cat-seasonings-hero",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_630,q_auto,w_1200/cat-seasonings-hero?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "original": "cat-snacks-hero.webp",
+      "publicId": "nriju/categories/cat-snacks-hero",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_630,q_auto,w_1200/cat-snacks-hero?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "original": "cat-soups-stews-hero.webp",
+      "publicId": "nriju/categories/cat-soups-stews-hero",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_630,q_auto,w_1200/cat-soups-stews-hero?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 630
+    },
+    {
+      "original": "cat-swallows-hero.webp",
+      "publicId": "nriju/categories/cat-swallows-hero",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_630,q_auto,w_1200/cat-swallows-hero?_a=BAMAROUs0",
+      "width": 1200,
+      "height": 630
+    }
+  ],
+  "users": [
+    {
+      "original": "user-newhorizon.webp",
+      "publicId": "nriju/avatars/user-newhorizon",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-newhorizon?_a=BAMAROUs0",
+      "width": 200,
+      "height": 200
+    },
+    {
+      "original": "user-sharkcolours.webp",
+      "publicId": "nriju/avatars/user-sharkcolours",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-sharkcolours?_a=BAMAROUs0",
+      "width": 200,
+      "height": 200
+    },
+    {
+      "original": "user-stevesvile.webp",
+      "publicId": "nriju/avatars/user-stevesvile",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-stevesvile?_a=BAMAROUs0",
+      "width": 200,
+      "height": 200
+    },
+    {
+      "original": "user-storemanager.webp",
+      "publicId": "nriju/avatars/user-storemanager",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-storemanager?_a=BAMAROUs0",
+      "width": 200,
+      "height": 200
+    },
+    {
+      "original": "user-superadmin.webp",
+      "publicId": "nriju/avatars/user-superadmin",
+      "url": "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-superadmin?_a=BAMAROUs0",
+      "width": 200,
+      "height": 200
+    }
+  ]
+}

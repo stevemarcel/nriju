@@ -2,6 +2,7 @@ import asyncHandler from "express-async-handler";
 import Product from "../models/Product.js";
 import Category from "../models/Category.js";
 import { productSummary } from "../utils/format.js";
+import { uploadProductToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryUtils.js";
 
 // @DESCRIPTION List active products with filters, search, sort and pagination
 // @ROUTE       GET /api/v1/products
@@ -80,10 +81,19 @@ const createProduct = asyncHandler(async (req, res) => {
     unit,
     productType,
     category,
-    images,
     tags,
     isFeatured,
   } = req.body;
+
+  // Upload images if provided via multipart form
+  const images = req.files
+    ? await Promise.all(
+        req.files.map(async (file) => {
+          const uploaded = await uploadProductToCloudinary(file.buffer);
+          return uploaded.url;
+        }),
+      )
+    : [];
 
   const product = await Product.create({
     name,
@@ -93,7 +103,7 @@ const createProduct = asyncHandler(async (req, res) => {
     unit,
     productType,
     category,
-    images: images || [],
+    images,
     tags: tags || [],
     isFeatured: !!isFeatured,
     stock: 0,
@@ -122,7 +132,6 @@ const updateProduct = asyncHandler(async (req, res) => {
     "unit",
     "productType",
     "category",
-    "images",
     "tags",
     "isActive",
     "isFeatured",
@@ -131,8 +140,25 @@ const updateProduct = asyncHandler(async (req, res) => {
   for (const key of allowed) {
     if (req.body[key] !== undefined) product[key] = req.body[key];
   }
-  product.updatedBy = req.user._id;
 
+  // Handle image uploads - replace old images if new ones provided
+  if (req.files && req.files.length > 0) {
+    // Delete old images from Cloudinary
+    for (const oldUrl of product.images) {
+      const publicId = oldUrl.split("/").pop().split(".")[0];
+      await deleteFromCloudinary(`nriju/products/${publicId}`);
+    }
+    // Upload new images
+    const newImages = await Promise.all(
+      req.files.map(async (file) => {
+        const uploaded = await uploadProductToCloudinary(file.buffer);
+        return uploaded.url;
+      }),
+    );
+    product.images = newImages;
+  }
+
+  product.updatedBy = req.user._id;
   await product.save();
   res.json({ success: true, data: productSummary(product) });
 });

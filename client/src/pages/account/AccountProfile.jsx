@@ -4,6 +4,7 @@ import { useAppSelector, useAppDispatch } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
 import api from "../../services/api";
 import { toast } from "sonner";
+import CropAvatar from "../../components/CropAvatar";
 import {
   User,
   Mail,
@@ -33,6 +34,7 @@ const AccountProfile = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [avatarUploading, setAvatarUploading] = useState(false);
 
   // Address management
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -69,6 +71,24 @@ const AccountProfile = () => {
       setError(err.response?.data?.message || "Failed to save changes.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleAvatarUpload = async (file) => {
+    setAvatarUploading(true);
+    setError("");
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      const res = await api.post("/auth/me/avatar", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      dispatch(setUser(res.data.data));
+      toast.success("Avatar updated successfully!");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to upload avatar.");
+    } finally {
+      setAvatarUploading(false);
     }
   };
 
@@ -149,11 +169,19 @@ const AccountProfile = () => {
         {/* Profile card with avatar */}
         <div className="bg-surface rounded-xl border border-border-soft p-6 mb-6">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <span className="font-heading text-2xl font-bold text-primary">
-                {user?.name?.charAt(0)?.toUpperCase() || "U"}
-              </span>
-            </div>
+            {user?.avatar ? (
+              <img
+                src={user.avatar}
+                alt={user.name}
+                className="w-16 h-16 rounded-full object-cover shrink-0 ring-2 ring-primary/20"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <span className="font-heading text-2xl font-bold text-primary">
+                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </span>
+              </div>
+            )}
             <div>
               <h2 className="font-heading text-lg font-bold text-text">{user?.name}</h2>
               <p className="text-sm text-text-muted">{user?.email}</p>
@@ -171,6 +199,19 @@ const AccountProfile = () => {
               </span>
             </div>
           </div>
+        </div>
+
+        {/* Avatar Upload Section */}
+        <div className="bg-surface rounded-xl border border-border-soft p-6 mb-6">
+          <h3 className="font-heading font-semibold text-text mb-4 flex items-center gap-2">
+            <User className="w-5 h-5 text-primary" /> Profile Photo
+          </h3>
+          <CropAvatar
+            initialSrc={user?.avatar || undefined}
+            onCropped={handleAvatarUpload}
+            name={user?.name}
+          />
+          {avatarUploading && <p className="mt-2 text-xs text-text-muted">Uploading...</p>}
         </div>
 
         {/* Form */}

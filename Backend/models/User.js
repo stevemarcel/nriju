@@ -35,6 +35,7 @@ const userSchema = new mongoose.Schema(
     phone: { type: String, default: "" },
     googleId: { type: String, unique: true, sparse: true, index: true },
     avatar: { type: String, default: "" },
+    avatarPublicId: { type: String, default: "" },
     role: {
       type: String,
       enum: ["customer", "admin", "superAdmin"],

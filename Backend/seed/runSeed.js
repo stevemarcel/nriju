@@ -68,7 +68,7 @@ const runSeed = async () => {
       compareAtPrice: rest.compareAtPrice != null ? toKobo(rest.compareAtPrice) : null,
       stock: 0, // provisional — recomputed from Inventory below
       category: categoryMap[categoryName],
-      images: [],
+      images: rest.images || [],
       createdBy: adminUser._id,
       updatedBy: null,
     }));

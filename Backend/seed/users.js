@@ -4,7 +4,10 @@ export default [
   {
     name: "Nriju Super Admin",
     email: "just.stevemarcel@gmail.com",
-    password: "", // Leave password empty for security reasons; set it manually in production.
+    password: "admin123", // Change in production
+    avatar:
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-superadmin?_a=BAMAROUs0",
+    avatarPublicId: "nriju/avatars/nriju-super-admin",
     role: "superAdmin",
     isVerified: true,
     phone: "+2348012345678",
@@ -12,7 +15,10 @@ export default [
   {
     name: "Store Manager",
     email: "npmruntesting@gmail.com",
-    password: "", // Leave password empty for security reasons; set it manually in production.
+    password: "admin123",
+    avatar:
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-storemanager?_a=BAMAROUs0",
+    avatarPublicId: "nriju/avatars/store-manager",
     role: "admin",
     isVerified: true,
     phone: "+2348023456789",
@@ -20,7 +26,10 @@ export default [
   {
     name: "New Horizon",
     email: "graphicsnewhorizon@gmail.com",
-    password: "", // Leave password empty for security reasons; set it manually in production.
+    password: "user123",
+    avatar:
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-newhorizon?_a=BAMAROUs0",
+    avatarPublicId: "nriju/avatars/new-horizon",
     role: "customer",
     isVerified: true,
     phone: "+2348034567890",
@@ -28,7 +37,10 @@ export default [
   {
     name: "Steve Svile",
     email: "stevesvile@gmail.com",
-    password: "", // Leave password empty for security reasons; set it manually in production.
+    password: "user123",
+    avatar:
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-stevesvile?_a=BAMAROUs0",
+    avatarPublicId: "nriju/avatars/steve-svile",
     role: "customer",
     isVerified: true,
     phone: "+2348045678901",
@@ -36,7 +48,10 @@ export default [
   {
     name: "Shark Colours",
     email: "just.shark.24.7@gmail.com",
-    password: "", // Leave password empty for security reasons; set it manually in production.
+    password: "user123",
+    avatar:
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-sharkcolours?_a=BAMAROUs0",
+    avatarPublicId: "nriju/avatars/shark-colours",
     role: "customer",
     isVerified: true,
     phone: "+2348056789012",

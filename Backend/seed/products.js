@@ -22,6 +22,9 @@ export default [
     prepLeadTime: 2,
     maxDailyQty: 150,
     stock: 150,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/akara-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Swallows",
     region: "Western",
     tags: ["swallow", "fufu", "akpu", "cassava", "fresh"],
@@ -37,6 +40,9 @@ export default [
     prepLeadTime: 2,
     maxDailyQty: 120,
     stock: 120,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/amala-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Swallows",
     region: "Western",
     tags: ["swallow", "amala", "eloko", "yoruba"],
@@ -51,6 +57,9 @@ export default [
     prepLeadTime: 2,
     maxDailyQty: 130,
     stock: 130,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/amala-lafun-packaged?_a=BAMAROUs0",
+    ],
     categoryName: "Swallows",
     region: "Western",
     tags: ["swallow", "semo", "semolina"],
@@ -66,6 +75,9 @@ export default [
     prepLeadTime: 2,
     maxDailyQty: 100,
     stock: 100,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/banga-soup-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Swallows",
     region: "Western",
     tags: ["swallow", "pounded yam", "yam", "fresh"],
@@ -80,6 +92,9 @@ export default [
     prepLeadTime: 2,
     maxDailyQty: 140,
     stock: 140,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/bitter-leaf-soup-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Swallows",
     region: "Eastern",
     tags: ["swallow", "eba", "garri"],
@@ -92,6 +107,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 300,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/boli-pepper-stew-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Swallows",
     region: "Western",
     tags: ["swallow", "fufu", "powder", "packaged", "shelf-stable"],
@@ -104,6 +122,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 280,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/bouillon-cubes-knorr?_a=BAMAROUs0",
+    ],
     categoryName: "Swallows",
     region: "Western",
     tags: ["swallow", "amala", "lafun", "yam flour", "packaged"],
@@ -116,6 +137,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 200,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/chin-chin?_a=BAMAROUs0",
+    ],
     categoryName: "Swallows",
     region: "Western",
     tags: ["swallow", "pounded yam", "powder", "packaged"],
@@ -128,6 +152,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 260,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/coconut-oil?_a=BAMAROUs0",
+    ],
     categoryName: "Swallows",
     region: "Eastern",
     tags: ["swallow", "semolina", "semo", "packaged"],
@@ -141,6 +168,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 350,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/curry-powder?_a=BAMAROUs0",
+    ],
     categoryName: "Swallows",
     region: "Western",
     tags: ["garri", "swallow", "packaged", "ijebu"],
@@ -160,6 +190,9 @@ export default [
     prepLeadTime: 3,
     maxDailyQty: 90,
     stock: 90,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/dried-beef?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "Western",
     tags: ["soup", "stew", "obe ata", "red stew", "fresh"],
@@ -175,6 +208,9 @@ export default [
     prepLeadTime: 3,
     maxDailyQty: 70,
     stock: 70,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/dried-goat-meat?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "Western",
     tags: ["soup", "gbegiri", "bean soup", "fresh", "side"],
@@ -190,6 +226,9 @@ export default [
     prepLeadTime: 3,
     maxDailyQty: 80,
     stock: 80,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/eba-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "Western",
     tags: ["soup", "egusi", "melon seed", "fresh"],
@@ -203,6 +242,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 220,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/edikang-ikong-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "Western",
     tags: ["soup", "egusi", "mix", "packaged", "shelf-stable"],
@@ -218,6 +260,9 @@ export default [
     prepLeadTime: 3,
     maxDailyQty: 75,
     stock: 75,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/egusi-soup-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "Western",
     tags: ["soup", "ogbono", "draw soup", "fresh"],
@@ -233,6 +278,9 @@ export default [
     prepLeadTime: 3,
     maxDailyQty: 60,
     stock: 60,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/egusi-soup-mix?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "South-South",
     tags: ["soup", "banga", "palm fruit", "south south", "fresh"],
@@ -248,6 +296,9 @@ export default [
     prepLeadTime: 3,
     maxDailyQty: 60,
     stock: 60,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/ewedu-soup-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "Eastern",
     tags: ["soup", "bitter leaf", "igbo", "fresh"],
@@ -263,6 +314,9 @@ export default [
     prepLeadTime: 3,
     maxDailyQty: 70,
     stock: 70,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fresh-juice-orange?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "Eastern",
     tags: ["soup", "okra", "igbo", "fresh"],
@@ -278,6 +332,9 @@ export default [
     prepLeadTime: 3,
     maxDailyQty: 65,
     stock: 65,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fresh-juice-special-blend?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "Western",
     tags: ["soup", "ewedu", "jute leaf", "yoruba", "fresh"],
@@ -293,6 +350,9 @@ export default [
     prepLeadTime: 3,
     maxDailyQty: 50,
     stock: 50,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-beef?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "South-South",
     tags: ["soup", "edikang ikong", "efik", "ibibio", "fresh"],
@@ -306,6 +366,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 240,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-catfish?_a=BAMAROUs0",
+    ],
     categoryName: "Soups & Stews",
     region: "Western",
     tags: ["soup", "obe ata", "mix", "packaged", "shelf-stable"],
@@ -322,6 +385,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 300,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-chicken?_a=BAMAROUs0",
+    ],
     categoryName: "Seasonings",
     region: "South-South",
     tags: ["seasoning", "crayfish", "smoked"],
@@ -335,6 +401,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 260,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-goat-meat?_a=BAMAROUs0",
+    ],
     categoryName: "Seasonings",
     region: "Western",
     tags: ["seasoning", "iru", "locust bean", "fermented"],
@@ -348,6 +417,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 280,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-mackerel?_a=BAMAROUs0",
+    ],
     categoryName: "Seasonings",
     region: "Northern",
     tags: ["seasoning", "yaji", "suya", "spice", "northern"],
@@ -360,6 +432,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 290,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/frozen-tilapia?_a=BAMAROUs0",
+    ],
     categoryName: "Seasonings",
     region: "Eastern",
     tags: ["seasoning", "pepper", "ose", "spicy"],
@@ -373,6 +448,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 400,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fufu-akpu-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Seasonings",
     region: "Western",
     tags: ["seasoning", "bouillon", "knorr", "cubes", "packaged"],
@@ -385,6 +463,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 250,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/fufu-powder-packaged?_a=BAMAROUs0",
+    ],
     categoryName: "Seasonings",
     region: "Western",
     tags: ["seasoning", "thyme", "herb", "dried"],
@@ -397,6 +478,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 250,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/garri-packaged?_a=BAMAROUs0",
+    ],
     categoryName: "Seasonings",
     region: "Western",
     tags: ["seasoning", "curry", "spice", "dried"],
@@ -409,6 +493,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 500,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/gbegiri-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Seasonings",
     region: "Eastern",
     tags: ["seasoning", "salt", "iodized", "essential"],
@@ -426,6 +513,9 @@ export default [
     unit: "1 Litre",
     productType: "packaged",
     stock: 180,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/Golden-Lidded%20Ground%20Pepper%20Jar?_a=BAMAROUs0",
+    ],
     categoryName: "Oils & Fats",
     region: "South-South",
     tags: ["oil", "palm oil", "red oil", "cooking"],
@@ -439,6 +529,9 @@ export default [
     unit: "1 Litre",
     productType: "packaged",
     stock: 150,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/grilled-fish-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Oils & Fats",
     region: "Northern",
     tags: ["oil", "groundnut", "peanut oil", "cooking", "frying"],
@@ -451,6 +544,9 @@ export default [
     unit: "500ml",
     productType: "packaged",
     stock: 60,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/ground-crayfish?_a=BAMAROUs0",
+    ],
     categoryName: "Oils & Fats",
     region: "South-South",
     tags: ["oil", "coconut oil", "premium"],
@@ -464,6 +560,9 @@ export default [
     unit: "250g",
     productType: "packaged",
     stock: 90,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kika-dried-fish?_a=BAMAROUs0",
+    ],
     categoryName: "Oils & Fats",
     region: "Northern",
     tags: ["fat", "shea butter", "ori", "raw", "unrefined"],
@@ -481,6 +580,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 280,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kilishi?_a=BAMAROUs0",
+    ],
     categoryName: "Snacks",
     region: "Western",
     tags: ["snack", "chin chin", "packaged", "crunchy"],
@@ -495,6 +597,9 @@ export default [
     prepLeadTime: 1,
     maxDailyQty: 100,
     stock: 100,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kings-groundnut-oil?_a=BAMAROUs0",
+    ],
     categoryName: "Snacks",
     region: "Western",
     tags: ["snack", "puff puff", "fresh", "fried"],
@@ -510,6 +615,9 @@ export default [
     prepLeadTime: 1,
     maxDailyQty: 90,
     stock: 90,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kuli-kuli?_a=BAMAROUs0",
+    ],
     categoryName: "Snacks",
     region: "Western",
     tags: ["snack", "akara", "bean", "fresh", "fried"],
@@ -525,6 +633,9 @@ export default [
     prepLeadTime: 4,
     maxDailyQty: 80,
     stock: 80,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/kunu-drink?_a=BAMAROUs0",
+    ],
     categoryName: "Snacks",
     region: "Western",
     tags: ["snack", "meat pie", "pastry", "fresh", "baked"],
@@ -539,6 +650,9 @@ export default [
     prepLeadTime: 2,
     maxDailyQty: 90,
     stock: 90,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/locust-beans-iru?_a=BAMAROUs0",
+    ],
     categoryName: "Snacks",
     region: "Eastern",
     tags: ["snack", "spring rolls", "fresh", "fried"],
@@ -551,6 +665,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 260,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/meat-pie-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Snacks",
     region: "Western",
     tags: ["snack", "plantain chips", "dodo chips", "packaged"],
@@ -563,6 +680,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 240,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/moi-moi-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Snacks",
     region: "Northern",
     tags: ["snack", "kuli kuli", "groundnut", "packaged", "northern"],
@@ -576,6 +696,9 @@ export default [
     unit: "pack",
     productType: "packaged",
     stock: 180,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/obe-ata-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Snacks",
     region: "Northern",
     tags: ["snack", "kilishi", "dried meat", "northern", "packaged"],
@@ -590,6 +713,9 @@ export default [
     prepLeadTime: 3,
     maxDailyQty: 85,
     stock: 85,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/obe-ata-soup-mix?_a=BAMAROUs0",
+    ],
     categoryName: "Snacks",
     region: "Western",
     tags: ["snack", "moi moi", "bean pudding", "fresh", "steamed"],
@@ -604,6 +730,9 @@ export default [
     prepLeadTime: 1,
     maxDailyQty: 100,
     stock: 100,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/ogbono-soup-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Snacks",
     region: "Western",
     tags: ["snack", "boli", "plantain", "groundnut", "fresh", "roasted"],
@@ -621,6 +750,9 @@ export default [
     unit: "500ml bottle",
     productType: "packaged",
     stock: 220,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/okra-soup-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Drinks",
     region: "Northern",
     tags: ["drink", "zobo", "hibiscus", "juice", "chilled"],
@@ -633,6 +765,9 @@ export default [
     unit: "500ml bottle",
     productType: "packaged",
     stock: 180,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/palm-oil-red?_a=BAMAROUs0",
+    ],
     categoryName: "Drinks",
     region: "Northern",
     tags: ["drink", "kunu", "grain", "northern"],
@@ -646,6 +781,9 @@ export default [
     unit: "500ml bottle",
     productType: "packaged",
     stock: 170,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/peppered-chicken-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Drinks",
     region: "Northern",
     tags: ["drink", "tiger nut", "kunun aya", "creamy"],
@@ -658,6 +796,9 @@ export default [
     unit: "500ml bottle",
     productType: "packaged",
     stock: 140,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/peppered-meat-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Drinks",
     region: "Western",
     tags: ["drink", "juice", "orange", "fresh"],
@@ -670,6 +811,9 @@ export default [
     unit: "500ml bottle",
     productType: "packaged",
     stock: 130,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/plantain-chips?_a=BAMAROUs0",
+    ],
     categoryName: "Drinks",
     region: "Western",
     tags: ["drink", "juice", "special blend", "orange", "pineapple"],
@@ -687,6 +831,9 @@ export default [
     unit: "500g",
     productType: "packaged",
     stock: 150,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/pounded-yam-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "South-South",
     tags: ["protein", "stockfish", "dried", "okporoko", "fish"],
@@ -699,6 +846,9 @@ export default [
     unit: "500g",
     productType: "packaged",
     stock: 160,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/pounded-yam-powder-packaged?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Northern",
     tags: ["protein", "kika", "dried fish", "asi"],
@@ -711,6 +861,9 @@ export default [
     unit: "500g",
     productType: "packaged",
     stock: 120,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/puff-puff-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Western",
     tags: ["protein", "dried beef", "panla", "meat"],
@@ -724,6 +877,9 @@ export default [
     unit: "500g",
     productType: "packaged",
     stock: 110,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/salt-iodized?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Western",
     tags: ["protein", "dried goat", "meat"],
@@ -737,6 +893,9 @@ export default [
     unit: "per kg",
     productType: "packaged",
     stock: 90,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/semo-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Western",
     tags: ["protein", "tilapia", "frozen", "fish"],
@@ -750,6 +909,9 @@ export default [
     unit: "per kg",
     productType: "packaged",
     stock: 80,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/semolina-packaged?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Western",
     tags: ["protein", "catfish", "frozen", "fish"],
@@ -762,6 +924,9 @@ export default [
     unit: "per kg",
     productType: "packaged",
     stock: 100,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/shea-butter?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "South-South",
     tags: ["protein", "mackerel", "titus", "frozen", "fish"],
@@ -774,6 +939,9 @@ export default [
     unit: "per kg",
     productType: "packaged",
     stock: 85,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/spring-rolls-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Western",
     tags: ["protein", "beef", "frozen", "meat"],
@@ -786,6 +954,9 @@ export default [
     unit: "per kg",
     productType: "packaged",
     stock: 70,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/stockfish-dried?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Western",
     tags: ["protein", "goat", "frozen", "meat"],
@@ -798,6 +969,9 @@ export default [
     unit: "per kg",
     productType: "packaged",
     stock: 95,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/suya-beef-fresh?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Western",
     tags: ["protein", "chicken", "frozen", "poultry"],
@@ -812,6 +986,9 @@ export default [
     prepLeadTime: 1,
     maxDailyQty: 60,
     stock: 60,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/thyme-leaves?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "South-South",
     tags: ["protein", "grilled fish", "tilapia", "fresh", "cooked"],
@@ -827,6 +1004,9 @@ export default [
     prepLeadTime: 2,
     maxDailyQty: 80,
     stock: 80,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/tiger-nut-drink?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Northern",
     tags: ["protein", "suya", "beef", "grilled", "fresh", "northern"],
@@ -842,6 +1022,9 @@ export default [
     prepLeadTime: 2,
     maxDailyQty: 70,
     stock: 70,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/yaji-suya-spice?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Western",
     tags: ["protein", "peppered meat", "beef", "fresh", "cooked"],
@@ -857,6 +1040,9 @@ export default [
     prepLeadTime: 2,
     maxDailyQty: 65,
     stock: 65,
+    images: [
+      "https://res.cloudinary.com/dphlb0nsu/image/upload/c_limit,f_webp,h_1200,q_auto,w_1200/zobo-drink?_a=BAMAROUs0",
+    ],
     categoryName: "Proteins",
     region: "Western",
     tags: ["protein", "peppered chicken", "poultry", "fresh", "cooked"],

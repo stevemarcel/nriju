@@ -16,6 +16,7 @@ import {
 } from "../controllers/authController.js";
 import { auth } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rateLimit.js";
+import { uploadAvatar } from "../middleware/upload.js";
 
 const router = Router();
 
@@ -34,6 +35,7 @@ router.get(
 );
 router.get("/me", auth, getMe);
 router.put("/me", auth, updateMe);
+router.post("/me/avatar", auth, uploadAvatar, updateMe);
 router.post("/me/addresses", auth, addAddress);
 router.delete("/me/addresses/:addressId", auth, deleteAddress);
 

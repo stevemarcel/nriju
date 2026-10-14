@@ -5,6 +5,7 @@ import PasswordResetToken from "../models/PasswordResetToken.js";
 import { generateToken, setAuthCookie, clearAuthCookie } from "../utils/token.js";
 import { generateToken as genSecret } from "../utils/crypto.js";
 import { sendEmail, emailVerificationEmail, passwordResetEmail } from "../services/emailService.js";
+import { uploadAvatarToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryUtils.js";
 
 // @DESCRIPTION Register a new customer account
 // @ROUTE       POST /api/v1/auth/register
@@ -61,7 +62,13 @@ const login = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     message: "Logged in",
-    data: { _id: user._id, name: user.name, email: user.email, role: user.role },
+    data: {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      avatar: user.avatar,
+    },
   });
 });
 
@@ -222,6 +229,17 @@ const updateMe = asyncHandler(async (req, res) => {
   if (name) user.name = name;
   if (email) user.email = email;
   if (phone) user.phone = phone;
+
+  // Handle avatar upload
+  if (req.file) {
+    // Delete old avatar from Cloudinary if exists
+    if (user.avatarPublicId) {
+      await deleteFromCloudinary(user.avatarPublicId);
+    }
+    const uploaded = await uploadAvatarToCloudinary(req.file.buffer);
+    user.avatar = uploaded.url;
+    user.avatarPublicId = uploaded.publicId;
+  }
 
   await user.save();
 
