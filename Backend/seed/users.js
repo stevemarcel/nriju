@@ -4,7 +4,7 @@ export default [
   {
     name: "Nriju Super Admin",
     email: "just.stevemarcel@gmail.com",
-    password: "admin123", // Change in production
+    password: "",
     avatar:
       "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-superadmin?_a=BAMAROUs0",
     avatarPublicId: "nriju/avatars/nriju-super-admin",
@@ -15,7 +15,7 @@ export default [
   {
     name: "Store Manager",
     email: "npmruntesting@gmail.com",
-    password: "admin123",
+    password: "",
     avatar:
       "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-storemanager?_a=BAMAROUs0",
     avatarPublicId: "nriju/avatars/store-manager",
@@ -26,7 +26,7 @@ export default [
   {
     name: "New Horizon",
     email: "graphicsnewhorizon@gmail.com",
-    password: "user123",
+    password: "",
     avatar:
       "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-newhorizon?_a=BAMAROUs0",
     avatarPublicId: "nriju/avatars/new-horizon",
@@ -37,7 +37,7 @@ export default [
   {
     name: "Steve Svile",
     email: "stevesvile@gmail.com",
-    password: "user123",
+    password: "",
     avatar:
       "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-stevesvile?_a=BAMAROUs0",
     avatarPublicId: "nriju/avatars/steve-svile",
@@ -48,7 +48,7 @@ export default [
   {
     name: "Shark Colours",
     email: "just.shark.24.7@gmail.com",
-    password: "user123",
+    password: "",
     avatar:
       "https://res.cloudinary.com/dphlb0nsu/image/upload/c_fill,f_webp,h_200,q_auto,w_200/user-sharkcolours?_a=BAMAROUs0",
     avatarPublicId: "nriju/avatars/shark-colours",
