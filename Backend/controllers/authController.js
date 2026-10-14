@@ -5,7 +5,11 @@ import PasswordResetToken from "../models/PasswordResetToken.js";
 import { generateToken, setAuthCookie, clearAuthCookie } from "../utils/token.js";
 import { generateToken as genSecret } from "../utils/crypto.js";
 import { sendEmail, emailVerificationEmail, passwordResetEmail } from "../services/emailService.js";
-import { uploadAvatarToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryUtils.js";
+import {
+  uploadAvatarToCloudinary,
+  deleteFromCloudinary,
+  downloadAvatarFromCloudinary,
+} from "../utils/cloudinaryUtils.js";
 
 // @DESCRIPTION Register a new customer account
 // @ROUTE       POST /api/v1/auth/register
@@ -190,15 +194,53 @@ const getMe = asyncHandler(async (req, res) => {
   res.json({ success: true, data: user });
 });
 
+// @DESCRIPTION Return the current avatar's original image bytes through this API origin
+// @ROUTE       GET /api/v1/auth/me/avatar/source
+// @ACCESS      Authenticated
+const getAvatarSource = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.user._id).select("avatarPublicId");
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  if (!user.avatarPublicId) {
+    res.status(404);
+    throw new Error("No profile picture has been saved.");
+  }
+
+  // TODO: Remove these console logs after debugging Cloudinary download issues
+  console.log("Avatar URL:", user.avatar);
+  console.log("Avatar public ID:", user.avatarPublicId);
+
+  try {
+    const { buffer, contentType } = await downloadAvatarFromCloudinary(user.avatarPublicId);
+    res.set({
+      "Content-Type": contentType,
+      "Content-Length": String(buffer.length),
+      "Cache-Control": "private, no-store, max-age=0",
+      "X-Content-Type-Options": "nosniff",
+    });
+    return res.status(200).send(buffer);
+  } catch (error) {
+    console.error("Could not load current avatar for cropping:", error);
+    res.status(502);
+    throw new Error("Could not load the current profile photo. Please try again.");
+  }
+});
+
 // @DESCRIPTION Add a new shipping address
 // @ROUTE       POST /api/v1/auth/me/addresses
 // @ACCESS      Authenticated
 const addAddress = asyncHandler(async (req, res) => {
   const { label, name, phone, line1, line2, city, state, isDefault } = req.body;
   const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
 
   if (isDefault && user.addresses) {
-    user.addresses.forEach((a) => (a.isDefault = false));
+    user.addresses.forEach((address) => (address.isDefault = false));
   }
 
   const newAddress = {
@@ -219,34 +261,69 @@ const addAddress = asyncHandler(async (req, res) => {
   res.status(201).json({ success: true, data: user });
 });
 
-// @DESCRIPTION Update user profile
-// @ROUTE       PUT /api/v1/auth/me
+// @DESCRIPTION Update user profile, optionally including a new avatar upload
+// @ROUTE       PUT /api/v1/auth/me or POST /api/v1/auth/me/avatar
 // @ACCESS      Authenticated
 const updateMe = asyncHandler(async (req, res) => {
   const { name, email, phone } = req.body;
   const user = await User.findById(req.user._id);
-
-  if (name) user.name = name;
-  if (email) user.email = email;
-  if (phone) user.phone = phone;
-
-  // Handle avatar upload
-  if (req.file) {
-    // Delete old avatar from Cloudinary if exists
-    if (user.avatarPublicId) {
-      await deleteFromCloudinary(user.avatarPublicId);
-    }
-    const uploaded = await uploadAvatarToCloudinary(req.file.buffer);
-    user.avatar = uploaded.url;
-    user.avatarPublicId = uploaded.publicId;
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
   }
 
-  await user.save();
+  if (name !== undefined) user.name = name;
+  if (email !== undefined) user.email = email;
+  if (phone !== undefined) user.phone = phone;
+
+  const previousAvatarPublicId = user.avatarPublicId;
+  let newlyUploadedAvatar = null;
+
+  if (req.file) {
+    // Upload first; do not destroy the user's current image before the new one
+    // has uploaded and the database has accepted the replacement.
+    newlyUploadedAvatar = await uploadAvatarToCloudinary(req.file.buffer);
+    user.avatar = newlyUploadedAvatar.url;
+    user.avatarPublicId = newlyUploadedAvatar.publicId;
+  }
+
+  try {
+    await user.save();
+  } catch (error) {
+    // If MongoDB rejects the update, best-effort cleanup of the newly uploaded
+    // asset prevents a permanent orphan in Cloudinary. Keep the old avatar.
+    if (newlyUploadedAvatar?.publicId) {
+      try {
+        await deleteFromCloudinary(newlyUploadedAvatar.publicId);
+      } catch (cleanupError) {
+        console.error(
+          "Could not clean up an avatar after a failed user save:",
+          cleanupError.message,
+        );
+      }
+    }
+    throw error;
+  }
+
+  // Only remove the previous asset after the user's new avatar is safely saved.
+  // A Cloudinary cleanup problem should not make a successful profile update
+  // appear to have failed; log it for later cleanup instead.
+  if (
+    newlyUploadedAvatar?.publicId &&
+    previousAvatarPublicId &&
+    previousAvatarPublicId !== newlyUploadedAvatar.publicId
+  ) {
+    try {
+      await deleteFromCloudinary(previousAvatarPublicId);
+    } catch (cleanupError) {
+      console.error("Could not delete the previous avatar from Cloudinary:", cleanupError.message);
+    }
+  }
 
   res.json({ success: true, data: user });
 });
 
-// @DESCRIPTION Delete user avatar
+// @DESCRIPTION Delete the authenticated user's profile picture
 // @ROUTE       DELETE /api/v1/auth/me/avatar
 // @ACCESS      Authenticated
 const deleteAvatar = asyncHandler(async (req, res) => {
@@ -256,9 +333,22 @@ const deleteAvatar = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
-  if (user.avatarPublicId) {
-    await deleteFromCloudinary(user.avatarPublicId);
+  const previousPublicId = user.avatarPublicId;
+
+  // Delete the Cloudinary asset first. If Cloudinary reports a real failure, do
+  // not clear MongoDB; the current avatar remains visible and the user can retry.
+  if (previousPublicId) {
+    try {
+      await deleteFromCloudinary(previousPublicId);
+    } catch (error) {
+      console.error("Could not delete avatar from Cloudinary:", error.message);
+      res.status(502);
+      throw new Error(
+        "Could not delete the profile photo from storage. Your profile was not changed.",
+      );
+    }
   }
+
   user.avatar = "";
   user.avatarPublicId = "";
   await user.save();
@@ -272,11 +362,16 @@ const deleteAvatar = asyncHandler(async (req, res) => {
 const deleteAddress = asyncHandler(async (req, res) => {
   const { addressId } = req.params;
   const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
 
-  if (!user.addresses)
+  if (!user.addresses) {
     return res.status(404).json({ success: false, message: "No addresses found" });
+  }
 
-  const index = user.addresses.findIndex((a) => a._id.toString() === addressId);
+  const index = user.addresses.findIndex((address) => address._id.toString() === addressId);
   if (index === -1) {
     res.status(404);
     throw new Error("Address not found");
@@ -298,6 +393,7 @@ export {
   changePassword,
   googleCallback,
   getMe,
+  getAvatarSource,
   updateMe,
   addAddress,
   deleteAvatar,

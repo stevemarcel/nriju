@@ -35,6 +35,8 @@ const AccountProfile = () => {
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarDeleting, setAvatarDeleting] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
 
   // Address management
   const [showAddressForm, setShowAddressForm] = useState(false);
@@ -74,21 +76,52 @@ const AccountProfile = () => {
     }
   };
 
+  const handleAvatarSourceLoad = async () => {
+    const res = await api.get("/auth/me/avatar/source", { responseType: "blob" });
+    return res.data;
+  };
+
   const handleAvatarUpload = async (file) => {
     setAvatarUploading(true);
-    setError("");
+    setAvatarError("");
+
     try {
       const formData = new FormData();
-      formData.append("avatar", file);
+      formData.append("avatar", file, file.name || "avatar.webp");
+
       const res = await api.post("/auth/me/avatar", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       dispatch(setUser(res.data.data));
-      toast.success("Avatar updated successfully!");
+      toast.success("Profile photo updated successfully.");
+      return true;
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to upload avatar.");
+      const message = err.response?.data?.message || "Failed to upload profile photo.";
+      setAvatarError(message);
+      toast.error(message);
+      return false;
     } finally {
       setAvatarUploading(false);
+    }
+  };
+
+  const handleAvatarDelete = async () => {
+    setAvatarDeleting(true);
+    setAvatarError("");
+
+    try {
+      const res = await api.delete("/auth/me/avatar");
+      dispatch(setUser(res.data.data));
+      toast.success("Profile photo deleted.");
+      return true;
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to delete profile photo.";
+      setAvatarError(message);
+      toast.error(message);
+      return false;
+    } finally {
+      setAvatarDeleting(false);
     }
   };
 
@@ -203,15 +236,20 @@ const AccountProfile = () => {
 
         {/* Avatar Upload Section */}
         <div className="bg-surface rounded-xl border border-border-soft p-6 mb-6">
-          <h3 className="font-heading font-semibold text-text mb-4 flex items-center gap-2">
+          <h3 className="font-heading font-semibold text-text mb-5 flex items-center gap-2">
             <User className="w-5 h-5 text-primary" /> Profile Photo
           </h3>
           <CropAvatar
-            initialSrc={user?.avatar || undefined}
+            initialSrc={user?.avatar || ""}
+            name={user?.name || ""}
+            onLoadSource={handleAvatarSourceLoad}
             onCropped={handleAvatarUpload}
-            name={user?.name}
+            onDeleted={handleAvatarDelete}
+            isSaving={avatarUploading}
+            isDeleting={avatarDeleting}
+            error={avatarError}
+            onClearError={() => setAvatarError("")}
           />
-          {avatarUploading && <p className="mt-2 text-xs text-text-muted">Uploading...</p>}
         </div>
 
         {/* Form */}
