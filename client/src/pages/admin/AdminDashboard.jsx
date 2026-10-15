@@ -86,8 +86,10 @@ const AdminDashboard = () => {
           </div>
           {isPending ? (
             <div className="h-10 bg-background-soft rounded animate-pulse mt-4" />
-          ) : (
+          ) : stats?.revenue !== undefined ? (
             <div className="font-heading text-3xl font-bold mt-4">{formatNaira(stats.revenue)}</div>
+          ) : (
+            <div className="font-heading text-3xl font-bold mt-4 text-text-muted">—</div>
           )}
           <p className="text-xs text-text-muted mt-2">
             Business: {settings?.business_name || "Nriju"}
@@ -110,7 +112,7 @@ const AdminDashboard = () => {
             ) : !stats?.recentOrders?.length ? (
               <div className="p-8 text-center text-text-muted text-sm">No orders yet.</div>
             ) : (
-              stats.recentOrders.slice(0, 5).map((o) => (
+              stats.recentOrders?.slice(0, 5).map((o) => (
                 <div key={o._id} className="flex items-center gap-4 p-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">

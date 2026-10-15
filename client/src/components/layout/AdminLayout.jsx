@@ -66,9 +66,9 @@ const AdminLayout = () => {
             <img
               src="/assets/logos/nriju-logo-light.png"
               alt="Nriju"
-              className="w-9 h-9 object-contain"
+              className="w-15 h-full object-contain"
             />
-            <span className="font-heading text-xl font-bold">Nriju Admin</span>
+            <span className="font-heading text-xl font-bold">Admin</span>
           </Link>
         </div>
 
