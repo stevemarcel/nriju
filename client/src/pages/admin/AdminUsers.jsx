@@ -10,7 +10,7 @@ import {
   formatDate,
   confirmDelete,
 } from "../../components/admin/AdminPrimitives";
-import { Users, Shield, ShieldOff, UserCheck, UserX } from "lucide-react";
+import { Users, Shield, ShieldOff, UserCheck, UserX, ShieldCheck } from "lucide-react";
 
 const ROLE_OPTIONS = [
   { value: "", label: "All roles" },

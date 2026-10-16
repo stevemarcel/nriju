@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
+import { mergeGuestCart } from "../../slices/cartSlice";
 import api from "../../services/api";
 import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
 
@@ -29,6 +30,8 @@ const LoginPage = () => {
     try {
       const res = await api.post("/auth/login", { email, password });
       dispatch(setUser(res.data.data));
+      // Merge guest cart into server cart
+      await dispatch(mergeGuestCart());
       navigate("/account");
     } catch (err) {
       setError(err.response?.data?.message || "Login failed. Please try again.");

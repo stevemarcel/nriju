@@ -13,8 +13,10 @@ const router = Router();
 router.post("/", auth, createOrder);
 router.get("/", auth, getMyOrders);
 // NOTE: /all must sit above /:id — otherwise Express treats "all" as an order ID.
-router.get("/all", admin, getAllOrders);
+router.use(auth);
+router.use(admin);
+router.get("/all", getAllOrders);
 router.get("/:id", auth, getOrderById);
-router.patch("/:id/status", admin, updateOrderStatus);
+router.patch("/:id/status", updateOrderStatus);
 
 export default router;

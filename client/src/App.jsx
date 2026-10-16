@@ -2,6 +2,7 @@ import { useEffect, lazy, Suspense } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "./store/store";
 import { fetchMe, clearAuth } from "./slices/authSlice";
+import { fetchCart } from "./slices/cartSlice";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/guards/ProtectedRoute";
 import AdminRoute from "./components/guards/AdminRoute";
@@ -47,11 +48,19 @@ const App = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, loading } = useAppSelector((s) => s.auth);
 
   // Bootstrap the session on first load — rehydrate user from the JWT cookie.
   useEffect(() => {
     dispatch(fetchMe());
   }, [dispatch]);
+
+  // After auth is resolved, fetch the server cart if logged in.
+  useEffect(() => {
+    if (!loading && user) {
+      dispatch(fetchCart());
+    }
+  }, [dispatch, user, loading]);
 
   // On 401 from any API call, bounce the user to login with a return URL.
   useEffect(() => {

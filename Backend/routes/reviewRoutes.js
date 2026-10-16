@@ -10,17 +10,17 @@ import { auth, admin } from "../middleware/auth.js";
 
 const router = Router();
 
-// Product review listing is public; the rest require auth.
-router.get("/:productId", getProductReviews);
-
-// Auth required for submissions and edits
+// Admin moderation routes (must come before /:productId)
 router.use(auth);
-router.post("/", submitReview);
-router.patch("/:id", updateReview);
-
-// Admin moderation
 router.use(admin);
 router.get("/all", getAllReviews);
 router.patch("/:id/moderate", moderateReview);
+
+// Auth required for submissions and edits
+router.post("/", submitReview);
+router.patch("/:id", updateReview);
+
+// Product review listing is public
+router.get("/:productId", getProductReviews);
 
 export default router;

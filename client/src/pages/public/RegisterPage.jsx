@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
+import { mergeGuestCart } from "../../slices/cartSlice";
 import api from "../../services/api";
 import { User, Mail, Lock, Phone, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
 
@@ -30,6 +31,8 @@ const RegisterPage = () => {
     try {
       const res = await api.post("/auth/register", { name, email, password, phone });
       dispatch(setUser(res.data.data));
+      // Merge guest cart into server cart
+      await dispatch(mergeGuestCart());
       navigate("/account");
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.");
