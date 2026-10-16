@@ -6,14 +6,18 @@ import {
   updateCoupon,
   deleteCoupon,
 } from "../controllers/couponController.js";
-import { admin } from "../middleware/auth.js";
+import { auth, admin } from "../middleware/auth.js";
 
 const router = Router();
 
 router.post("/validate", validateCoupon);
-router.get("/", admin, getCoupons);
-router.post("/", admin, createCoupon);
-router.put("/:id", admin, updateCoupon);
-router.delete("/:id", admin, deleteCoupon);
+
+// Admin-only management routes — auth first, then role check
+router.use(auth);
+router.use(admin);
+router.get("/", getCoupons);
+router.post("/", createCoupon);
+router.put("/:id", updateCoupon);
+router.delete("/:id", deleteCoupon);
 
 export default router;

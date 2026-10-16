@@ -35,13 +35,17 @@ const CheckoutPage = () => {
 
   // ── Form state across steps ─────────────────────────────────────
   const [step, setStep] = useState(1);
+
+  // Pre-fill from the user's saved profile address when one exists, so
+  // the customer doesn't have to retype it at checkout.
+  const savedAddress = user?.addresses?.find((a) => a.isDefault) || user?.addresses?.[0];
   const [address, setAddress] = useState({
-    name: user?.name || "",
-    phone: user?.phone || "",
-    line1: "",
-    line2: "",
-    city: "",
-    state: "",
+    name: savedAddress?.name || user?.name || "",
+    phone: savedAddress?.phone || user?.phone || "",
+    line1: savedAddress?.line1 || "",
+    line2: savedAddress?.line2 || "",
+    city: savedAddress?.city || "",
+    state: savedAddress?.state || "",
   });
   const [deliveryMethod, setDeliveryMethod] = useState("thirdparty");
   const [paymentMethod, setPaymentMethod] = useState("paystack");
@@ -115,12 +119,17 @@ const CheckoutPage = () => {
       // Pay on the Paystack flow; capture/cash just clear the cart.
       if (paymentMethod === "paystack") {
         const payRes = await initializePayment.mutateAsync(order._id);
-        const authUrl = payRes?.data?.data?.authorization_url || payRes?.data?.authorization_url;
+        const payData = payRes?.data?.data || {};
+        const authUrl = payData.authorization_url;
         if (authUrl) {
-          // Persist order number client-side so an order-confirmation
-          // page (later) can read it via the Paystack redirect meta.
-          sessionStorage.setItem("nriju_order_ref", order.orderNumber || order._id);
-          window.location.href = authUrl;
+          // Persist the Paystack reference (not the order number) so the
+          // callback page can look up and verify the payment.
+          sessionStorage.setItem("nriju_paystack_ref", payData.reference);
+          // Send the user through Paystack, with our callback as the
+          // redirect target so the SPA can verify the payment on return.
+          const url = new URL(authUrl);
+          url.searchParams.set("redirect_url", `${window.location.origin}/checkout/success`);
+          window.location.href = url.toString();
           return;
         }
       }

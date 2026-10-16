@@ -7,15 +7,18 @@ import {
   voidInventoryBatch,
   recomputeProductStock,
 } from "../controllers/inventoryController.js";
-import { admin } from "../middleware/auth.js";
+import { auth, admin } from "../middleware/auth.js";
 
 const router = Router();
 
-router.get("/", admin, getInventory);
-router.get("/alerts", admin, getInventoryAlerts);
-router.post("/", admin, createInventoryBatch);
-router.put("/:id", admin, updateInventoryBatch);
-router.delete("/:id", admin, voidInventoryBatch);
-router.post("/:productId/recompute", admin, recomputeProductStock);
+// Admin-only inventory routes
+router.use(auth);
+router.use(admin);
+router.get("/", getInventory);
+router.get("/alerts", getInventoryAlerts);
+router.post("/", createInventoryBatch);
+router.put("/:id", updateInventoryBatch);
+router.delete("/:id", voidInventoryBatch);
+router.post("/:productId/recompute", recomputeProductStock);
 
 export default router;

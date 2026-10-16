@@ -69,6 +69,11 @@ const ProductDetailPage = () => {
     );
   }
 
+  const categoryId =
+    typeof product.category === "object" && product.category
+      ? product.category._id
+      : product.category;
+
   const handleAddToCart = () => {
     dispatch(
       addLocal({
@@ -77,6 +82,7 @@ const ProductDetailPage = () => {
         price: product.price,
         image: product.images[0],
         unit: product.unit,
+        categoryId,
         quantity,
       }),
     );

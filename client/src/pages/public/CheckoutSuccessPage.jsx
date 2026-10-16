@@ -1,13 +1,61 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { useAppDispatch } from "../../store/store";
+import { clearLocal } from "../../slices/cartSlice";
 import api from "../../services/api";
-import { CheckCircle, ShoppingBag, MapPin, Truck, Calendar, FileText } from "lucide-react";
+import {
+  CheckCircle,
+  XCircle,
+  Loader2,
+  ShoppingBag,
+  MapPin,
+  Truck,
+  Calendar,
+  FileText,
+} from "lucide-react";
 
 const CheckoutSuccessPage = () => {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const [searchParams] = useSearchParams();
+  const paystackRef = searchParams.get("reference");
   const orderRef = sessionStorage.getItem("nriju_order_ref");
   const [order, setOrder] = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState(null); // "verifying" | "success" | "failed" | "error"
+
+  // Paystack redirects the browser back here after checkout with a
+  // `reference` query param. Verify the payment server-side so the
+  // order isn't left "pending" — without this the payment is never
+  // confirmed and the success screen shows a phantom order.
+  const verify = useMutation({
+    mutationFn: (ref) => api.post(`/payments/verify/${ref}`),
+  });
+
+  useEffect(() => {
+    if (!paystackRef) return;
+    let alive = true;
+    setPaymentStatus("verifying");
+    verify.mutateAsync(paystackRef, {
+      onSuccess: (res) => {
+        if (!alive) return;
+        const status = res?.data?.data?.status;
+        if (status === "success") {
+          dispatch(clearLocal());
+          sessionStorage.removeItem("nriju_order_ref");
+          setPaymentStatus("success");
+        } else {
+          setPaymentStatus("failed");
+        }
+      },
+      onError: () => {
+        if (!alive) setPaymentStatus("error");
+      },
+    });
+    return () => {
+      alive = false;
+    };
+  }, [paystackRef, dispatch, verify]);
 
   // If we have a reference, try to look up the order details.
   // Otherwise fall back to a generic confirmation screen.
@@ -38,17 +86,69 @@ const CheckoutSuccessPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-16 md:py-24 max-w-3xl">
-      <div className="text-center mb-10">
-        <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 flex items-center justify-center mb-4">
-          <CheckCircle className="w-12 h-12 text-emerald-500" />
+      {paymentStatus === "verifying" && (
+        <div className="text-center mb-10">
+          <Loader2 className="w-12 h-12 mx-auto text-primary animate-spin mb-4" />
+          <h1 className="font-heading text-3xl md:text-4xl font-bold text-text mb-2">
+            Confirming your payment…
+          </h1>
+          <p className="text-text-muted text-lg">
+            Verifying with Paystack. This only takes a moment.
+          </p>
         </div>
-        <h1 className="font-heading text-3xl md:text-4xl font-bold text-text mb-2">
-          Order Confirmed
-        </h1>
-        <p className="text-text-muted text-lg">
-          Thank you for your order. We're getting it ready now.
-        </p>
-      </div>
+      )}
+
+      {paymentStatus === "failed" && (
+        <div className="text-center mb-10">
+          <div className="w-20 h-20 mx-auto rounded-full bg-rose-100 flex items-center justify-center mb-4">
+            <XCircle className="w-12 h-12 text-rose-500" />
+          </div>
+          <h1 className="font-heading text-3xl md:text-4xl font-bold text-text mb-2">
+            Payment didn't go through
+          </h1>
+          <p className="text-text-muted text-lg">
+            No charge was made. Your order is still saved — try again.
+          </p>
+          <Link
+            to="/checkout"
+            className="inline-block mt-4 px-6 py-3 bg-primary text-white font-medium rounded-lg"
+          >
+            Back to checkout
+          </Link>
+        </div>
+      )}
+
+      {paymentStatus === "error" && (
+        <div className="text-center mb-10">
+          <div className="w-20 h-20 mx-auto rounded-full bg-amber-100 flex items-center justify-center mb-4">
+            <XCircle className="w-12 h-12 text-amber-500" />
+          </div>
+          <h1 className="font-heading text-3xl md:text-4xl font-bold text-text mb-2">
+            Something went wrong
+          </h1>
+          <p className="text-text-muted text-lg">
+            We couldn't verify that payment. Contact us at{" "}
+            <a href="mailto:orders@nriju.com" className="text-primary hover:underline">
+              orders@nriju.com
+            </a>
+            .
+          </p>
+        </div>
+      )}
+
+      {(!paymentStatus || paymentStatus === "success") && (
+        <div className="text-center mb-10">
+          <div className="w-20 h-20 mx-auto rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+            <CheckCircle className="w-12 h-12 text-emerald-500" />
+          </div>
+          <h1 className="font-heading text-3xl md:text-4xl font-bold text-text mb-2">
+            Order Confirmed
+          </h1>
+          <p className="text-text-muted text-lg">
+            Thank you for your order. We're getting it ready now.
+          </p>
+        </div>
+      )}
 
       {/* Order reference */}
       <div className="bg-surface border border-border rounded-xl p-6 mb-8">

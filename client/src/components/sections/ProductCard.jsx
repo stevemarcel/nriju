@@ -17,6 +17,14 @@ const ProductCard = ({ product }) => {
   const inCart = items.some((i) => i.product === product._id);
   const price = formatNaira(product.price);
 
+  // Resolve the category id whether it came populated (object) or as a
+  // bare ObjectId string — the coupon validator needs it to check
+  // category-specific applicability.
+  const categoryId =
+    typeof product.category === "object" && product.category
+      ? product.category._id
+      : product.category;
+
   const handleAddToCart = (e) => {
     e.preventDefault();
     dispatch(
@@ -26,6 +34,7 @@ const ProductCard = ({ product }) => {
         price: product.price,
         image: product.images[0],
         unit: product.unit,
+        categoryId,
         quantity: 1,
       }),
     );

@@ -5,13 +5,17 @@ import {
   updateSetting,
   updateSettings,
 } from "../controllers/settingController.js";
-import { admin } from "../middleware/auth.js";
+import { auth, admin } from "../middleware/auth.js";
 
 const router = Router();
 
 router.get("/public", getPublicSettings);
-router.get("/", admin, getSettings);
-router.put("/:key", admin, updateSetting);
-router.put("/", admin, updateSettings);
+
+// Admin-only management routes
+router.use(auth);
+router.use(admin);
+router.get("/", getSettings);
+router.put("/:key", updateSetting);
+router.put("/", updateSettings);
 
 export default router;

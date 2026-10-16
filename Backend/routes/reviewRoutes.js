@@ -10,11 +10,17 @@ import { auth, admin } from "../middleware/auth.js";
 
 const router = Router();
 
-// NOTE: /all must sit above /:productId — otherwise Express treats "all" as a product ID.
-router.get("/all", admin, getAllReviews);
+// Product review listing is public; the rest require auth.
 router.get("/:productId", getProductReviews);
-router.post("/", auth, submitReview);
-router.patch("/:id", auth, updateReview);
-router.patch("/:id/moderate", admin, moderateReview);
+
+// Auth required for submissions and edits
+router.use(auth);
+router.post("/", submitReview);
+router.patch("/:id", updateReview);
+
+// Admin moderation
+router.use(admin);
+router.get("/all", getAllReviews);
+router.patch("/:id/moderate", moderateReview);
 
 export default router;
