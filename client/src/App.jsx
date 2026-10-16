@@ -25,6 +25,7 @@ const DeliveryPage = lazy(() => import("./pages/public/DeliveryPage"));
 const ReturnsPage = lazy(() => import("./pages/public/ReturnsPage"));
 const PrivacyPage = lazy(() => import("./pages/public/PrivacyPage"));
 const TermsPage = lazy(() => import("./pages/public/TermsPage"));
+const CheckoutPage = lazy(() => import("./pages/public/CheckoutPage"));
 const CheckoutSuccessPage = lazy(() => import("./pages/public/CheckoutSuccessPage"));
 
 const AccountDashboard = lazy(() => import("./pages/account/AccountDashboard"));
@@ -99,6 +100,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <AccountDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout"
+            element={
+              <ProtectedRoute>
+                <CheckoutPage />
               </ProtectedRoute>
             }
           />

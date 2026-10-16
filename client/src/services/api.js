@@ -15,13 +15,31 @@ api.interceptors.request.use(
   (error) => Promise.reject(error),
 );
 
+// Endpoints that are safe to call without a session. A 401 on any of
+// these is a normal "not logged in" response and must NOT bounce the
+// user to the login page — that would lock them out of the storefront.
+const PUBLIC_ENDPOINTS = [
+  "/products",
+  "/products/featured",
+  "/categories",
+  "/coupons/validate",
+  "/reviews",
+  "/settings",
+  // Session bootstrap — expected to 401 when nobody is logged in.
+  // The fetchMe thunk already clears state on rejection; it must not
+  // bounce an anonymous visitor to the login page on app load.
+  "/auth/me",
+];
+
+const isPublicEndpoint = (url = "") => PUBLIC_ENDPOINTS.some((path) => url.includes(path));
+
 // Response interceptor — handle auth failures + global errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
 
-    if (status === 401) {
+    if (status === 401 && !isPublicEndpoint(error?.config?.url)) {
       // Let the auth slice / route guards handle redirect to login
       window.dispatchEvent(new CustomEvent("auth:unauthorized"));
     } else if (status === 403) {
