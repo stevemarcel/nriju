@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { useAppDispatch } from "../../store/store";
-import { clearLocal } from "../../slices/cartSlice";
+import { clearAll } from "../../slices/cartSlice";
 import api from "../../services/api";
 import {
   CheckCircle,
@@ -41,7 +41,7 @@ const CheckoutSuccessPage = () => {
         if (!alive) return;
         const status = res?.data?.data?.status;
         if (status === "success") {
-          dispatch(clearLocal());
+          dispatch(clearAll());
           sessionStorage.removeItem("nriju_order_ref");
           setPaymentStatus("success");
         } else {

@@ -4,7 +4,7 @@ import api from "../services/api";
 // Rehydrate cart from localStorage (guest cart)
 const loadCart = () => {
   try {
-    return JSON.parse(localStorage.getItem("nriju_cart") || "[]");
+    return normalizeItems(JSON.parse(localStorage.getItem("nriju_cart") || "[]"));
   } catch {
     return [];
   }
@@ -13,6 +13,15 @@ const loadCart = () => {
 const saveCart = (items) => {
   localStorage.setItem("nriju_cart", JSON.stringify(items));
 };
+
+// Server items arrive with `product` populated as a full document; guest items
+// store it as a bare id string. Every reducer and call site compares it to a
+// string, so flatten it on the way in.
+const normalizeItems = (items = []) =>
+  items.map((i) => ({
+    ...i,
+    product: i && typeof i.product === "object" && i.product ? i.product._id : i?.product,
+  }));
 
 export const fetchCart = createAsyncThunk("cart/fetch", async (_, { rejectWithValue }) => {
   try {
@@ -123,7 +132,7 @@ const cartSlice = createSlice({
       .addCase(fetchCart.fulfilled, (state, action) => {
         // If null (401), keep guest cart; otherwise use server cart
         if (action.payload !== null) {
-          state.items = action.payload;
+          state.items = normalizeItems(action.payload);
           state.source = "server";
         }
         state.loading = false;
@@ -132,12 +141,12 @@ const cartSlice = createSlice({
         state.loading = false;
       })
       .addCase(addToCart.fulfilled, (state, action) => {
-        state.items = action.payload;
+        state.items = normalizeItems(action.payload);
         state.source = "server";
         saveCart(state.items);
       })
       .addCase(updateCartItem.fulfilled, (state, action) => {
-        state.items = action.payload;
+        state.items = normalizeItems(action.payload);
         saveCart(state.items);
       })
       .addCase(removeCartItem.fulfilled, (state, action) => {
@@ -145,11 +154,11 @@ const cartSlice = createSlice({
         saveCart(state.items);
       })
       .addCase(clearCart.fulfilled, (state, action) => {
-        state.items = action.payload;
+        state.items = normalizeItems(action.payload);
         saveCart(state.items);
       })
       .addCase(mergeGuestCart.fulfilled, (state, action) => {
-        state.items = action.payload;
+        state.items = normalizeItems(action.payload);
         state.source = "server";
         saveCart(state.items);
       });
@@ -157,6 +166,50 @@ const cartSlice = createSlice({
 });
 
 export const { addLocal, updateLocal, removeLocal, clearLocal } = cartSlice.actions;
+
+// Source-aware actions: route to the server when the cart is backed by it,
+// otherwise mutate localStorage. The UI (CartDrawer, CartPage) dispatches
+// these so quantity/remove work for both guests and signed-in users.
+export const addItem = (item) => (dispatch, getState) => {
+  const { source } = getState().cart;
+  if (source === "server") {
+    dispatch(
+      addToCart({
+        productId: item.productId,
+        quantity: item.quantity,
+        categoryId: item.categoryId,
+      }),
+    );
+  } else {
+    dispatch(addLocal(item));
+  }
+};
+
+export const changeQuantity = (productId, quantity) => (dispatch, getState) => {
+  const { source } = getState().cart;
+  if (source === "server") {
+    dispatch(updateCartItem({ productId, quantity }));
+  } else {
+    dispatch(updateLocal({ productId, quantity }));
+  }
+};
+
+export const deleteItem = (productId) => (dispatch, getState) => {
+  const { source } = getState().cart;
+  if (source === "server") {
+    dispatch(removeCartItem(productId));
+  } else {
+    dispatch(removeLocal(productId));
+  }
+};
+
+export const clearAll = () => (dispatch, getState) => {
+  if (getState().cart.source === "server") {
+    dispatch(clearCart());
+  } else {
+    dispatch(clearLocal());
+  }
+};
 
 // Selector: cart totals
 export const selectCartTotal = (state) =>

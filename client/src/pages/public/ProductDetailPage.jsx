@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
 import { useAppDispatch, useAppSelector } from "../../store/store";
-import { addLocal } from "../../slices/cartSlice";
+import { addItem } from "../../slices/cartSlice";
 import { toggleWishlist } from "../../slices/wishlistSlice";
 import { formatNaira } from "../../utils/formatMoney";
 import { Heart, ShoppingBag, Truck, Clock, ShieldCheck, ArrowLeft, Star } from "lucide-react";
@@ -76,7 +76,7 @@ const ProductDetailPage = () => {
 
   const handleAddToCart = () => {
     dispatch(
-      addLocal({
+      addItem({
         productId: product._id,
         name: product.name,
         price: product.price,

@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
-import { addLocal, removeLocal } from "../../slices/cartSlice";
+import { addItem } from "../../slices/cartSlice";
 import { toggleWishlist } from "../../slices/wishlistSlice";
 import { Heart, ShoppingBag } from "lucide-react";
 import { formatNaira } from "../../utils/formatMoney";
@@ -28,7 +28,7 @@ const ProductCard = ({ product }) => {
   const handleAddToCart = (e) => {
     e.preventDefault();
     dispatch(
-      addLocal({
+      addItem({
         productId: product._id,
         name: product.name,
         price: product.price,

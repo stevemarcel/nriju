@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
-import { removeLocal, updateLocal } from "../../slices/cartSlice";
+import { changeQuantity, deleteItem } from "../../slices/cartSlice";
 import { formatNaira } from "../../utils/formatMoney";
 import { ShoppingBag, ArrowRight, Minus, Plus, X } from "lucide-react";
 
@@ -11,6 +11,10 @@ const CartPage = () => {
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const deliveryFee = subtotal > 0 ? 150000 : 0; // ₦1,500 flat (kobo)
   const total = subtotal + deliveryFee;
+
+  // Resolve product id regardless of populated object or bare string
+  const resolveProductId = (product) =>
+    typeof product === "object" && product ? product._id : product;
 
   if (items.length === 0) {
     return (
@@ -37,71 +41,65 @@ const CartPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Items */}
         <div className="lg:col-span-2 space-y-4">
-          {items.map((item) => (
-            <div
-              key={item.product}
-              className="flex gap-4 p-4 bg-surface rounded-xl border border-border"
-            >
-              <div className="w-20 h-20 rounded-lg bg-background flex items-center justify-center shrink-0">
-                {item.image ? (
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                ) : (
-                  <span className="text-3xl">🍲</span>
-                )}
-              </div>
+          {items.map((item) => {
+            const productId = resolveProductId(item.product);
+            return (
+              <div
+                key={productId}
+                className="flex gap-4 p-4 bg-surface rounded-xl border border-border"
+              >
+                <div className="w-20 h-20 rounded-lg bg-background flex items-center justify-center shrink-0">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                  ) : (
+                    <span className="text-3xl">🍲</span>
+                  )}
+                </div>
 
-              <div className="flex-1 min-w-0">
-                <h3 className="font-medium text-text line-clamp-1">{item.name}</h3>
-                <p className="text-sm text-primary font-semibold mt-1">
-                  {formatNaira(item.price)}{" "}
-                  <span className="text-text-muted font-normal">/ {item.unit}</span>
-                </p>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-text line-clamp-1">{item.name}</h3>
+                  <p className="text-sm text-primary font-semibold mt-1">
+                    {formatNaira(item.price)}{" "}
+                    <span className="text-text-muted font-normal">/ {item.unit}</span>
+                  </p>
 
-                <div className="flex items-center gap-2 mt-3">
+                  <div className="flex items-center gap-2 mt-3">
+                    <button
+                      onClick={() =>
+                        dispatch(changeQuantity(productId, Math.max(1, item.quantity - 1)))
+                      }
+                      className="w-7 h-7 rounded bg-background flex items-center justify-center"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
+                    <button
+                      onClick={() => dispatch(changeQuantity(productId, item.quantity + 1))}
+                      className="w-7 h-7 rounded bg-background flex items-center justify-center"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end justify-between">
                   <button
-                    onClick={() =>
-                      dispatch(
-                        updateLocal({
-                          productId: item.product,
-                          quantity: Math.max(1, item.quantity - 1),
-                        }),
-                      )
-                    }
-                    className="w-7 h-7 rounded bg-background flex items-center justify-center"
+                    onClick={() => dispatch(deleteItem(productId))}
+                    className="text-text-muted hover:text-primary p-1"
                   >
-                    <Minus className="w-3 h-3" />
+                    <X className="w-4 h-4" />
                   </button>
-                  <span className="w-6 text-center text-sm font-medium">{item.quantity}</span>
-                  <button
-                    onClick={() =>
-                      dispatch(
-                        updateLocal({ productId: item.product, quantity: item.quantity + 1 }),
-                      )
-                    }
-                    className="w-7 h-7 rounded bg-background flex items-center justify-center"
-                  >
-                    <Plus className="w-3 h-3" />
-                  </button>
+                  <span className="font-heading font-bold text-text">
+                    {formatNaira(item.price * item.quantity)}
+                  </span>
                 </div>
               </div>
-
-              <div className="flex flex-col items-end justify-between">
-                <button
-                  onClick={() => dispatch(removeLocal(item.product))}
-                  className="text-text-muted hover:text-primary p-1"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-                <span className="font-heading font-bold text-text">
-                  {formatNaira(item.price * item.quantity)}
-                </span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Summary */}

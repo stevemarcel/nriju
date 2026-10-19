@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAppDispatch, useAppSelector } from "../store/store";
-import { clearLocal } from "../slices/cartSlice";
+import { clearAll } from "../slices/cartSlice";
 import api from "../services/api";
 import { formatNaira, toKobo } from "../utils/formatMoney";
 import {
@@ -135,7 +135,7 @@ const CheckoutPage = () => {
       }
 
       // Non-card flow: just clear the cart and thank the user.
-      dispatch(clearLocal());
+      dispatch(clearAll());
       sessionStorage.setItem("nriju_order_ref", order.orderNumber || order._id);
       navigate("/checkout/success");
     } catch (err) {

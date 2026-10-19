@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { setCartDrawer } from "../../slices/uiSlice";
-import { removeLocal, updateLocal } from "../../slices/cartSlice";
+import { changeQuantity, deleteItem } from "../../slices/cartSlice";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { formatNaira } from "../../utils/formatMoney";
 
@@ -23,6 +23,11 @@ const CartDrawer = () => {
   }, [dispatch]);
 
   if (!cartDrawerOpen) return null;
+
+  // Resolve the product id regardless of whether it's a populated
+  // object (from server) or a bare ObjectId string (from localStorage).
+  const resolveProductId = (product) =>
+    typeof product === "object" && product ? product._id : product;
 
   return (
     <>
@@ -63,57 +68,53 @@ const CartDrawer = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {items.map((item) => (
-                <div key={item.product} className="flex gap-3">
-                  <div className="w-16 h-16 rounded-lg bg-background flex items-center justify-center shrink-0">
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
-                    ) : (
-                      <span className="text-2xl">🍲</span>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-medium text-sm truncate">{item.name}</h3>
-                    <p className="text-sm text-primary font-semibold">{formatNaira(item.price)}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <button
-                        onClick={() =>
-                          dispatch(
-                            updateLocal({
-                              productId: item.product,
-                              quantity: Math.max(1, item.quantity - 1),
-                            }),
-                          )
-                        }
-                        className="w-6 h-6 rounded bg-background flex items-center justify-center"
-                      >
-                        <Minus className="w-3 h-3" />
-                      </button>
-                      <span className="text-sm w-6 text-center">{item.quantity}</span>
-                      <button
-                        onClick={() =>
-                          dispatch(
-                            updateLocal({ productId: item.product, quantity: item.quantity + 1 }),
-                          )
-                        }
-                        className="w-6 h-6 rounded bg-background flex items-center justify-center"
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
+              {items.map((item) => {
+                const productId = resolveProductId(item.product);
+                return (
+                  <div key={productId} className="flex gap-3">
+                    <div className="w-16 h-16 rounded-lg bg-background flex items-center justify-center shrink-0">
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <span className="text-2xl">🍲</span>
+                      )}
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-medium text-sm truncate">{item.name}</h3>
+                      <p className="text-sm text-primary font-semibold">
+                        {formatNaira(item.price)}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <button
+                          onClick={() =>
+                            dispatch(changeQuantity(productId, Math.max(1, item.quantity - 1)))
+                          }
+                          className="w-6 h-6 rounded bg-background flex items-center justify-center"
+                        >
+                          <Minus className="w-3 h-3" />
+                        </button>
+                        <span className="text-sm w-6 text-center">{item.quantity}</span>
+                        <button
+                          onClick={() => dispatch(changeQuantity(productId, item.quantity + 1))}
+                          className="w-6 h-6 rounded bg-background flex items-center justify-center"
+                        >
+                          <Plus className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => dispatch(deleteItem(productId))}
+                      className="self-start text-text-muted hover:text-primary p-1"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
-                  <button
-                    onClick={() => dispatch(removeLocal(item.product))}
-                    className="self-start text-text-muted hover:text-primary p-1"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
