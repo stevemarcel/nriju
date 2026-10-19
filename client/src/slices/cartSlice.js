@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
+import { clearAuth } from "./authSlice";
 
 // Rehydrate cart from localStorage (guest cart)
 const loadCart = () => {
@@ -160,6 +161,12 @@ const cartSlice = createSlice({
       .addCase(mergeGuestCart.fulfilled, (state, action) => {
         state.items = normalizeItems(action.payload);
         state.source = "server";
+        saveCart(state.items);
+      })
+      // After logout the server cart is gone; keep showing the items but send
+      // further mutations to localStorage, or they'd 401 and bounce to login.
+      .addCase(clearAuth, (state) => {
+        state.source = "local";
         saveCart(state.items);
       });
   },

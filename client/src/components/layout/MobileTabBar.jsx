@@ -38,7 +38,7 @@ const MobileTabBar = () => {
           const isActive = location.pathname === tab.to;
           return (
             <Link
-              key={tab.to}
+              key={tab.label}
               to={tab.to}
               className="relative flex flex-col items-center gap-1 px-3 py-1"
             >

@@ -3,6 +3,10 @@ import Product from "../models/Product.js";
 import Cart from "../models/Cart.js";
 import { recomputeStock } from "../services/inventoryService.js";
 
+// Items are read back populated, so `item.product` is a document; calling
+// toString() on it yields a JSON blob instead of the hex id, so match on _id.
+const productIdOf = (item) => (item.product?._id ?? item.product).toString();
+
 const getOrCreateCart = async (userId) => {
   let cart = await Cart.findOne({ user: userId }).populate("items.product");
   if (!cart) {
@@ -39,7 +43,7 @@ const addToCart = asyncHandler(async (req, res) => {
   }
 
   const cart = await getOrCreateCart(req.user._id);
-  const existing = cart.items.find((i) => i.product.toString() === productId);
+  const existing = cart.items.find((i) => productIdOf(i) === productId);
   const qty = Math.min(quantity, available);
 
   if (existing) {
@@ -80,7 +84,7 @@ const updateCartItem = asyncHandler(async (req, res) => {
   const qty = Math.max(1, Math.min(quantity, available));
 
   const cart = await getOrCreateCart(req.user._id);
-  const item = cart.items.find((i) => i.product.toString() === productId);
+  const item = cart.items.find((i) => productIdOf(i) === productId);
   if (!item) {
     res.status(404);
     throw new Error("Item not in cart");
@@ -99,7 +103,7 @@ const removeCartItem = asyncHandler(async (req, res) => {
   const { productId } = req.params;
 
   const cart = await getOrCreateCart(req.user._id);
-  cart.items = cart.items.filter((i) => i.product.toString() !== productId);
+  cart.items = cart.items.filter((i) => productIdOf(i) !== productId);
   await cart.save();
   await cart.populate("items.product");
   res.json({ success: true, data: cart.items });
