@@ -15,6 +15,10 @@ const MobileTabBar = () => {
   //   location.pathname.startsWith("/account") || location.pathname.startsWith("/admin");
   const hideTabs = location.pathname.startsWith("/admin");
 
+  // When the user is signed out, the protected tabs don't navigate to
+  // /login directly — they carry the page they actually wanted, so the
+  // login/register page can resume that flow instead of always dropping
+  // them on the account dashboard.
   const tabs = [
     { to: "/", label: "Home", icon: Home },
     { to: "/shop", label: "Shop", icon: Search },
@@ -24,8 +28,14 @@ const MobileTabBar = () => {
       label: "Wishlist",
       icon: Heart,
       badge: wishlistCount,
+      loginTo: "/account/wishlist",
     },
-    { to: user ? "/account" : "/login", label: "Account", icon: User },
+    {
+      to: user ? "/account" : "/login",
+      label: "Account",
+      icon: User,
+      loginTo: "/account",
+    },
   ];
 
   if (hideTabs) return null;
@@ -36,10 +46,14 @@ const MobileTabBar = () => {
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = location.pathname === tab.to;
+          // Signed-out tabs point at /login but carry the page they wanted,
+          // so the auth page can resume the original intent.
+          const linkState = tab.loginTo ? { from: { pathname: tab.loginTo } } : null;
           return (
             <Link
               key={tab.label}
               to={tab.to}
+              state={linkState}
               className="relative flex flex-col items-center gap-1 px-3 py-1"
             >
               <Icon
@@ -54,7 +68,7 @@ const MobileTabBar = () => {
               >
                 {tab.label}
               </span>
-              {tab.badge && tab.badge > 0 && (
+              {tab.badge > 0 && (
                 <span className="absolute -top-1 right-2 w-4 h-4 bg-primary text-white text-[10px] rounded-full flex items-center justify-center">
                   {tab.badge}
                 </span>

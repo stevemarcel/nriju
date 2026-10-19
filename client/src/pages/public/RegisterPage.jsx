@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAppDispatch } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
 import { mergeGuestCart } from "../../slices/cartSlice";
@@ -9,6 +9,13 @@ import { User, Mail, Lock, Phone, ArrowRight, AlertCircle, Eye, EyeOff } from "l
 const RegisterPage = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Where the user was headed before being bounced here by a route guard.
+  // ProtectedRoute / the auth:unauthorized handler both stash it in
+  // location.state.from; resume that flow instead of always sending them
+  // to the account dashboard.
+  const from = location.state?.from?.pathname || "/account";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -33,7 +40,7 @@ const RegisterPage = () => {
       dispatch(setUser(res.data.data));
       // Merge guest cart into server cart
       await dispatch(mergeGuestCart());
-      navigate("/account");
+      navigate(from);
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {
@@ -210,7 +217,7 @@ const RegisterPage = () => {
 
         <div className="mt-6 text-center text-sm text-text-muted">
           Already have an account?{" "}
-          <Link to="/login" className="text-primary font-medium hover:underline">
+          <Link to="/login" state={{ from }} className="text-primary font-medium hover:underline">
             Sign in
           </Link>
         </div>

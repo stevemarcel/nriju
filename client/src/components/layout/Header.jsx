@@ -150,6 +150,7 @@ const Header = () => {
             ) : (
               <Link
                 to="/login"
+                state={{ from: { pathname: "/" } }}
                 className="px-3 py-1.5 text-sm font-medium text-text hover:text-primary transition-colors"
               >
                 Login
