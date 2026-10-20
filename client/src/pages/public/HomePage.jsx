@@ -99,14 +99,27 @@ const HomePage = () => {
               <Link
                 key={cat._id}
                 to={`/shop?category=${cat.slug}`}
-                className="group block p-4 bg-surface rounded-lg border border-border text-center hover:border-primary transition-colors"
+                className="group block rounded-lg border border-border overflow-hidden hover:border-primary hover:shadow-md transition-all"
               >
-                <div className="w-12 h-12 mx-auto rounded-full bg-background flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                  <span className="text-xl">🍲</span>
+                <div className="aspect-4/3 bg-background relative">
+                  {cat.image ? (
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-4xl">
+                      🍲
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent flex items-end">
+                    <span className="w-full text-center text-white text-sm font-semibold py-3 drop-shadow">
+                      {cat.name}
+                    </span>
+                  </div>
                 </div>
-                <h3 className="font-medium text-sm text-text group-hover:text-primary transition-colors">
-                  {cat.name}
-                </h3>
               </Link>
             ))}
           </div>

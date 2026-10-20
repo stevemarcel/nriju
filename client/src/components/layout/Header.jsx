@@ -107,7 +107,7 @@ const Header = () => {
             {loading ? (
               <div className="w-8 h-8 rounded-full bg-surface animate-pulse" />
             ) : user ? (
-              <div className="relative group">
+              <div ref={menuRef} className="relative group">
                 <button
                   className="flex items-center gap-2 p-1 rounded-lg hover:bg-surface"
                   onClick={() => dispatch(setMobileMenu(!mobileMenuOpen))}
@@ -127,7 +127,6 @@ const Header = () => {
                 </button>
 
                 <div
-                  ref={menuRef}
                   className={`absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-border transition-all ${
                     mobileMenuOpen
                       ? "opacity-100 visible"
