@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
 import api from "../../services/api";
-import { ArrowLeft, Lock, Eye, EyeOff, Save, CheckCircle, AlertCircle } from "lucide-react";
+import { Lock, Eye, EyeOff, Save, CheckCircle, AlertCircle } from "lucide-react";
 
 const ChangePassword = () => {
   const navigate = useNavigate();
@@ -60,16 +60,14 @@ const ChangePassword = () => {
     <div className="min-h-screen bg-background-soft">
       {/* Top bar */}
       <div className="bg-surface border-b border-border-soft">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link
-            to="/account/profile"
-            className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back to Profile</span>
-          </Link>
-          <span className="text-text-muted text-sm hidden sm:inline">/</span>
-          <span className="text-sm text-text-muted hidden sm:inline">Change Password</span>
+        <div className="container mx-auto px-4 py-4">
+          <Breadcrumb
+            crumbs={[
+              { label: "Account", to: "/account" },
+              { label: "Profile", to: "/account/profile" },
+              { label: "Change Password" },
+            ]}
+          />
         </div>
       </div>
 

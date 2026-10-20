@@ -40,7 +40,7 @@ const AdminLayout = () => {
       await api.post("/auth/logout");
     } catch {}
     dispatch(clearAuth());
-    navigate("/login");
+    navigate("/login", { state: { from: location }, replace: true });
   };
 
   return (

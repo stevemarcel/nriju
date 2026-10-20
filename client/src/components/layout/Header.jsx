@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useRef } from "react";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { toggleCartDrawer, setMobileMenu } from "../../slices/uiSlice";
 import { clearAuth } from "../../slices/authSlice";
@@ -25,6 +26,19 @@ const Header = () => {
   const { user, loading } = useAppSelector((s) => s.auth);
   const { mobileMenuOpen } = useAppSelector((s) => s.ui);
   const { items } = useAppSelector((s) => s.cart);
+  const menuRef = useRef(null);
+
+  // Close the account dropdown when the user clicks anywhere else. It's a
+  // hover/focus menu, so without this it stays open until the cursor leaves.
+  useEffect(() => {
+    const onClick = (e) => {
+      if (mobileMenuOpen && !menuRef.current?.contains(e.target)) {
+        dispatch(setMobileMenu(false));
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [dispatch, mobileMenuOpen]);
 
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
@@ -34,7 +48,7 @@ const Header = () => {
       await api.post("/auth/logout");
     } catch {}
     dispatch(clearAuth());
-    navigate("/login");
+    navigate("/login", { state: { from: location }, replace: true });
   };
 
   const navLinks = [
@@ -113,6 +127,7 @@ const Header = () => {
                 </button>
 
                 <div
+                  ref={menuRef}
                   className={`absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-border transition-all ${
                     mobileMenuOpen
                       ? "opacity-100 visible"

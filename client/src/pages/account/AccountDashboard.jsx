@@ -3,13 +3,13 @@ import { useAppSelector, useAppDispatch } from "../../store/store";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
 import { clearAuth } from "../../slices/authSlice";
+import { Breadcrumb } from "../../components/shared/Navigation";
 import {
   Package,
   Heart,
   MapPin,
   Clock,
   ChevronRight,
-  ArrowLeft,
   LogOut,
   Lock,
   Plus,
@@ -44,7 +44,7 @@ const AccountDashboard = () => {
       await api.post("/auth/logout");
     } catch {}
     dispatch(clearAuth());
-    navigate("/login");
+    navigate("/login", { state: { from: location }, replace: true });
   };
 
   // Use Redux/localStorage wishlist (synced from ProductCard.jsx heart toggle)
@@ -56,17 +56,7 @@ const AccountDashboard = () => {
       {/* Top breadcrumb bar */}
       <div className="bg-surface border-b border-border-soft">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <Link
-              to="/"
-              className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors whitespace-nowrap"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="text-sm font-medium">Back to Store</span>
-            </Link>
-            <span className="text-text-muted text-sm hidden sm:inline">/</span>
-            <span className="text-sm text-text-muted hidden sm:inline">Account</span>
-          </div>
+          <Breadcrumb crumbs={[{ label: "Store", to: "/" }, { label: "Account" }]} />
           {isAdmin && (
             <Link
               to="/admin"

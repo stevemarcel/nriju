@@ -40,7 +40,7 @@ const RegisterPage = () => {
       dispatch(setUser(res.data.data));
       // Merge guest cart into server cart
       await dispatch(mergeGuestCart());
-      navigate(from);
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.");
     } finally {

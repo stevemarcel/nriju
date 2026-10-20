@@ -66,7 +66,7 @@ const App = () => {
   useEffect(() => {
     const onUnauthorized = () => {
       dispatch(clearAuth());
-      navigate("/login", { state: { from: location } });
+      navigate("/login", { state: { from: location }, replace: true });
     };
     window.addEventListener("auth:unauthorized", onUnauthorized);
     return () => window.removeEventListener("auth:unauthorized", onUnauthorized);

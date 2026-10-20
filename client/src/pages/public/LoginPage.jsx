@@ -26,7 +26,7 @@ const LoginPage = () => {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) navigate(from);
+    if (user) navigate(from, { replace: true });
   }, [user, navigate, from]);
 
   const handleSubmit = async (e) => {
@@ -39,7 +39,7 @@ const LoginPage = () => {
       dispatch(setUser(res.data.data));
       // Merge guest cart into server cart
       await dispatch(mergeGuestCart());
-      navigate(from);
+      navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {

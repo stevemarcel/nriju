@@ -7,7 +7,7 @@ const AdminRoute = ({ children }) => {
   const { user } = useAppSelector((s) => s.auth);
   const isAdmin = user && (user.role === "admin" || user.role === "superAdmin");
 
-  if (!isAdmin) return <Navigate to="/" />;
+  if (!isAdmin) return <Navigate to="/" replace />;
 
   return children;
 };

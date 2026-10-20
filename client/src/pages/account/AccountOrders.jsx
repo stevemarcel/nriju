@@ -1,7 +1,8 @@
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
-import { Link } from "react-router-dom";
-import { Package, Search, Filter, ArrowLeft } from "lucide-react";
+import { Breadcrumb } from "../../components/shared/Navigation";
+import { Package, Search, Filter } from "lucide-react";
 import { useState } from "react";
 import { formatNaira } from "../../utils/formatMoney";
 
@@ -41,16 +42,8 @@ const AccountOrders = () => {
     <div className="min-h-screen bg-background-soft">
       {/* Top bar */}
       <div className="bg-surface border-b border-border-soft">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link
-            to="/account"
-            className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back to Account</span>
-          </Link>
-          <span className="text-text-muted text-sm hidden sm:inline">/</span>
-          <span className="text-sm text-text-muted hidden sm:inline">Orders</span>
+        <div className="container mx-auto px-4 py-4">
+          <Breadcrumb crumbs={[{ label: "Account", to: "/account" }, { label: "Orders" }]} />
         </div>
       </div>
 
@@ -114,10 +107,15 @@ const AccountOrders = () => {
         ) : (
           <div className="space-y-3">
             {filtered.map((o) => (
-              <div key={o._id} className="bg-surface rounded-xl border border-border-soft p-5 hover:shadow-sm transition-shadow">
+              <div
+                key={o._id}
+                className="bg-surface rounded-xl border border-border-soft p-5 hover:shadow-sm transition-shadow"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <div className="font-heading font-semibold text-text text-sm">{o.orderNumber}</div>
+                    <div className="font-heading font-semibold text-text text-sm">
+                      {o.orderNumber}
+                    </div>
                     <div className="text-xs text-text-muted mt-0.5">
                       Ordered{" "}
                       {new Date(o.createdAt).toLocaleDateString("en-NG", {
@@ -143,7 +141,9 @@ const AccountOrders = () => {
                         {item.quantity}×
                       </div>
                       <span className="text-text truncate">{item.name}</span>
-                      <span className="text-xs text-text-muted ml-auto">{formatNaira(item.price * item.quantity)}</span>
+                      <span className="text-xs text-text-muted ml-auto">
+                        {formatNaira(item.price * item.quantity)}
+                      </span>
                     </div>
                   ))}
                   {o.items.length > 3 && (

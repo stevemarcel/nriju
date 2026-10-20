@@ -14,7 +14,6 @@ import {
   Save,
   CheckCircle,
   AlertCircle,
-  ArrowLeft,
   Plus,
   MapPin,
   Home as HomeIcon,
@@ -179,16 +178,8 @@ const AccountProfile = () => {
     <div className="min-h-screen bg-background-soft">
       {/* Top bar */}
       <div className="bg-surface border-b border-border-soft">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link
-            to="/account"
-            className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back to Account</span>
-          </Link>
-          <span className="text-text-muted text-sm hidden sm:inline">/</span>
-          <span className="text-sm text-text-muted hidden sm:inline">Profile</span>
+        <div className="container mx-auto px-4 py-4">
+          <Breadcrumb crumbs={[{ label: "Account", to: "/account" }, { label: "Profile" }]} />
         </div>
       </div>
 

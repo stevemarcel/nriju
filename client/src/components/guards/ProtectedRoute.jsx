@@ -10,7 +10,9 @@ const ProtectedRoute = ({ children }) => {
   // While the session is being resolved, render nothing to avoid a
   // flash of protected content before the cookie is checked.
   if (loading && !user) return null;
-  if (!user) return <Navigate to="/login" state={{ from: location }} />;
+  // replace, not push: a pushed /login leaves the protected route behind in
+  // history, so Back re-enters it and gets bounced forward again — a trap.
+  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
 
   return children;
 };

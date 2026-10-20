@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { toggleWishlist } from "../../slices/wishlistSlice";
-import { Heart, ShoppingBag, Trash2, ArrowLeft, Package, Star } from "lucide-react";
+import { Breadcrumb } from "../../components/shared/Navigation";
+import { Heart, ShoppingBag, Trash2, Package, Star } from "lucide-react";
 import { formatNaira } from "../../utils/formatMoney";
 
 const WishlistPage = () => {
@@ -21,16 +22,8 @@ const WishlistPage = () => {
     <div className="min-h-screen bg-background-soft">
       {/* Top bar */}
       <div className="bg-surface border-b border-border-soft">
-        <div className="container mx-auto px-4 py-4 flex items-center gap-4">
-          <Link
-            to="/account"
-            className="flex items-center gap-2 text-text-muted hover:text-primary transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm font-medium">Back to Account</span>
-          </Link>
-          <span className="text-text-muted text-sm hidden sm:inline">/</span>
-          <span className="text-sm text-text-muted hidden sm:inline">Wishlist</span>
+        <div className="container mx-auto px-4 py-4">
+          <Breadcrumb crumbs={[{ label: "Account", to: "/account" }, { label: "Wishlist" }]} />
         </div>
       </div>
 
@@ -70,7 +63,7 @@ const WishlistPage = () => {
               >
                 <div className="flex items-start gap-4">
                   {/* Product image */}
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-background-soft overflow-hidden flex-shrink-0">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-background-soft overflow-hidden shrink-0">
                     {product.images?.[0] ? (
                       <img
                         src={product.images[0]}
