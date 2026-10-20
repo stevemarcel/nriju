@@ -193,7 +193,6 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
   });
 
   const queryClient = useQueryClient();
-  const isSaving = false;
 
   const saveMutation = useMutation({
     mutationFn: (e) => {
@@ -339,7 +338,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
             </button>
             <button
               type="submit"
-              disabled={isSaving}
+              disabled={saveMutation.isPending}
               className="px-5 py-2 bg-primary text-white font-medium rounded-lg inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-60 transition-colors"
             >
               <Save className="w-4 h-4" /> {mode === "create" ? "Create" : "Save"}

@@ -4,7 +4,7 @@ import { useAppSelector, useAppDispatch } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
 import api from "../../services/api";
 import { toast } from "sonner";
-import CropAvatar from "../../components/CropAvatar";
+import CropAvatar from "../../components/ui/CropAvatar";
 import formatTimeAgo from "../../utils/formatTimeAgo";
 import {
   User,

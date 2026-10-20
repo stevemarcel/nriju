@@ -57,7 +57,7 @@ const AdminLayout = () => {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-20 w-64 bg-text text-white/90 transform transition-transform lg:translate-x-0 lg:static lg:h-auto ${
+        className={`fixed inset-y-0 left-0 z-20 w-64 bg-text text-white/90 transform transition-transform lg:translate-x-0 lg:static lg:h-auto pt-14 lg:pt-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >

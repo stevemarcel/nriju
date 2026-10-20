@@ -20,3 +20,11 @@ export const uploadProductImages = multer({
   fileFilter,
   limits: { fileSize: 10 * 1024 * 1024 },
 }).array("images", 10);
+
+// Standalone image upload for the product form — uploads the files and returns
+// their Cloudinary URLs without creating a product record.
+export const uploadProductImageFiles = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 },
+}).array("images", 10);

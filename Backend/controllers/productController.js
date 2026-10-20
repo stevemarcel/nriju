@@ -4,6 +4,22 @@ import Category from "../models/Category.js";
 import { productSummary } from "../utils/format.js";
 import { uploadProductToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryUtils.js";
 
+// @DESCRIPTION Upload product images and return their Cloudinary URLs
+// @ROUTE       POST /api/v1/products/images
+// @ACCESS      Admin
+const uploadProductImagesController = asyncHandler(async (req, res) => {
+  const images = req.files
+    ? await Promise.all(
+        req.files.map(async (file) => {
+          const uploaded = await uploadProductToCloudinary(file.buffer);
+          return uploaded.url;
+        }),
+      )
+    : [];
+
+  res.json({ success: true, data: { images } });
+});
+
 // @DESCRIPTION List active products with filters, search, sort and pagination
 // @ROUTE       GET /api/v1/products
 // @ACCESS      Public
@@ -209,4 +225,5 @@ export {
   updateProduct,
   deleteProduct,
   getAllProducts,
+  uploadProductImagesController,
 };
