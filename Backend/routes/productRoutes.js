@@ -21,8 +21,8 @@ router.use(auth);
 router.use(admin);
 router.get("/all", getAllProducts);
 router.get("/:slug", getProductBySlug);
-router.post("/", uploadProductImages, createProduct);
-router.put("/:id", uploadProductImages, updateProduct);
+router.post("/", createProduct);
+router.put("/:id", updateProduct);
 router.delete("/:id", deleteProduct);
 
 // Standalone image upload for the product form — uploads files and returns
