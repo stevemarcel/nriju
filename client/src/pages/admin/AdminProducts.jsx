@@ -164,50 +164,73 @@ const AdminProducts = () => {
                     <td className="py-3 px-4 text-right">{p.stock}</td>
                     <td className="py-3 px-4 text-center">
                       <span
-                        className={`inline-block w-2 h-2 rounded-full mr-1 ${
-                          p.isActive ? "bg-emerald-500" : "bg-slate-400"
+                        className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full ${
+                          p.isActive
+                            ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                            : "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
                         }`}
-                      />
-                      {p.isActive ? "Active" : "Archived"}
+                      >
+                        {p.isActive ? (
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={2.5}
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+                          </svg>
+                        )}
+                        {p.isActive ? "Active" : "Archived"}
+                      </span>
                     </td>
                     <td className="py-3 px-4 text-right text-text-muted">
                       {formatDate(p.createdAt)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <div className="flex justify-center gap-1">
+                      <div className="flex justify-center gap-1.5">
                         {p.isActive ? (
                           <>
                             <button
                               onClick={() => toggleModal({ edit: p })}
-                              className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-background-soft hover:bg-primary/10 text-text-muted hover:text-primary transition-colors"
                               title="Edit"
                             >
-                              <Edit className="w-3.5 h-3.5 mx-auto" />
+                              <Edit className="w-3 h-3" /> Edit
                             </button>
-
                             <button
                               onClick={() => handleSoftDelete(p)}
-                              className="w-7 h-7 rounded bg-background-soft hover:bg-rose-100 text-rose-600"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-background-soft hover:bg-rose-100 text-text-muted hover:text-rose-600 transition-colors"
                               title="Archive"
                             >
-                              <Archive className="w-3.5 h-3.5 mx-auto" />
+                              <Archive className="w-3 h-3" /> Archive
                             </button>
                           </>
                         ) : (
                           <>
                             <button
                               onClick={() => handleArchive(p)}
-                              className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-background-soft hover:bg-primary/10 text-text-muted hover:text-primary transition-colors"
                               title="Restore"
                             >
-                              <RotateCcw className="w-3.5 h-3.5 mx-auto" />
+                              <RotateCcw className="w-3 h-3" /> Restore
                             </button>
                             <button
                               onClick={() => handlePermanentDelete(p)}
-                              className="w-7 h-7 rounded bg-background-soft hover:bg-rose-100 text-rose-600"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-background-soft hover:bg-rose-100 text-text-muted hover:text-rose-600 transition-colors"
                               title="Permanently delete"
                             >
-                              <Trash2 className="w-3.5 h-3.5 mx-auto" />
+                              <Trash2 className="w-3 h-3" /> Delete
                             </button>
                           </>
                         )}
