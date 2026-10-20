@@ -33,7 +33,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
         productType: product.productType ?? "packaged",
         category: product.category?._id ?? product.category ?? "",
         images: product.images ?? [],
-        tags: (product.tags ?? []).join(", "),
+        tags: Array.isArray(product.tags) ? product.tags.join(", ") : (product.tags ?? ""),
         isFeatured: product.isFeatured ?? false,
         isActive: product.isActive ?? true,
         notifyOnOutOfStock: product.notifyOnOutOfStock ?? false,
@@ -54,19 +54,13 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
         payload.append("name", form.name);
         payload.append("description", form.description);
         payload.append("price", toKobo(form.price));
-        payload.append(
-          "compareAtPrice",
-          form.compareAtPrice ? toKobo(form.compareAtPrice) : "",
-        );
+        payload.append("compareAtPrice", form.compareAtPrice ? toKobo(form.compareAtPrice) : "");
         payload.append("unit", form.unit);
         payload.append("productType", form.productType);
         payload.append("category", form.category);
         payload.append("isFeatured", String(form.isFeatured));
         payload.append("isActive", String(form.isActive));
-        payload.append(
-          "notifyOnOutOfStock",
-          String(form.notifyOnOutOfStock),
-        );
+        payload.append("notifyOnOutOfStock", String(form.notifyOnOutOfStock));
         payload.append(
           "tags",
           JSON.stringify(

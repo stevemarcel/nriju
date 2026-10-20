@@ -88,6 +88,22 @@ const getProductBySlug = asyncHandler(async (req, res) => {
 // @DESCRIPTION Create a product (admin)
 // @ROUTE       POST /api/v1/products
 // @ACCESS      Admin
+const parseTags = (tags) => {
+  if (Array.isArray(tags)) return tags;
+  if (typeof tags === "string") {
+    try {
+      const parsed = JSON.parse(tags);
+      return Array.isArray(parsed) ? parsed : [tags];
+    } catch {
+      return tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+    }
+  }
+  return [];
+};
+
 const createProduct = asyncHandler(async (req, res) => {
   const {
     name,
@@ -120,7 +136,7 @@ const createProduct = asyncHandler(async (req, res) => {
     productType,
     category,
     images,
-    tags: tags || [],
+    tags: parseTags(tags),
     isFeatured: !!isFeatured,
     stock: 0,
     createdBy: req.user._id,
@@ -154,7 +170,10 @@ const updateProduct = asyncHandler(async (req, res) => {
     "notifyOnOutOfStock",
   ];
   for (const key of allowed) {
-    if (req.body[key] !== undefined) product[key] = req.body[key];
+    if (req.body[key] !== undefined) {
+      if (key === "tags") product[key] = parseTags(req.body[key]);
+      else product[key] = req.body[key];
+    }
   }
 
   // Handle image uploads - replace old images if new ones provided
