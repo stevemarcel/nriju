@@ -12,6 +12,7 @@ import {
   confirmDelete,
 } from "../../components/admin/AdminPrimitives";
 import { Plus, Edit, Trash2, Save, X, Package } from "lucide-react";
+import { toast } from "sonner";
 import { toKobo } from "../../utils/formatMoney";
 
 const CATEGORY_OPTIONS = []; // populated from /categories at runtime below
@@ -43,13 +44,15 @@ const AdminProducts = () => {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id) => api.delete(`/products/${id}`),
+  const archiveMutation = useMutation({
+    mutationFn: async (p) => api.put(`/products/${p._id}`, { isActive: !p.isActive }),
     onSuccess: invalidate,
   });
 
-  const archiveMutation = useMutation({
-    mutationFn: async (p) => api.put(`/products/${p._id}`, { isActive: !p.isActive }),
+  // Soft delete: the backend only hides the product, it stays in the DB so
+  // it can be restored. A hard DELETE would wipe it forever.
+  const softDeleteMutation = useMutation({
+    mutationFn: (id) => api.put(`/products/${id}`, { isActive: false }),
     onSuccess: invalidate,
   });
 
@@ -61,7 +64,7 @@ const AdminProducts = () => {
 
   const handleDelete = (p) => {
     if (!confirmDelete(`Archive "${p.name}"? This removes it from the store.`)) return;
-    deleteMutation.mutate(p._id, {});
+    softDeleteMutation.mutate(p._id);
   };
 
   const toggleModal = (v) => setModal(v);
@@ -251,8 +254,6 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
     return { ...initialForm };
   });
 
-  const isSaving = false;
-
   const saveMutation = useMutation({
     mutationFn: async (e) => {
       e.preventDefault();
@@ -278,6 +279,9 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
         return api.put(`/products/${product._id}`, payload);
       }
       return api.post("/products", payload);
+    },
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || "Failed to save product.");
     },
     onSuccess: () => {
       onSaved();

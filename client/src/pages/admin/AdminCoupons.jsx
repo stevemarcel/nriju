@@ -42,6 +42,19 @@ const AdminCoupons = () => {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "coupons"] });
 
+  // The old delete handler called api.delete without awaiting, then
+  // invalidated — which could fire before the request landed. A real
+  // mutation keeps the request in flight until the cache clears.
+  const deleteMutation = useMutation({
+    mutationFn: (id) => api.delete(`/coupons/${id}`),
+    onSuccess: invalidate,
+  });
+
+  const handleDelete = (c) => {
+    if (!confirmDelete(`Deactivate "${c.code}"?`)) return;
+    deleteMutation.mutate(c._id);
+  };
+
   return (
     <div>
       <AdminPageHeader
