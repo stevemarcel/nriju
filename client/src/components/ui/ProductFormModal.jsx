@@ -22,6 +22,7 @@ const initialForm = {
 };
 
 const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState(() => {
     if (mode === "edit" && product) {
       return {
@@ -45,43 +46,6 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const hasImages = Array.isArray(form.images) && form.images.length > 0;
-
-      if (hasImages) {
-        // Backend reads uploaded files from req.files, so the whole request
-        // must be multipart/form-data when images are present.
-        const payload = new FormData();
-        payload.append("name", form.name);
-        payload.append("description", form.description);
-        payload.append("price", toKobo(form.price));
-        payload.append("compareAtPrice", form.compareAtPrice ? toKobo(form.compareAtPrice) : "");
-        payload.append("unit", form.unit);
-        payload.append("productType", form.productType);
-        payload.append("category", form.category);
-        payload.append("isFeatured", String(form.isFeatured));
-        payload.append("isActive", String(form.isActive));
-        payload.append("notifyOnOutOfStock", String(form.notifyOnOutOfStock));
-        payload.append(
-          "tags",
-          JSON.stringify(
-            form.tags
-              .split(",")
-              .map((tag) => tag.trim())
-              .filter(Boolean),
-          ),
-        );
-
-        if (mode === "edit" && product) {
-          return api.put(`/products/${product._id}`, payload, {
-            headers: { "Content-Type": "multipart/form-data" },
-          });
-        }
-
-        return api.post("/products", payload, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      }
-
       const payload = {
         name: form.name,
         description: form.description,
@@ -90,7 +54,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
         unit: form.unit,
         productType: form.productType,
         category: form.category,
-        images: form.images,
+        images: form.images || [],
         tags: form.tags
           .split(",")
           .map((tag) => tag.trim())
@@ -278,7 +242,8 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
               <ImageUpload
                 initialImages={form.images ?? []}
                 onChange={(next) => handleChange("images", next)}
-                disabled={saveMutation.isPending}
+                disabled={saveMutation.isPending || uploading}
+                onUpload={(busy) => setUploading(busy)}
               />
             </div>
 
@@ -333,15 +298,16 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm text-text-muted hover:bg-background-soft rounded-lg"
+              disabled={uploading || saveMutation.isPending}
+              className="px-4 py-2 text-sm text-text-muted hover:bg-background-soft rounded-lg disabled:opacity-60 disabled:pointer-events-none transition-colors"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              disabled={saveMutation.isPending}
-              className="px-5 py-2 bg-primary text-white font-medium rounded-lg inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-60 transition-colors"
+              disabled={uploading || saveMutation.isPending}
+              className="px-5 py-2 bg-primary text-white font-medium rounded-lg inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-60 disabled:pointer-events-none transition-colors"
             >
               <Save className="w-4 h-4" />
 
