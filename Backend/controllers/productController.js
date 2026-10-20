@@ -1,6 +1,9 @@
 import asyncHandler from "express-async-handler";
 import Product from "../models/Product.js";
 import Category from "../models/Category.js";
+import Cart from "../models/Cart.js";
+import Review from "../models/Review.js";
+import Inventory from "../models/Inventory.js";
 import { productSummary } from "../utils/format.js";
 import { uploadProductToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryUtils.js";
 
@@ -202,7 +205,8 @@ const getAllProducts = asyncHandler(async (req, res) => {
   });
 });
 
-// @DESCRIPTION Soft-delete a product (admin)
+// @DESCRIPTION Delete a product (admin). With permanent=true, destroys the
+// document and all associated Cloudinary images; otherwise soft-deletes.
 // @ROUTE       DELETE /api/v1/products/:id
 // @ACCESS      Admin
 const deleteProduct = asyncHandler(async (req, res) => {
@@ -211,6 +215,34 @@ const deleteProduct = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Product not found");
   }
+
+  const { permanent } = req.query;
+  if (permanent === "true") {
+    if (product.images?.length) {
+      const publicIds = product.images
+        .map((url) => {
+          try {
+            const match = url.match(/\/upload\/[^/]+\/(.+?)(?:\.\w+)?$/);
+            return match ? match[1] : null;
+          } catch {
+            return null;
+          }
+        })
+        .filter(Boolean);
+      const { deleteFromCloudinary } = await import("../utils/cloudinaryUtils.js");
+      await Promise.all(publicIds.map((id) => deleteFromCloudinary(id).catch(() => {})));
+    }
+    await Product.findByIdAndDelete(product._id);
+    // Cascade removal of any soft-deleted references so the DB stays tidy.
+    await Promise.allSettled([
+      Cart.deleteMany({ product: product._id }),
+      Review.deleteMany({ product: product._id }),
+      Inventory.deleteMany({ product: product._id }),
+    ]);
+    res.json({ success: true, message: "Product permanently deleted" });
+    return;
+  }
+
   product.isActive = false;
   await product.save();
   res.json({ success: true, message: "Product archived" });

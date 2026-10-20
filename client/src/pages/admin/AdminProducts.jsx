@@ -9,10 +9,11 @@ import {
   FilterBar,
   formatNaira,
   formatDate,
-  confirmDelete,
 } from "../../components/admin/AdminPrimitives";
 import ProductFormModal from "../../components/ui/ProductFormModal";
-import { Plus, Edit, Trash2, Package } from "lucide-react";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import { Plus, Edit, Trash2, Package, RotateCcw, Archive } from "lucide-react";
+import { toast } from "sonner";
 
 const AdminProducts = () => {
   const queryClient = useQueryClient();
@@ -20,6 +21,7 @@ const AdminProducts = () => {
   const [activeFilter, setActiveFilter] = useState("all"); // all | active | archived
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState(null); // null | "create" | {edit: product}
+  const [confirmTarget, setConfirmTarget] = useState(null); // { product, action: 'delete' }
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -46,22 +48,30 @@ const AdminProducts = () => {
     onSuccess: invalidate,
   });
 
-  // Soft delete: the backend only hides the product, it stays in the DB so
-  // it can be restored. A hard DELETE would wipe it forever.
   const softDeleteMutation = useMutation({
     mutationFn: (id) => api.put(`/products/${id}`, { isActive: false }),
     onSuccess: invalidate,
   });
 
+  const permanentDeleteMutation = useMutation({
+    mutationFn: (id) => api.delete(`/products/${id}?permanent=true`),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Product permanently deleted");
+    },
+  });
+
   const handleArchive = (p) => {
-    archiveMutation.mutate(p, {
-      onSuccess: () => {},
-    });
+    archiveMutation.mutate(p);
   };
 
-  const handleDelete = (p) => {
-    if (!confirmDelete(`Archive "${p.name}"? This removes it from the store.`)) return;
+  const handleSoftDelete = (p) => {
+    if (!window.confirm(`Archive "${p.name}"? This removes it from the store.`)) return;
     softDeleteMutation.mutate(p._id);
+  };
+
+  const handlePermanentDelete = (p) => {
+    setConfirmTarget({ product: p, action: "delete" });
   };
 
   const toggleModal = (v) => setModal(v);
@@ -165,24 +175,42 @@ const AdminProducts = () => {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex justify-center gap-1">
-                        <button
-                          onClick={() => toggleModal({ edit: p })}
-                          className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
-                          title="Edit"
-                        >
-                          <Edit className="w-3.5 h-3.5 mx-auto" />
-                        </button>
-                        <button
-                          onClick={() => handleArchive(p)}
-                          className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
-                          title={p.isActive ? "Archive" : "Restore"}
-                        >
-                          {p.isActive ? (
-                            <Trash2 className="w-3.5 h-3.5 mx-auto" />
-                          ) : (
-                            <Package className="w-3.5 h-3.5 mx-auto" />
-                          )}
-                        </button>
+                        {p.isActive ? (
+                          <>
+                            <button
+                              onClick={() => toggleModal({ edit: p })}
+                              className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
+                              title="Edit"
+                            >
+                              <Edit className="w-3.5 h-3.5 mx-auto" />
+                            </button>
+
+                            <button
+                              onClick={() => handleSoftDelete(p)}
+                              className="w-7 h-7 rounded bg-background-soft hover:bg-rose-100 text-rose-600"
+                              title="Archive"
+                            >
+                              <Archive className="w-3.5 h-3.5 mx-auto" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleArchive(p)}
+                              className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
+                              title="Restore"
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 mx-auto" />
+                            </button>
+                            <button
+                              onClick={() => handlePermanentDelete(p)}
+                              className="w-7 h-7 rounded bg-background-soft hover:bg-rose-100 text-rose-600"
+                              title="Permanently delete"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 mx-auto" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -208,6 +236,22 @@ const AdminProducts = () => {
           }}
         />
       )}
+
+      {/* Permanent Delete Confirmation */}
+      <ConfirmModal
+        open={confirmTarget !== null}
+        title="Permanently delete product?"
+        description={`This will permanently remove "${confirmTarget?.product?.name}" and its images. This action cannot be undone.`}
+        confirmLabel="Delete forever"
+        confirmVariant="destructive"
+        onConfirm={() => {
+          if (confirmTarget?.action === "delete") {
+            permanentDeleteMutation.mutate(confirmTarget.product._id);
+          }
+          setConfirmTarget(null);
+        }}
+        onCancel={() => setConfirmTarget(null)}
+      />
     </div>
   );
 };
