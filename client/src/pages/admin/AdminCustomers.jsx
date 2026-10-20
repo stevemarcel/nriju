@@ -58,7 +58,7 @@ const AdminCustomers = () => {
               title="No customers found"
             />
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-max">
               <thead>
                 <tr className="bg-background-soft/50">
                   <th className="text-left font-medium py-3 px-4">Customer</th>
@@ -73,23 +73,25 @@ const AdminCustomers = () => {
                 {customers.map((u) => (
                   <tr key={u._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4">
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
                         {u.avatar ? (
                           <img
                             src={u.avatar}
                             alt={u.name}
-                            className="w-9 h-9 rounded-full object-cover"
+                            className="w-9 h-9 rounded-full object-cover shrink-0"
                           />
                         ) : (
-                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-sm">
+                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-sm shrink-0">
                             {u.name?.charAt(0).toUpperCase() || "U"}
                           </div>
                         )}
-                        <span className="font-medium text-text">{u.name}</span>
+                        <span className="font-medium text-text truncate">{u.name}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-text-muted">{u.email}</td>
-                    <td className="py-3 px-4 text-text-muted">{u.phone || "—"}</td>
+                    <td className="py-3 px-4 text-text-muted truncate max-w-88">{u.email}</td>
+                    <td className="py-3 px-4 text-text-muted truncate max-w-48">
+                      {u.phone || "—"}
+                    </td>
                     <td className="py-3 px-4 text-center">
                       {u.isVerified ? (
                         <UserCheck className="w-4 h-4 text-emerald-500 mx-auto" />

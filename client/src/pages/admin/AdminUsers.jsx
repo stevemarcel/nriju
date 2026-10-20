@@ -96,7 +96,7 @@ const AdminUsers = () => {
               title="No users found"
             />
           ) : (
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-max">
               <thead>
                 <tr className="bg-background-soft/50">
                   <th className="text-left font-medium py-3 px-4">User</th>
