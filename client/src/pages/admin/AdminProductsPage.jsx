@@ -203,15 +203,13 @@ const AdminProductsPage = () => {
                           <>
                             <button
                               onClick={() => toggleModal({ edit: p })}
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-background-soft hover:bg-primary/10 text-text-muted hover:text-primary transition-colors"
-                              title="Edit"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-primary/10 text-text-muted hover:text-primary transition-colors"
                             >
                               <Edit className="w-3 h-3" /> Edit
                             </button>
                             <button
                               onClick={() => handleSoftDelete(p)}
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-background-soft hover:bg-rose-100 text-text-muted hover:text-rose-600 transition-colors"
-                              title="Archive"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-rose-100 text-text-muted hover:text-rose-600 transition-colors"
                             >
                               <Archive className="w-3 h-3" /> Archive
                             </button>
@@ -220,15 +218,13 @@ const AdminProductsPage = () => {
                           <>
                             <button
                               onClick={() => handleArchive(p)}
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-background-soft hover:bg-primary/10 text-text-muted hover:text-primary transition-colors"
-                              title="Restore"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-emerald-50  text-text-muted hover:text-emerald-700 transition-colors"
                             >
                               <RotateCcw className="w-3 h-3" /> Restore
                             </button>
                             <button
                               onClick={() => handlePermanentDelete(p)}
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-full bg-background-soft hover:bg-rose-100 text-text-muted hover:text-rose-600 transition-colors"
-                              title="Permanently delete"
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-rose-500 text-text-muted hover:text-rose-200 transition-colors"
                             >
                               <Trash2 className="w-3 h-3" /> Delete
                             </button>
