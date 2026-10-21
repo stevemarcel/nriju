@@ -6,6 +6,7 @@ import api from "../../services/api";
 import { toast } from "sonner";
 import CropAvatar from "../../components/ui/CropAvatar";
 import formatTimeAgo from "../../utils/formatTimeAgo";
+import { Breadcrumb } from "../../components/shared/Navigation";
 import {
   User,
   Mail,
@@ -416,7 +417,7 @@ const AccountProfile = () => {
                       value={addressForm.city}
                       onChange={handleAddressChange}
                       required
-                      placeholder="Lagos"
+                      placeholder="Victoria Island"
                       className="w-full px-3 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary text-sm"
                     />
                   </div>
@@ -432,7 +433,7 @@ const AccountProfile = () => {
                     value={addressForm.line1}
                     onChange={handleAddressChange}
                     required
-                    placeholder="123 Main Street, Victoria Island"
+                    placeholder="123 Main Street, Balogun"
                     className="w-full px-3 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary text-sm"
                   />
                 </div>

@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
 import api from "../../services/api";
+import { Breadcrumb } from "../../components/shared/Navigation";
 import { Lock, Eye, EyeOff, Save, CheckCircle, AlertCircle } from "lucide-react";
 
 const ChangePassword = () => {

@@ -78,9 +78,9 @@ const AccountDashboard = () => {
         </div>
 
         {/* Top Grid */}
-        <div className="grid lg:grid-cols-12 gap-6 mb-8">
+        <div className="grid gap-6 lg:grid-cols-12 mb-8">
           {/* LEFT: Profile card */}
-          <div className="lg:col-span-4">
+          <aside className="lg:col-span-4">
             <div className="bg-surface rounded-2xl border border-border-soft p-8 h-full">
               <div className="flex flex-col items-center text-center">
                 {/* Avatar */}
@@ -104,9 +104,12 @@ const AccountDashboard = () => {
                 {isAdmin && (
                   <div className="mt-3">
                     <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                        isSuperAdmin ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
-                      }`}
+                      className={`
+                        inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider                    ${
+                          isSuperAdmin
+                            ? "bg-purple-100 text-purple-700"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
                     >
                       {isSuperAdmin ? <Zap className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
                       {user?.role?.replace("superAdmin", "Super Admin").replace("admin", "Admin")}
@@ -115,7 +118,7 @@ const AccountDashboard = () => {
                 )}
 
                 {/* Stats */}
-                <div className="w-full grid grid-cols-2 gap-4 mt-8 pt-8 border-t border-border-soft">
+                <div className="w-full grid gap-4 mt-8 pt-8 border-t border-border-soft md:grid-cols-2">
                   <div className="bg-background-soft rounded-xl p-4">
                     <div className="font-heading text-2xl font-bold text-text">{orders.length}</div>
                     <div className="text-[10px] uppercase font-bold text-text-muted tracking-tight">
@@ -134,31 +137,16 @@ const AccountDashboard = () => {
 
                 {/* Quick actions */}
                 <div className="w-full mt-6 space-y-2">
-                  <QuickActionLink
-                    to="/account/orders"
-                    icon={Package}
-                    label="My Orders"
-                    showAdmin={isAdmin}
-                  />
+                  <QuickActionLink to="/account/orders" icon={Package} label="My Orders" />
                   <QuickActionLink
                     to="/account/wishlist"
                     icon={Heart}
                     label="Wish List"
                     count={wishlistItems.length}
-                    showAdmin={isAdmin}
                   />
-                  <QuickActionLink
-                    to="/account/profile"
-                    icon={User}
-                    label="Profile"
-                    showAdmin={isAdmin}
-                  />
-                  <QuickActionLink
-                    to="/account/change-password"
-                    icon={Lock}
-                    label="Password"
-                    showAdmin={isAdmin}
-                  />
+                  <QuickActionLink to="/account/profile" icon={User} label="Profile" />
+                  <QuickActionLink to="/account/change-password" icon={Lock} label="Password" />
+                  {isAdmin && <QuickActionLink to="/admin" icon={Shield} label="Admin Dashboard" />}
                 </div>
 
                 <div className="w-full mt-4 pt-6 border-t border-border-soft">
@@ -172,198 +160,192 @@ const AccountDashboard = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </aside>
 
-          {/* RIGHT TOP: Details + Address */}
-          <div className="lg:col-span-8 grid gap-6">
-            {/* Account Details */}
-            <div className="bg-surface rounded-2xl border border-border-soft p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="font-heading text-lg font-bold text-text flex items-center gap-2">
-                  <User className="w-4 h-4 text-text-muted" />
-                  Account Details
-                </h2>
-                <Link
-                  to="/account/profile"
-                  className="group relative p-2 bg-background-soft rounded-lg text-text-muted hover:text-primary transition-colors"
-                >
-                  <Edit className="w-4 h-4 transition-opacity" />
-                </Link>
-              </div>
-              <div className="space-y-4">
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
-                      Full Name
-                    </div>
-                    <div className="text-base font-semibold text-text">{user?.name}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
-                      Email Address
-                    </div>
-                    <div className="text-base font-semibold text-text truncate">{user?.email}</div>
-                  </div>
-                </div>
-                {user?.phone && (
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
-                        Phone Number
-                      </div>
-                      <div className="text-base font-semibold text-text">{user?.phone}</div>
-                    </div>
-                  </div>
-                )}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
-                      Role
-                    </div>
-                    <div className="text-sm font-semibold text-text capitalize">
-                      {user?.role || "customer"}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
-                      Gender
-                    </div>
-                    <div className="text-sm font-semibold text-text">—</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Shipping Address */}
-            <div className="bg-surface rounded-2xl border border-border-soft p-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="font-heading text-lg font-bold text-text flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-text-muted" />
-                  Shipping Address
-                </h2>
-                <Link
-                  to="/account/profile"
-                  className="group relative p-2 bg-background-soft rounded-lg text-text-muted hover:text-primary transition-colors"
-                >
-                  <Edit className="w-4 h-4 transition-opacity" />
-                </Link>
-              </div>
-              {defaultAddress ? (
-                <div className="space-y-4">
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
-                      Street Address
-                    </div>
-                    <div className="text-sm font-semibold text-text">
-                      {defaultAddress.line1}
-                      {defaultAddress.line2 && (
-                        <span className="block text-text-muted mt-0.5">{defaultAddress.line2}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
-                        City
-                      </div>
-                      <div className="text-sm font-semibold text-text">{defaultAddress.city}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
-                        State
-                      </div>
-                      <div className="text-sm font-semibold text-text">{defaultAddress.state}</div>
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
-                      Label
-                    </div>
-                    <div className="inline-flex items-center px-2 py-0.5 rounded bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-wider">
-                      {defaultAddress.label}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-border-soft rounded-2xl">
-                  <MapPin className="w-8 h-8 text-text-muted opacity-20 mb-3" />
-                  <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
-                    No address saved
-                  </p>
+          {/* Main account content stays beside the profile from md onward. */}
+          <section className="flex flex-col gap-6 lg:col-span-8">
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Account Details */}
+              <section className="bg-surface rounded-2xl border border-border-soft p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-heading text-lg font-bold text-text flex items-center gap-2">
+                    <User className="w-4 h-4 text-text-muted" />
+                    Account Details
+                  </h2>
                   <Link
                     to="/account/profile"
-                    className="mt-4 text-xs font-bold text-primary hover:underline uppercase tracking-widest"
+                    className="group relative p-2 bg-background-soft rounded-lg text-text-muted hover:text-primary transition-colors"
                   >
-                    Add Address
+                    <Edit className="w-4 h-4 transition-opacity" />
                   </Link>
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Active Orders Section */}
-        <div className="bg-surface rounded-2xl border border-border-soft p-8 mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-heading text-lg font-bold text-text flex items-center gap-2">
-              <Package className="w-4 h-4 text-text-muted" />
-              Active Orders
-            </h2>
-            <Link
-              to="/account/orders"
-              className="text-xs font-bold text-primary uppercase tracking-widest hover:underline"
-            >
-              View all
-            </Link>
-          </div>
-
-          {activeOrders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-10">
-              <div className="w-16 h-16 rounded-full bg-background-soft flex items-center justify-center mb-4">
-                <Package className="w-8 h-8 text-text-muted opacity-20" />
-              </div>
-              <p className="text-sm font-bold text-text-muted uppercase tracking-widest">
-                No active orders
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {activeOrders.slice(0, 2).map((o) => (
-                <Link
-                  key={o._id}
-                  to="/account/orders"
-                  className="flex items-center justify-between p-5 bg-background-soft rounded-2xl border border-transparent hover:border-primary/20 hover:bg-primary/5 transition-all group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                      <Package className="w-6 h-6 text-primary" />
+                <div className="space-y-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
+                        Full Name
+                      </div>
+                      <div className="text-base font-semibold text-text">{user?.name}</div>
                     </div>
                     <div>
-                      <div className="font-bold text-text text-sm">{o.orderNumber}</div>
-                      <div className="text-xs text-text-muted font-medium mt-0.5">
-                        {o.items.length} item(s) ·{" "}
-                        {new Date(o.createdAt).toLocaleDateString("en-NG", {
-                          month: "short",
-                          day: "numeric",
-                        })}
+                      <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
+                        Email Address
+                      </div>
+                      <div className="text-base font-semibold text-text truncate">
+                        {user?.email}
                       </div>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="font-heading font-bold text-text">{formatNaira(o.total)}</div>
-                    <div className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1">
-                      {o.status.replace("_", " ")}
+                  {user?.phone && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
+                          Phone Number
+                        </div>
+                        <div className="text-base font-semibold text-text">{user?.phone}</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Shipping Address */}
+              <section className="bg-surface rounded-2xl border border-border-soft p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="font-heading text-lg font-bold text-text flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-text-muted" />
+                    Shipping Address
+                  </h2>
+                  <Link
+                    to="/account/profile"
+                    className="group relative p-2 bg-background-soft rounded-lg text-text-muted hover:text-primary transition-colors"
+                  >
+                    <Edit className="w-4 h-4 transition-opacity" />
+                  </Link>
+                </div>
+                {defaultAddress ? (
+                  <div className="space-y-4">
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
+                        Street Address
+                      </div>
+                      <div className="text-sm font-semibold text-text">
+                        {defaultAddress.line1}
+                        {defaultAddress.line2 && (
+                          <span className="block text-text-muted mt-0.5">
+                            {defaultAddress.line2}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
+                          City
+                        </div>
+                        <div className="text-sm font-semibold text-text">{defaultAddress.city}</div>
+                      </div>
+                      <div>
+                        <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
+                          State
+                        </div>
+                        <div className="text-sm font-semibold text-text">
+                          {defaultAddress.state}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
+                        Label
+                      </div>
+                      <div className="inline-flex items-center px-2 py-0.5 rounded bg-primary/5 text-primary text-[10px] font-bold uppercase tracking-wider">
+                        {defaultAddress.label}
+                      </div>
                     </div>
                   </div>
-                </Link>
-              ))}
+                ) : (
+                  <div className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-border-soft rounded-2xl">
+                    <MapPin className="w-8 h-8 text-text-muted opacity-20 mb-3" />
+                    <p className="text-xs font-bold text-text-muted uppercase tracking-wider">
+                      No address saved
+                    </p>
+                    <Link
+                      to="/account/profile"
+                      className="mt-4 text-xs font-bold text-primary hover:underline uppercase tracking-widest"
+                    >
+                      Add Address
+                    </Link>
+                  </div>
+                )}
+              </section>
             </div>
-          )}
+
+            {/* Active Orders Section */}
+            <section className="bg-surface rounded-2xl border border-border-soft p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-heading text-lg font-bold text-text flex items-center gap-2">
+                  <Package className="w-4 h-4 text-text-muted" />
+                  Active Orders
+                </h2>
+                <Link
+                  to="/account/orders"
+                  className="text-xs font-bold text-primary uppercase tracking-widest hover:underline"
+                >
+                  View all
+                </Link>
+              </div>
+
+              {activeOrders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10">
+                  <div className="w-16 h-16 rounded-full bg-background-soft flex items-center justify-center mb-4">
+                    <Package className="w-8 h-8 text-text-muted opacity-20" />
+                  </div>
+                  <p className="text-sm font-bold text-text-muted uppercase tracking-widest">
+                    No active orders
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {activeOrders.slice(0, 2).map((o) => (
+                    <Link
+                      key={o._id}
+                      to="/account/orders"
+                      className="flex flex-col gap-4 p-5 bg-background-soft rounded-2xl border border-transparent hover:border-primary/20 hover:bg-primary/5 transition-all group md:flex-row md:items-center md:justify-between"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                          <Package className="w-6 h-6 text-primary" />
+                        </div>
+                        <div>
+                          <div className="font-bold text-text text-sm">{o.orderNumber}</div>
+                          <div className="text-xs text-text-muted font-medium mt-0.5">
+                            {o.items.length} item(s) ·{" "}
+                            {new Date(o.createdAt).toLocaleDateString("en-NG", {
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="md:text-right">
+                        <div className="font-heading font-bold text-text">
+                          {formatNaira(o.total)}
+                        </div>
+                        <div className="text-[10px] font-bold text-primary uppercase tracking-widest mt-1">
+                          {o.status.replace("_", " ")}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </section>
+          </section>
         </div>
 
-        {/* Bottom: Wish List - Full Width */}
-        <div className="hidden md:block bg-surface rounded-2xl border border-border-soft p-8">
-          <div className="flex items-center justify-between mb-8">
+        {/* Wish List spans the full content width below the account overview. */}
+        <section className="bg-surface rounded-2xl border border-border-soft p-8">
+          <div className="flex flex-col gap-4 mb-8 md:flex-row md:items-center md:justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/5 rounded-lg">
                 <Heart className="w-5 h-5 text-primary" />
@@ -371,14 +353,12 @@ const AccountDashboard = () => {
               <div>
                 <h2 className="font-heading text-xl font-bold text-text">Wish List</h2>
                 <p className="text-xs text-text-muted font-medium mt-0.5">
-                  {wishlistItems.length} item{wishlistItems.length !== 1 ? "s" : ""} saved
+                  {wishlistItems.length} item
+                  {wishlistItems.length !== 1 ? "s" : ""} saved
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
-              {isAdmin && (
-                <AdminLink className="flex items-center gap-2 text-xs font-bold text-primary hover:underline" />
-              )}
               <Link
                 to="/account/wishlist"
                 className="text-xs font-bold text-primary uppercase tracking-widest hover:underline"
@@ -402,7 +382,7 @@ const AccountDashboard = () => {
               </Link>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {wishlistItems.slice(0, 4).map((item) => {
                 const product = typeof item === "object" ? item : null;
                 if (!product) return null;
@@ -453,13 +433,13 @@ const AccountDashboard = () => {
               })}
             </div>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );
 };
 
-const QuickActionLink = ({ to, icon: Icon, label, count, showAdmin }) => (
+const QuickActionLink = ({ to, icon: Icon, label, count }) => (
   <Link
     to={to}
     className="flex items-center justify-between w-full px-5 py-4 bg-background-soft rounded-xl hover:bg-primary/5 transition-colors group"
@@ -475,9 +455,6 @@ const QuickActionLink = ({ to, icon: Icon, label, count, showAdmin }) => (
         <span className="w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center">
           {count}
         </span>
-      )}
-      {showAdmin && (
-        <Shield className="w-3.5 h-3.5 text-text-muted group-hover:text-primary transition-colors" />
       )}
       <ChevronRight className="w-4 h-4 text-text-muted group-hover:text-primary transition-colors" />
     </div>
