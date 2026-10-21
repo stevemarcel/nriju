@@ -379,6 +379,73 @@ const deleteAddress = asyncHandler(async (req, res) => {
   res.json({ success: true, data: user });
 });
 
+// @DESCRIPTION Update an existing shipping address
+// @ROUTE       PUT /api/v1/auth/me/addresses/:addressId
+// @ACCESS      Authenticated
+const updateAddress = asyncHandler(async (req, res) => {
+  const { addressId } = req.params;
+  const { label, name, phone, line1, line2, city, state, isDefault } = req.body;
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  if (!user.addresses) {
+    return res.status(404).json({ success: false, message: "No addresses found" });
+  }
+
+  const address = user.addresses.find((a) => a._id.toString() === addressId);
+  if (!address) {
+    res.status(404);
+    throw new Error("Address not found");
+  }
+
+  if (isDefault) {
+    user.addresses.forEach((a) => (a.isDefault = false));
+  }
+
+  address.label = label || address.label;
+  address.name = name || address.name;
+  address.phone = phone || address.phone;
+  address.line1 = line1 || address.line1;
+  address.line2 = line2 !== undefined ? line2 : address.line2;
+  address.city = city || address.city;
+  address.state = state || address.state;
+  address.isDefault = isDefault || false;
+
+  await user.save();
+  res.json({ success: true, data: user });
+});
+
+// @DESCRIPTION Set the default shipping address
+// @ROUTE       PATCH /api/v1/auth/me/addresses/:addressId/default
+// @ACCESS      Authenticated
+const setAddressDefault = asyncHandler(async (req, res) => {
+  const { addressId } = req.params;
+  const user = await User.findById(req.user._id);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  if (!user.addresses) {
+    return res.status(404).json({ success: false, message: "No addresses found" });
+  }
+
+  const address = user.addresses.find((a) => a._id.toString() === addressId);
+  if (!address) {
+    res.status(404);
+    throw new Error("Address not found");
+  }
+
+  user.addresses.forEach((a) => (a.isDefault = false));
+  address.isDefault = true;
+
+  await user.save();
+  res.json({ success: true, data: user });
+});
+
 export {
   register,
   login,
@@ -394,4 +461,6 @@ export {
   addAddress,
   deleteAvatar,
   deleteAddress,
+  updateAddress,
+  setAddressDefault,
 };

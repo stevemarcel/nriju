@@ -15,6 +15,8 @@ import {
   deleteAvatar,
   getAvatarSource,
   deleteAddress,
+  updateAddress,
+  setAddressDefault,
 } from "../controllers/authController.js";
 import { auth } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rateLimit.js";
@@ -41,6 +43,8 @@ router.get("/me/avatar/source", auth, getAvatarSource);
 router.post("/me/avatar", auth, uploadAvatar, updateMe);
 router.delete("/me/avatar", auth, deleteAvatar);
 router.post("/me/addresses", auth, addAddress);
+router.put("/me/addresses/:addressId", auth, updateAddress);
+router.patch("/me/addresses/:addressId/default", auth, setAddressDefault);
 router.delete("/me/addresses/:addressId", auth, deleteAddress);
 
 export default router;

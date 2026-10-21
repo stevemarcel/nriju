@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useAppSelector, useAppDispatch } from "../../store/store";
+import { useAppDispatch, useAppSelector } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
 import api from "../../services/api";
 import { toast } from "sonner";
@@ -8,25 +8,32 @@ import CropAvatar from "../../components/ui/CropAvatar";
 import formatTimeAgo from "../../utils/formatTimeAgo";
 import { Breadcrumb } from "../../components/shared/Navigation";
 import {
-  User,
-  Mail,
-  Phone,
-  Lock,
-  Save,
-  CheckCircle,
   AlertCircle,
-  Plus,
-  MapPin,
-  Home as HomeIcon,
   Building2,
-  Trash2,
+  CheckCircle,
+  Home,
+  Lock,
+  Mail,
+  MapPin,
+  Pencil,
+  Phone,
+  Plus,
+  Save,
   Star,
+  Trash2,
+  User,
 } from "lucide-react";
+
+const LABELS = {
+  home: { label: "Home", Icon: Home },
+  work: { label: "Work", Icon: Building2 },
+  other: { label: "Other", Icon: MapPin },
+};
 
 const AccountProfilePage = () => {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((s) => s.auth);
-
+  const { user } = useAppSelector((state) => state.auth);
+  const addresses = user?.addresses || [];
   const [form, setForm] = useState({
     name: user?.name || "",
     email: user?.email || "",
@@ -39,69 +46,42 @@ const AccountProfilePage = () => {
   const [avatarDeleting, setAvatarDeleting] = useState(false);
   const [avatarError, setAvatarError] = useState("");
 
-  // Address management
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [addressForm, setAddressForm] = useState({
-    label: "home",
-    name: "",
-    phone: "",
-    line1: "",
-    line2: "",
-    city: "",
-    state: "",
-    isDefault: false,
-  });
-  const [addressSaving, setAddressSaving] = useState(false);
-  const [addressError, setAddressError] = useState("");
-  const [addressSuccess, setAddressSuccess] = useState(false);
+  const handleChange = (event) =>
+    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
 
-  const addresses = user?.addresses || [];
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
-
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const handleSave = async (event) => {
+    event.preventDefault();
     setError("");
     setSaving(true);
-
     try {
-      const res = await api.put("/auth/me", form);
-
-      dispatch(setUser(res.data.data));
-
+      const response = await api.put("/auth/me", form);
+      dispatch(setUser(response.data.data));
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to save changes.");
+    } catch (requestError) {
+      setError(requestError.response?.data?.message || "Failed to save changes.");
     } finally {
       setSaving(false);
     }
   };
 
-  const handleAvatarSourceLoad = async () => {
-    const res = await api.get("/auth/me/avatar/source", { responseType: "blob" });
-    return res.data;
-  };
+  const handleAvatarSourceLoad = async () =>
+    (await api.get("/auth/me/avatar/source", { responseType: "blob" })).data;
 
   const handleAvatarUpload = async (file) => {
     setAvatarUploading(true);
     setAvatarError("");
-
     try {
       const formData = new FormData();
       formData.append("avatar", file, file.name || "avatar.webp");
-
-      const res = await api.post("/auth/me/avatar", formData, {
+      const response = await api.post("/auth/me/avatar", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      dispatch(setUser(res.data.data));
+      dispatch(setUser(response.data.data));
       toast.success("Profile photo updated successfully.");
       return true;
-    } catch (err) {
-      const message = err.response?.data?.message || "Failed to upload profile photo.";
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to upload profile photo.";
       setAvatarError(message);
       toast.error(message);
       return false;
@@ -113,14 +93,13 @@ const AccountProfilePage = () => {
   const handleAvatarDelete = async () => {
     setAvatarDeleting(true);
     setAvatarError("");
-
     try {
-      const res = await api.delete("/auth/me/avatar");
-      dispatch(setUser(res.data.data));
+      const response = await api.delete("/auth/me/avatar");
+      dispatch(setUser(response.data.data));
       toast.success("Profile photo deleted.");
       return true;
-    } catch (err) {
-      const message = err.response?.data?.message || "Failed to delete profile photo.";
+    } catch (requestError) {
+      const message = requestError.response?.data?.message || "Failed to delete profile photo.";
       setAvatarError(message);
       toast.error(message);
       return false;
@@ -129,83 +108,43 @@ const AccountProfilePage = () => {
     }
   };
 
-  const handleAddressChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setAddressForm((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const handleAddAddress = async (e) => {
-    e.preventDefault();
-    setAddressError("");
-    setAddressSaving(true);
-    try {
-      const res = await api.post("/auth/me/addresses", addressForm);
-      dispatch(setUser(res.data.data));
-      setAddressForm({
-        label: "home",
-        name: "",
-        phone: "",
-        line1: "",
-        line2: "",
-        city: "",
-        state: "",
-        isDefault: false,
-      });
-      setShowAddressForm(false);
-      setAddressSuccess(true);
-      setTimeout(() => setAddressSuccess(false), 3000);
-      toast.success("Address added successfully!");
-    } catch (err) {
-      setAddressError(err.response?.data?.message || "Failed to add address.");
-    } finally {
-      setAddressSaving(false);
-    }
-  };
-
   const handleDeleteAddress = async (addressId) => {
-    if (!confirm("Remove this address?")) return;
+    if (!window.confirm("Remove this address?")) return;
     try {
-      const res = await api.delete(`/auth/me/addresses/${addressId}`);
-      dispatch(setUser(res.data.data));
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to remove address.");
+      const response = await api.delete(`/auth/me/addresses/${addressId}`);
+      dispatch(setUser(response.data.data));
+      toast.success("Address removed.");
+    } catch (requestError) {
+      toast.error(requestError.response?.data?.message || "Failed to remove address.");
     }
   };
 
   return (
     <div className="min-h-screen bg-background-soft">
-      {/* Top bar */}
-      <div className="bg-surface border-b border-border-soft">
+      <div className="border-b border-border-soft bg-surface">
         <div className="container mx-auto px-4 py-4">
           <Breadcrumb crumbs={[{ label: "Account", to: "/account" }, { label: "Profile" }]} />
         </div>
       </div>
-
-      <div className="container mx-auto px-4 py-8 max-w-3xl">
-        {/* Page title */}
+      <main className="container mx-auto max-w-3xl px-4 py-8">
         <div className="mb-8">
           <h1 className="font-heading text-2xl font-bold text-text sm:text-3xl">
             Profile & Settings
           </h1>
-          <p className="text-text-muted mt-1 text-sm">
+          <p className="mt-1 text-sm text-text-muted">
             Update your personal details and account settings.
           </p>
         </div>
-
-        {/* Profile card with avatar */}
-        <div className="bg-surface rounded-xl border border-border-soft p-6 mb-6">
+        <section className="mb-6 rounded-xl border border-border-soft bg-surface p-6">
           <div className="flex items-center gap-5">
             {user?.avatar ? (
               <img
                 src={user.avatar}
                 alt={user.name}
-                className="w-16 h-16 rounded-full object-cover shrink-0 ring-2 ring-primary/20"
+                className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-primary/20"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/10">
                 <span className="font-heading text-2xl font-bold text-primary">
                   {user?.name?.charAt(0)?.toUpperCase() || "U"}
                 </span>
@@ -214,27 +153,14 @@ const AccountProfilePage = () => {
             <div>
               <h2 className="font-heading text-lg font-bold text-text">{user?.name}</h2>
               <p className="text-sm text-text-muted">{user?.email}</p>
-              <span
-                className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${
-                  user?.role === "superAdmin"
-                    ? "bg-purple-100 text-purple-700"
-                    : user?.role === "admin"
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-background text-text-muted"
-                }`}
-              >
-                {user?.role?.replace("superAdmin", "Super Admin").replace("admin", "Admin") ||
-                  "Customer"}
-              </span>
             </div>
           </div>
-        </div>
-
-        {/* Avatar Upload Section */}
-        <div className="bg-surface rounded-xl border border-border-soft p-6 mb-6">
-          <h3 className="font-heading font-semibold text-text mb-5 flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" /> Profile Photo
-          </h3>
+        </section>
+        <section className="mb-6 rounded-xl border border-border-soft bg-surface p-6">
+          <h2 className="mb-5 flex items-center gap-2 font-heading font-semibold text-text">
+            <User className="h-5 w-5 text-primary" aria-hidden="true" />
+            Profile photo
+          </h2>
           <CropAvatar
             initialSrc={user?.avatar || ""}
             name={user?.name || ""}
@@ -246,325 +172,201 @@ const AccountProfilePage = () => {
             error={avatarError}
             onClearError={() => setAvatarError("")}
           />
-        </div>
-
-        {/* Form */}
-        <div className="bg-surface rounded-xl border border-border-soft p-6">
+        </section>
+        <section className="rounded-xl border border-border-soft bg-surface p-6">
           <form onSubmit={handleSave} className="space-y-5">
             {error && (
-              <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                {error}
-              </div>
+              <Notice icon={AlertCircle} className="bg-red-50 text-red-600" message={error} />
             )}
             {saved && (
-              <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-600 rounded-lg text-sm">
-                <CheckCircle className="w-4 h-4 shrink-0" />
-                Changes saved successfully.
-              </div>
+              <Notice
+                icon={CheckCircle}
+                className="bg-emerald-50 text-emerald-600"
+                message="Changes saved successfully."
+              />
             )}
-
-            <div>
-              <label className="block text-sm font-medium text-text mb-2">Full Name</label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                <input
-                  type="text"
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-text mb-2">Email Address</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                <input
-                  type="email"
-                  name="email"
-                  value={form.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full pl-10 pr-4 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-text mb-2">Phone Number</label>
-              <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                <input
-                  type="tel"
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
-                />
-              </div>
-            </div>
-
-            <div className="pt-4 border-t border-border-soft">
-              <h3 className="font-heading font-semibold text-sm mb-3 flex items-center gap-2">
-                <Lock className="w-4 h-4 text-primary" /> Change Password
-              </h3>
+            <ProfileField
+              label="Full Name"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              icon={User}
+              autoComplete="name"
+              required
+            />
+            <ProfileField
+              label="Email Address"
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              icon={Mail}
+              autoComplete="email"
+              required
+            />
+            <ProfileField
+              label="Phone Number"
+              name="phone"
+              type="tel"
+              value={form.phone}
+              onChange={handleChange}
+              icon={Phone}
+              autoComplete="tel"
+            />
+            <div className="border-t border-border-soft pt-4">
+              <h2 className="mb-3 flex items-center gap-2 font-heading text-sm font-semibold text-text">
+                <Lock className="h-4 w-4 text-primary" aria-hidden="true" />
+                Change password
+              </h2>
               <Link
                 to="/account/change-password"
-                className="inline-flex items-center gap-1 text-sm text-primary hover:underline font-medium"
+                className="text-sm font-medium text-primary hover:underline"
               >
-                Update your password →
+                Update your password
               </Link>
             </div>
-
-            <div className="pt-2 sm:flex gap-2 items-center ">
+            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
               <button
                 type="submit"
                 disabled={saving}
-                className="px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-lg flex items-center gap-2 hover:bg-primary/95 disabled:opacity-50 transition-colors"
+                aria-busy={saving}
+                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/95 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <Save className="w-4 h-4" />
+                <Save className="h-4 w-4" aria-hidden="true" />
                 {saving ? "Saving..." : "Save Changes"}
               </button>
-              <span className="text-xs flex text-text-muted pt-3 sm:pt-0">
+              <span className="text-xs text-text-muted">
                 {saving ? "Saving..." : `Last saved: ${formatTimeAgo(user?.updatedAt)}`}
               </span>
             </div>
           </form>
-        </div>
-
-        {/* Addresses Section */}
-        <div className="mt-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-heading text-lg font-bold text-text">Shipping Addresses</h2>
-            <button
-              onClick={() => setShowAddressForm(!showAddressForm)}
-              className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/95 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Add Address
-            </button>
-          </div>
-
-          {showAddressForm && (
-            <div className="bg-surface rounded-xl border border-border-soft p-6 mb-4">
-              <h3 className="font-heading font-semibold text-text mb-4">New Address</h3>
-              <form onSubmit={handleAddAddress} className="space-y-4">
-                {addressError && (
-                  <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 rounded-lg text-sm">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    {addressError}
-                  </div>
-                )}
-                {addressSuccess && (
-                  <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-600 rounded-lg text-sm">
-                    <CheckCircle className="w-4 h-4 shrink-0" />
-                    Address added successfully.
-                  </div>
-                )}
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-text mb-1.5">Label</label>
-                    <select
-                      name="label"
-                      value={addressForm.label}
-                      onChange={handleAddressChange}
-                      className="w-full px-3 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary text-sm"
-                    >
-                      <option value="home">Home</option>
-                      <option value="work">Work</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-text mb-1.5">
-                      Full Name (recipient)
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={addressForm.name}
-                      onChange={handleAddressChange}
-                      required
-                      placeholder="John Doe"
-                      className="w-full px-3 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-text mb-1.5">Phone</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={addressForm.phone}
-                      onChange={handleAddressChange}
-                      required
-                      placeholder="+234 800 000 0000"
-                      className="w-full px-3 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-text mb-1.5">City</label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={addressForm.city}
-                      onChange={handleAddressChange}
-                      required
-                      placeholder="Victoria Island"
-                      className="w-full px-3 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary text-sm"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-text mb-1.5">
-                    Street Address
-                  </label>
-                  <input
-                    type="text"
-                    name="line1"
-                    value={addressForm.line1}
-                    onChange={handleAddressChange}
-                    required
-                    placeholder="123 Main Street, Balogun"
-                    className="w-full px-3 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary text-sm"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-text mb-1.5">
-                    Apt / Suite / Floor (optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="line2"
-                    value={addressForm.line2}
-                    onChange={handleAddressChange}
-                    placeholder="Apt 4B"
-                    className="w-full px-3 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary text-sm"
-                  />
-                </div>
-
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-text mb-1.5">State</label>
-                    <input
-                      type="text"
-                      name="state"
-                      value={addressForm.state}
-                      onChange={handleAddressChange}
-                      required
-                      placeholder="Lagos"
-                      className="w-full px-3 py-2.5 bg-background border border-border-soft rounded-lg focus:outline-none focus:border-primary text-sm"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2 pt-7">
-                    <input
-                      type="checkbox"
-                      name="isDefault"
-                      id="isDefault"
-                      checked={addressForm.isDefault}
-                      onChange={handleAddressChange}
-                      className="w-4 h-4 rounded border-border-soft text-primary focus:ring-primary"
-                    />
-                    <label htmlFor="isDefault" className="text-sm text-text">
-                      Set as default address
-                    </label>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-2">
-                  <button
-                    type="submit"
-                    disabled={addressSaving}
-                    className="px-5 py-2.5 bg-primary text-white text-sm font-medium rounded-lg flex items-center gap-2 hover:bg-primary/95 disabled:opacity-50 transition-colors"
-                  >
-                    <Save className="w-4 h-4" />
-                    {addressSaving ? "Adding..." : "Add Address"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddressForm(false)}
-                    className="px-5 py-2.5 bg-surface border border-border-soft text-text text-sm font-medium rounded-lg hover:bg-background transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
+        </section>
+        <section className="mt-6">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-text">
+                <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
+                Shipping Addresses
+              </h2>
+              <p className="mt-1 text-sm text-text-muted">Manage your saved delivery details.</p>
             </div>
-          )}
-
-          {/* Address list */}
+            <Link
+              to="/account/addresses"
+              state={{ addAddress: true }}
+              className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/95"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Add Address
+            </Link>
+          </div>
           {addresses.length === 0 ? (
-            <div className="bg-surface rounded-xl border border-dashed border-border-soft p-8 text-center">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-background flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-text-muted opacity-40" />
-              </div>
+            <div className="rounded-xl border border-dashed border-border-soft bg-surface p-8 text-center">
+              <MapPin className="mx-auto mb-3 h-6 w-6 text-text-muted" aria-hidden="true" />
               <p className="text-sm font-medium text-text">No addresses yet</p>
-              <p className="text-xs text-text-muted mt-1">
-                Add your first address to speed up checkout
+              <p className="mt-1 text-xs text-text-muted">
+                Add your first address to speed up checkout.
               </p>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-4">
-              {addresses.map((addr) => (
-                <div
-                  key={addr._id}
-                  className={`bg-surface rounded-xl border p-4 hover:shadow-sm transition-shadow ${
-                    addr.isDefault
-                      ? "border-primary/30 ring-1 ring-primary/20"
-                      : "border-border-soft"
-                  }`}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${
-                          addr.label === "home"
-                            ? "bg-blue-100 text-blue-700"
-                            : addr.label === "work"
-                              ? "bg-violet-100 text-violet-700"
-                              : "bg-background text-text-muted border border-border-soft"
-                        }`}
-                      >
-                        {addr.label}
-                      </span>
-                      {addr.isDefault && (
-                        <span className="text-xs font-medium text-primary flex items-center gap-0.5">
-                          <Star className="w-3 h-3 fill-primary" /> Default
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      onClick={() => handleDeleteAddress(addr._id)}
-                      className="text-text-muted hover:text-red-500 transition-colors"
-                      aria-label="Delete address"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="text-sm text-text font-medium">{addr.name}</div>
-                  <div className="text-xs text-text-muted mt-1">{addr.phone}</div>
-                  <div className="text-xs text-text-muted mt-2">
-                    {addr.line1}
-                    {addr.line2 && <>, {addr.line2}</>}
-                    <br />
-                    {addr.city}, {addr.state}
-                  </div>
-                </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {addresses.map((address) => (
+                <AddressCard key={address._id} address={address} onDelete={handleDeleteAddress} />
               ))}
             </div>
           )}
+        </section>
+      </main>
+    </div>
+  );
+};
+
+const Notice = ({ icon: Icon, className, message }) => (
+  <div className={`flex items-center gap-2 rounded-lg p-3 text-sm ${className}`} role="status">
+    <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+    {message}
+  </div>
+);
+const ProfileField = ({
+  label,
+  name,
+  value,
+  onChange,
+  icon: Icon,
+  type = "text",
+  autoComplete,
+  required = false,
+}) => (
+  <div>
+    <label htmlFor={`profile-${name}`} className="mb-2 block text-sm font-medium text-text">
+      {label}
+    </label>
+    <div className="relative">
+      <Icon
+        className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+        aria-hidden="true"
+      />
+      <input
+        id={`profile-${name}`}
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        required={required}
+        autoComplete={autoComplete}
+        className="min-h-10 w-full rounded-lg border border-border-soft bg-background py-2.5 pl-10 pr-4 text-sm text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+      />
+    </div>
+  </div>
+);
+const AddressCard = ({ address, onDelete }) => {
+  const { Icon, label } = LABELS[address.label] || LABELS.other;
+  return (
+    <article
+      className={`rounded-xl border bg-surface p-4 transition-shadow hover:shadow-sm ${address.isDefault ? "border-primary/30 ring-1 ring-primary/20" : "border-border-soft"}`}
+    >
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-background px-2 py-0.5 text-xs font-medium text-text-muted">
+            <Icon className="h-3 w-3" aria-hidden="true" />
+            {label}
+          </span>
+          {address.isDefault && (
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
+              <Star className="h-3 w-3 fill-current" aria-hidden="true" />
+              Default
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <Link
+            to="/account/addresses"
+            state={{ editAddressId: address._id }}
+            className="rounded-lg p-2 text-text-muted transition-colors hover:bg-background hover:text-primary"
+            aria-label={`Edit ${label} address`}
+          >
+            <Pencil className="h-4 w-4" aria-hidden="true" />
+          </Link>
+          <button
+            type="button"
+            onClick={() => onDelete(address._id)}
+            className="rounded-lg p-2 text-text-muted transition-colors hover:bg-red-50 hover:text-red-600"
+            aria-label={`Delete ${label} address`}
+          >
+            <Trash2 className="h-4 w-4" aria-hidden="true" />
+          </button>
         </div>
       </div>
-    </div>
+      <address className="not-italic">
+        <p className="text-sm font-medium text-text">{address.name}</p>
+        <p className="mt-1 text-xs text-text-muted">{address.phone}</p>
+        <p className="mt-2 text-xs text-text-muted">
+          {address.line1}
+          {address.line2 && `, ${address.line2}`}
+          <br />
+          {address.city}, {address.state}
+        </p>
+      </address>
+    </article>
   );
 };
 
