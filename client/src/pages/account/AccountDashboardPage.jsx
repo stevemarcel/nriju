@@ -62,9 +62,6 @@ const AccountDashboardPage = () => {
       <div className="bg-surface border-b border-border-soft">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
           <Breadcrumb crumbs={[{ label: "Store", to: "/" }, { label: "Account" }]} />
-          {isAdmin && (
-            <AdminLink className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 text-primary text-xs font-bold rounded-lg border border-primary/10 hover:bg-primary/10 transition-colors whitespace-nowrap" />
-          )}
         </div>
       </div>
 
