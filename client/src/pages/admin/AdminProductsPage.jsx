@@ -15,7 +15,7 @@ import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { Plus, Edit, Trash2, Package, RotateCcw, Archive } from "lucide-react";
 import { toast } from "sonner";
 
-const AdminProducts = () => {
+const AdminProductsPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [activeFilter, setActiveFilter] = useState("all"); // all | active | archived
@@ -279,4 +279,4 @@ const AdminProducts = () => {
   );
 };
 
-export default AdminProducts;
+export default AdminProductsPage;

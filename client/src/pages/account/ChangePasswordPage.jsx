@@ -6,7 +6,7 @@ import api from "../../services/api";
 import { Breadcrumb } from "../../components/shared/Navigation";
 import { Lock, Eye, EyeOff, Save, CheckCircle, AlertCircle } from "lucide-react";
 
-const ChangePassword = () => {
+const ChangePasswordPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((s) => s.auth);
@@ -197,4 +197,4 @@ const ChangePassword = () => {
   );
 };
 
-export default ChangePassword;
+export default ChangePasswordPage;

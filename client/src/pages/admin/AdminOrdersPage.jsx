@@ -39,7 +39,7 @@ const STATUS_MAP = {
   refunded: { label: "Refunded", cls: "bg-slate-200 text-slate-600" },
 };
 
-const AdminOrders = () => {
+const AdminOrdersPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -292,4 +292,4 @@ const OrderDetailModal = ({ order, statusMap, statusOptions, onClose, onUpdated 
   );
 };
 
-export default AdminOrders;
+export default AdminOrdersPage;

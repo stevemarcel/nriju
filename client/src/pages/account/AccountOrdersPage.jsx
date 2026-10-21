@@ -18,7 +18,7 @@ const STATUS_MAP = {
   refunded: { label: "Refunded", cls: "bg-slate-100 text-slate-600" },
 };
 
-const AccountOrders = () => {
+const AccountOrdersPage = () => {
   const [filter, setFilter] = useState("all");
   const { data: ordersData, isPending } = useQuery({
     queryKey: ["orders", "mine"],
@@ -178,4 +178,4 @@ const AccountOrders = () => {
   );
 };
 
-export default AccountOrders;
+export default AccountOrdersPage;

@@ -23,7 +23,7 @@ const ORDER_STATUS_MAP = {
   refunded: { label: "Refunded", cls: "bg-slate-200 text-slate-600" },
 };
 
-const AdminDashboard = () => {
+const AdminDashboardPage = () => {
   const { data: stats, isPending } = useQuery({
     queryKey: ["admin", "stats"],
     queryFn: async () => (await api.get("/admin/stats")).data.data,
@@ -137,4 +137,4 @@ const AdminDashboard = () => {
   );
 };
 
-export default AdminDashboard;
+export default AdminDashboardPage;

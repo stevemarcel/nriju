@@ -26,7 +26,7 @@ const AdminLink = ({ className }) => (
   </Link>
 );
 
-const AccountDashboard = () => {
+const AccountDashboardPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((s) => s.auth);
@@ -217,7 +217,7 @@ const AccountDashboard = () => {
                     Shipping Address
                   </h2>
                   <Link
-                    to="/account/profile"
+                    to="/account/addresses"
                     className="group relative p-2 bg-background-soft rounded-lg text-text-muted hover:text-primary transition-colors"
                   >
                     <Edit className="w-4 h-4 transition-opacity" />
@@ -461,4 +461,4 @@ const QuickActionLink = ({ to, icon: Icon, label, count }) => (
   </Link>
 );
 
-export default AccountDashboard;
+export default AccountDashboardPage;

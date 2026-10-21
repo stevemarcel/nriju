@@ -14,7 +14,7 @@ import {
 import { Plus, Edit, Trash2, Save, X, Ticket } from "lucide-react";
 import { toKobo } from "../../utils/formatMoney";
 
-const AdminCoupons = () => {
+const AdminCouponsPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -350,4 +350,4 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
   );
 };
 
-export default AdminCoupons;
+export default AdminCouponsPage;

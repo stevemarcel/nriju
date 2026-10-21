@@ -19,7 +19,7 @@ const ROLE_OPTIONS = [
   { value: "superAdmin", label: "Super Admins" },
 ];
 
-const AdminUsers = () => {
+const AdminUsersPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -194,4 +194,4 @@ const AdminUsers = () => {
   );
 };
 
-export default AdminUsers;
+export default AdminUsersPage;

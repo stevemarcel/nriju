@@ -29,20 +29,22 @@ const TermsPage = lazy(() => import("./pages/public/TermsPage"));
 const CheckoutPage = lazy(() => import("./pages/public/CheckoutPage"));
 const CheckoutSuccessPage = lazy(() => import("./pages/public/CheckoutSuccessPage"));
 
-const AccountDashboard = lazy(() => import("./pages/account/AccountDashboard"));
-const AccountOrders = lazy(() => import("./pages/account/AccountOrders"));
-const AccountProfile = lazy(() => import("./pages/account/AccountProfile"));
-const ChangePassword = lazy(() => import("./pages/account/ChangePassword"));
+// ACCOUNT PAGES
+const AccountDashboardPage = lazy(() => import("./pages/account/AccountDashboardPage"));
+const AccountOrdersPage = lazy(() => import("./pages/account/AccountOrdersPage"));
+const AccountProfilePage = lazy(() => import("./pages/account/AccountProfilePage"));
+const AddressesPage = lazy(() => import("./pages/account/AddressesPage"));
+const ChangePasswordPage = lazy(() => import("./pages/account/ChangePasswordPage"));
 const WishlistPage = lazy(() => import("./pages/account/WishlistPage"));
 
-const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
-const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
-const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
-const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
-const AdminUsers = lazy(() => import("./pages/admin/AdminUsers"));
-const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
-const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
-const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminDashboardPage = lazy(() => import("./pages/admin/AdminDashboardPage"));
+const AdminProductsPage = lazy(() => import("./pages/admin/AdminProductsPage"));
+const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
+const AdminCustomersPage = lazy(() => import("./pages/admin/AdminCustomersPage"));
+const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
+const AdminReviewsPage = lazy(() => import("./pages/admin/AdminReviewsPage"));
+const AdminCouponsPage = lazy(() => import("./pages/admin/AdminCouponsPage"));
+const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 
 const App = () => {
   const dispatch = useAppDispatch();
@@ -108,7 +110,7 @@ const App = () => {
             path="/account"
             element={
               <ProtectedRoute>
-                <AccountDashboard />
+                <AccountDashboardPage />
               </ProtectedRoute>
             }
           />
@@ -124,7 +126,7 @@ const App = () => {
             path="/account/orders"
             element={
               <ProtectedRoute>
-                <AccountOrders />
+                <AccountOrdersPage />
               </ProtectedRoute>
             }
           />
@@ -132,7 +134,15 @@ const App = () => {
             path="/account/profile"
             element={
               <ProtectedRoute>
-                <AccountProfile />
+                <AccountProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/addresses"
+            element={
+              <ProtectedRoute>
+                <AddressesPage />
               </ProtectedRoute>
             }
           />
@@ -140,7 +150,7 @@ const App = () => {
             path="/account/change-password"
             element={
               <ProtectedRoute>
-                <ChangePassword />
+                <ChangePasswordPage />
               </ProtectedRoute>
             }
           />
@@ -162,14 +172,14 @@ const App = () => {
               </AdminRoute>
             }
           >
-            <Route index element={<AdminDashboard />} />
-            <Route path="products" element={<AdminProducts />} />
-            <Route path="orders" element={<AdminOrders />} />
-            <Route path="customers" element={<AdminCustomers />} />
-            <Route path="users" element={<AdminUsers />} />
-            <Route path="reviews" element={<AdminReviews />} />
-            <Route path="coupons" element={<AdminCoupons />} />
-            <Route path="settings" element={<AdminSettings />} />
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="products" element={<AdminProductsPage />} />
+            <Route path="orders" element={<AdminOrdersPage />} />
+            <Route path="customers" element={<AdminCustomersPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+            <Route path="reviews" element={<AdminReviewsPage />} />
+            <Route path="coupons" element={<AdminCouponsPage />} />
+            <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
         </Routes>
       </Suspense>

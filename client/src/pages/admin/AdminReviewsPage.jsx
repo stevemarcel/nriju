@@ -26,7 +26,7 @@ const STATUS_MAP = {
   rejected: { label: "Rejected", cls: "bg-rose-100 text-rose-700" },
 };
 
-const AdminReviews = () => {
+const AdminReviewsPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -149,4 +149,4 @@ const AdminReviews = () => {
   );
 };
 
-export default AdminReviews;
+export default AdminReviewsPage;

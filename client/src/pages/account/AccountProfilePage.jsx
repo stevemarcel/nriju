@@ -23,7 +23,7 @@ import {
   Star,
 } from "lucide-react";
 
-const AccountProfile = () => {
+const AccountProfilePage = () => {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((s) => s.auth);
 
@@ -568,4 +568,4 @@ const AccountProfile = () => {
   );
 };
 
-export default AccountProfile;
+export default AccountProfilePage;

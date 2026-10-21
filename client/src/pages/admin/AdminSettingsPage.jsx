@@ -23,7 +23,7 @@ const SETTINGS_KEYS = [
   { key: "terms_and_conditions", label: "Terms & conditions", type: "textarea" },
 ];
 
-const AdminSettings = () => {
+const AdminSettingsPage = () => {
   const queryClient = useQueryClient();
   const { data: settings, isPending } = useQuery({
     queryKey: ["admin", "settings"],
@@ -148,4 +148,4 @@ const AdminSettings = () => {
   );
 };
 
-export default AdminSettings;
+export default AdminSettingsPage;

@@ -11,7 +11,7 @@ import {
 } from "../../components/admin/AdminPrimitives";
 import { Users, UserCheck, UserX, Mail } from "lucide-react";
 
-const AdminCustomers = () => {
+const AdminCustomersPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -122,4 +122,4 @@ const AdminCustomers = () => {
   );
 };
 
-export default AdminCustomers;
+export default AdminCustomersPage;
