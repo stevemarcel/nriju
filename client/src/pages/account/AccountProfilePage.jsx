@@ -5,6 +5,7 @@ import { setUser } from "../../slices/authSlice";
 import api from "../../services/api";
 import { toast } from "sonner";
 import CropAvatar from "../../components/ui/CropAvatar";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import formatTimeAgo from "../../utils/formatTimeAgo";
 import { Breadcrumb } from "../../components/shared/Navigation";
 import {
@@ -45,6 +46,8 @@ const AccountProfilePage = () => {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarDeleting, setAvatarDeleting] = useState(false);
   const [avatarError, setAvatarError] = useState("");
+  const [addressToDelete, setAddressToDelete] = useState(null);
+  const [deletingAddress, setDeletingAddress] = useState(false);
 
   const handleChange = (event) =>
     setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
@@ -108,14 +111,18 @@ const AccountProfilePage = () => {
     }
   };
 
-  const handleDeleteAddress = async (addressId) => {
-    if (!window.confirm("Remove this address?")) return;
+  const handleDeleteAddress = async () => {
+    if (!addressToDelete) return;
+    setDeletingAddress(true);
     try {
-      const response = await api.delete(`/auth/me/addresses/${addressId}`);
+      const response = await api.delete(`/auth/me/addresses/${addressToDelete._id}`);
       dispatch(setUser(response.data.data));
       toast.success("Address removed.");
     } catch (requestError) {
       toast.error(requestError.response?.data?.message || "Failed to remove address.");
+    } finally {
+      setDeletingAddress(false);
+      setAddressToDelete(null);
     }
   };
 
@@ -270,12 +277,20 @@ const AccountProfilePage = () => {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {addresses.map((address) => (
-                <AddressCard key={address._id} address={address} onDelete={handleDeleteAddress} />
+                <AddressCard key={address._id} address={address} onDelete={setAddressToDelete} />
               ))}
             </div>
           )}
         </section>
       </main>
+      <ConfirmModal
+        open={Boolean(addressToDelete)}
+        title="Remove address?"
+        description="This saved address will be permanently removed from your account."
+        confirmLabel={deletingAddress ? "Removing..." : "Remove address"}
+        onConfirm={handleDeleteAddress}
+        onCancel={() => !deletingAddress && setAddressToDelete(null)}
+      />
     </div>
   );
 };
@@ -348,7 +363,7 @@ const AddressCard = ({ address, onDelete }) => {
           </Link>
           <button
             type="button"
-            onClick={() => onDelete(address._id)}
+            onClick={() => onDelete(address)}
             className="rounded-lg p-2 text-text-muted transition-colors hover:bg-red-50 hover:text-red-600"
             aria-label={`Delete ${label} address`}
           >
