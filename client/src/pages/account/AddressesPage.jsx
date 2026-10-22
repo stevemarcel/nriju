@@ -35,20 +35,9 @@ const LABELS = [
   { value: "other", label: "Other", Icon: MapPin },
 ];
 
-const Field = ({
-  label,
-  name,
-  value,
-  onChange,
-  type = "text",
-  required = true,
-  autoComplete,
-}) => (
+const Field = ({ label, name, value, onChange, type = "text", required = true, autoComplete }) => (
   <div>
-    <label
-      htmlFor={`address-${name}`}
-      className="mb-1.5 block text-sm font-medium text-text"
-    >
+    <label htmlFor={`address-${name}`} className="mb-1.5 block text-sm font-medium text-text">
       {label}
     </label>
     <input
@@ -148,9 +137,7 @@ const AddressesPage = () => {
       toast.success(editingId ? "Address updated." : "Address added.");
       closeForm();
     } catch (requestError) {
-      setError(
-        requestError.response?.data?.message || "Unable to save this address.",
-      );
+      setError(requestError.response?.data?.message || "Unable to save this address.");
     } finally {
       setSaving(false);
     }
@@ -159,16 +146,11 @@ const AddressesPage = () => {
   const handleSetDefault = async (addressId) => {
     setSettingDefaultId(addressId);
     try {
-      const response = await api.patch(
-        `/auth/me/addresses/${addressId}/default`,
-      );
+      const response = await api.patch(`/auth/me/addresses/${addressId}/default`);
       dispatch(setUser(response.data.data));
       toast.success("Default address updated.");
     } catch (requestError) {
-      toast.error(
-        requestError.response?.data?.message ||
-          "Unable to set the default address.",
-      );
+      toast.error(requestError.response?.data?.message || "Unable to set the default address.");
     } finally {
       setSettingDefaultId(null);
     }
@@ -183,10 +165,7 @@ const AddressesPage = () => {
       dispatch(setUser(response.data.data));
       toast.success("Address removed.");
     } catch (requestError) {
-      toast.error(
-        requestError.response?.data?.message ||
-          "Unable to remove this address.",
-      );
+      toast.error(requestError.response?.data?.message || "Unable to remove this address.");
     } finally {
       setDeletingId(null);
       setAddressToDelete(null);
@@ -197,12 +176,7 @@ const AddressesPage = () => {
     <div className="min-h-screen bg-background-soft">
       <div className="border-b border-border-soft bg-surface">
         <div className="container mx-auto px-4 py-4">
-          <Breadcrumb
-            crumbs={[
-              { label: "Account", to: "/account" },
-              { label: "Addresses" },
-            ]}
-          />
+          <Breadcrumb crumbs={[{ label: "Account", to: "/account" }, { label: "Addresses" }]} />
         </div>
       </div>
       <main className="container mx-auto max-w-4xl px-4 py-8">
@@ -231,10 +205,7 @@ const AddressesPage = () => {
             aria-labelledby="address-form-title"
           >
             <div className="mb-5">
-              <h2
-                id="address-form-title"
-                className="font-heading text-lg font-bold text-text"
-              >
+              <h2 id="address-form-title" className="font-heading text-lg font-bold text-text">
                 {editingId ? "Edit address" : "New address"}
               </h2>
               <p className="mt-1 text-sm text-text-muted">
@@ -247,17 +218,12 @@ const AddressesPage = () => {
                   className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
                   role="alert"
                 >
-                  <AlertCircle
-                    className="mt-0.5 h-4 w-4 shrink-0"
-                    aria-hidden="true"
-                  />
+                  <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
                   {error}
                 </div>
               )}
               <fieldset>
-                <legend className="mb-2 text-sm font-medium text-text">
-                  Address label
-                </legend>
+                <legend className="mb-2 text-sm font-medium text-text">Address label</legend>
                 <div className="flex flex-wrap gap-2">
                   {LABELS.map(({ value, label, Icon }) => {
                     const selected = form.label === value;
@@ -265,9 +231,7 @@ const AddressesPage = () => {
                       <button
                         key={value}
                         type="button"
-                        onClick={() =>
-                          setForm((current) => ({ ...current, label: value }))
-                        }
+                        onClick={() => setForm((current) => ({ ...current, label: value }))}
                         aria-pressed={selected}
                         className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${selected ? "border-primary bg-primary/10 text-primary" : "border-border-soft bg-background text-text-muted hover:border-primary hover:text-text"}`}
                       >
@@ -352,11 +316,7 @@ const AddressesPage = () => {
                   className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/95 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   <Save className="h-4 w-4" aria-hidden="true" />
-                  {saving
-                    ? "Saving..."
-                    : editingId
-                      ? "Save changes"
-                      : "Save address"}
+                  {saving ? "Saving..." : editingId ? "Save changes" : "Save address"}
                 </button>
               </div>
             </form>
@@ -368,29 +328,15 @@ const AddressesPage = () => {
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-background">
               <MapPin className="h-7 w-7 text-text-muted" aria-hidden="true" />
             </div>
-            <h2 className="font-heading text-lg font-semibold text-text">
-              No saved addresses
-            </h2>
+            <h2 className="font-heading text-lg font-semibold text-text">No saved addresses</h2>
             <p className="mx-auto mt-1 max-w-sm text-sm text-text-muted">
               Add a shipping address now to make your next checkout quicker.
             </p>
-            <button
-              type="button"
-              onClick={openNewAddressForm}
-              className="mt-5 text-sm font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-            >
-              Add your first address
-            </button>
           </section>
         ) : (
-          <section
-            aria-label="Saved addresses"
-            className="grid gap-4 sm:grid-cols-2"
-          >
+          <section aria-label="Saved addresses" className="grid gap-4 sm:grid-cols-2">
             {addresses.map((address) => {
-              const LabelIcon =
-                LABELS.find((item) => item.value === address.label)?.Icon ||
-                MapPin;
+              const LabelIcon = LABELS.find((item) => item.value === address.label)?.Icon || MapPin;
               const isSettingDefault = settingDefaultId === address._id;
               const isDeleting = deletingId === address._id;
               return (
@@ -406,10 +352,7 @@ const AddressesPage = () => {
                       </span>
                       {address.isDefault && (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-primary">
-                          <Star
-                            className="h-3.5 w-3.5 fill-current"
-                            aria-hidden="true"
-                          />
+                          <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
                           Default
                         </span>
                       )}
@@ -436,9 +379,7 @@ const AddressesPage = () => {
                   </div>
                   <address className="not-italic">
                     <p className="font-medium text-text">{address.name}</p>
-                    <p className="mt-1 text-sm text-text-muted">
-                      {address.phone}
-                    </p>
+                    <p className="mt-1 text-sm text-text-muted">{address.phone}</p>
                     <p className="mt-3 text-sm leading-6 text-text-muted">
                       {address.line1}
                       {address.line2 && (
