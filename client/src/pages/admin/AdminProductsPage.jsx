@@ -6,19 +6,19 @@ import {
   TableSkeleton,
   EmptyState,
   Pagination,
-  FilterBar,
   formatNaira,
   formatDate,
 } from "../../components/admin/AdminPrimitives";
 import ProductFormModal from "../../components/ui/ProductFormModal";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
-import { Plus, Edit, Trash2, Package, RotateCcw, Archive } from "lucide-react";
+import { Plus, Edit, Trash2, Package, RotateCcw, Archive, Search } from "lucide-react";
 import { toast } from "sonner";
 
 const AdminProductsPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState("all"); // all | active | archived
+  const [statusFilter, setStatusFilter] = useState("all"); // all | active | archived | lowStock | outOfStock
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState(null); // null | "create" | {edit: product}
   const [confirmTarget, setConfirmTarget] = useState(null); // { product, action: 'delete' }
@@ -29,14 +29,35 @@ const AdminProductsPage = () => {
   });
 
   const { data, isPending } = useQuery({
-    queryKey: ["admin", "products", page, search, activeFilter],
+    queryKey: ["admin", "products", page, search, statusFilter, categoryFilter],
     queryFn: async () => {
       const params = new URLSearchParams({ page, limit: 20, search });
-      if (activeFilter !== "all") params.set("isActive", String(activeFilter === "active"));
+      if (statusFilter === "archived") params.set("isActive", "false");
+      else if (statusFilter === "active") params.set("isActive", "true");
+      else if (statusFilter === "lowStock") params.set("stockFilter", "lowStock");
+      else if (statusFilter === "outOfStock") params.set("stockFilter", "outOfStock");
+      if (categoryFilter !== "all") params.set("category", categoryFilter);
       const res = await api.get(`/products/all?${params.toString()}`);
       return res.data;
     },
   });
+
+  const { data: statsData } = useQuery({
+    queryKey: ["admin", "products", "stats", statusFilter, categoryFilter, search],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (statusFilter === "archived") params.set("isActive", "false");
+      else if (statusFilter === "active") params.set("isActive", "true");
+      else if (statusFilter === "lowStock") params.set("stockFilter", "lowStock");
+      else if (statusFilter === "outOfStock") params.set("stockFilter", "outOfStock");
+      if (categoryFilter !== "all") params.set("category", categoryFilter);
+      if (search) params.set("search", search);
+      const res = await api.get(`/products/stats?${params.toString()}`);
+      return res.data;
+    },
+  });
+
+  const stats = statsData?.data ?? { total: 0, active: 0, lowStock: 0, outOfStock: 0 };
 
   const products = data?.data ?? [];
   const meta = data?.meta ?? { total: 0, limit: 20 };
@@ -66,8 +87,7 @@ const AdminProductsPage = () => {
   };
 
   const handleSoftDelete = (p) => {
-    if (!window.confirm(`Archive "${p.name}"? This removes it from the store.`)) return;
-    softDeleteMutation.mutate(p._id);
+    setConfirmTarget({ product: p, action: "archive" });
   };
 
   const handlePermanentDelete = (p) => {
@@ -90,28 +110,68 @@ const AdminProductsPage = () => {
           </button>
         }
       />
-      <FilterBar
-        search={search}
-        onSearch={(v) => {
-          setSearch(v);
-          setPage(1);
-        }}
-        selects={[
-          {
-            label: "filter",
-            value: activeFilter,
-            onChange: (v) => {
-              setActiveFilter(v);
+      {/* Filter bar */}
+      <div className="bg-surface rounded-xl border border-border p-4 mb-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <div className="relative flex-1 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
               setPage(1);
-            },
-            options: [
-              { value: "all", label: "All" },
-              { value: "active", label: "Active" },
-              { value: "archived", label: "Archived" },
-            ],
-          },
-        ]}
-      />
+            }}
+            placeholder="Search products..."
+            className="w-full pl-9 pr-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
+          />
+        </div>
+        <div className="flex items-center gap-3 flex-wrap">
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+            className="bg-primary text-white border-0 rounded-lg px-3 py-2 text-sm focus:outline-none cursor-pointer"
+          >
+            <option value="all">All Products</option>
+            <option value="active">Active</option>
+            <option value="archived">Archived</option>
+            <option value="lowStock">Low in stock</option>
+            <option value="outOfStock">Out of stock</option>
+          </select>
+          <select
+            value={categoryFilter}
+            onChange={(e) => {
+              setCategoryFilter(e.target.value);
+              setPage(1);
+            }}
+            className="bg-primary text-white border-0 rounded-lg px-3 py-2 text-sm focus:outline-none cursor-pointer"
+          >
+            <option value="all">All Categories</option>
+            {categories.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        {[
+          { label: "TOTAL", value: stats.total, color: "text-text" },
+          { label: "ACTIVE", value: stats.active, color: "text-emerald-700" },
+          { label: "LOW STOCK", value: stats.lowStock, color: "text-amber-600" },
+          { label: "OUT OF STOCK", value: stats.outOfStock, color: "text-rose-600" },
+        ].map((s) => (
+          <div key={s.label} className="bg-surface rounded-xl border border-border p-4">
+            <div className="text-xs text-text-muted uppercase tracking-wide">{s.label}</div>
+            <div className={`text-2xl font-heading font-bold mt-1 ${s.color}`}>{s.value}</div>
+          </div>
+        ))}
+      </div>
       <div className="bg-surface rounded-xl border border-border overflow-hidden">
         <div className="overflow-x-auto">
           {isPending ? (
@@ -256,15 +316,23 @@ const AdminProductsPage = () => {
         />
       )}
 
-      {/* Permanent Delete Confirmation */}
+      {/* Archive / Permanent Delete Confirmation */}
       <ConfirmModal
         open={confirmTarget !== null}
-        title="Permanently delete product?"
-        description={`This will permanently remove "${confirmTarget?.product?.name}" and its images. This action cannot be undone.`}
-        confirmLabel="Delete forever"
-        confirmVariant="destructive"
+        title={
+          confirmTarget?.action === "archive" ? "Archive product?" : "Permanently delete product?"
+        }
+        description={
+          confirmTarget?.action === "archive"
+            ? `Archive "${confirmTarget?.product?.name}"? It will be removed from the store.`
+            : `This will permanently remove "${confirmTarget?.product?.name}" and its images. This action cannot be undone.`
+        }
+        confirmLabel={confirmTarget?.action === "archive" ? "Archive" : "Delete forever"}
+        confirmVariant={confirmTarget?.action === "archive" ? "primary" : "destructive"}
         onConfirm={() => {
-          if (confirmTarget?.action === "delete") {
+          if (confirmTarget?.action === "archive") {
+            softDeleteMutation.mutate(confirmTarget.product._id);
+          } else if (confirmTarget?.action === "delete") {
             permanentDeleteMutation.mutate(confirmTarget.product._id);
           }
           setConfirmTarget(null);

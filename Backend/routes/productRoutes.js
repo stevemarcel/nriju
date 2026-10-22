@@ -8,6 +8,7 @@ import {
   deleteProduct,
   getAllProducts,
   uploadProductImagesController,
+  getProductStats,
 } from "../controllers/productController.js";
 import { auth, admin } from "../middleware/auth.js";
 import { uploadProductImages, uploadProductImageFiles } from "../middleware/upload.js";
@@ -20,6 +21,7 @@ router.get("/featured", getFeatured);
 router.use(auth);
 router.use(admin);
 router.get("/all", getAllProducts);
+router.get("/stats", getProductStats);
 router.get("/:slug", getProductBySlug);
 router.post("/", createProduct);
 router.put("/:id", updateProduct);

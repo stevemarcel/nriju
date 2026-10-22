@@ -6,14 +6,14 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run",
-        "dev"
+        "client"
       ],
       "port": 5173,
       "autoPort": true
     },
     {
       "name": "Nriju Attach",
-      "url": "http://localhost:5173"
+      "url": "http://localhost:5174"
     }
   ]
 }

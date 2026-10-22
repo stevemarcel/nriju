@@ -186,11 +186,23 @@ const updateProduct = asyncHandler(async (req, res) => {
 // @ROUTE       GET /api/v1/products/all
 // @ACCESS      Admin
 const getAllProducts = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 20, search, isActive } = req.query;
+  const { page = 1, limit = 20, search, isActive, category, stockFilter } = req.query;
 
   const query = {};
-  if (isActive !== undefined) query.isActive = isActive === "true";
+  if (isActive !== undefined) {
+    query.isActive = isActive === "true";
+  } else if (stockFilter) {
+    if (stockFilter === "outOfStock") {
+      query.stock = 0;
+    } else if (stockFilter === "lowStock") {
+      query.stock = { $gt: 0, $lte: 5 };
+    } else if (stockFilter === "archived") {
+      query.isActive = false;
+    }
+    // "all" and "active" — no additional filter beyond default (isActive true)
+  }
   if (search) query.$or = [{ name: new RegExp(search, "i") }, { tags: new RegExp(search, "i") }];
+  if (category) query.category = category;
 
   const skip = (Number(page) - 1) * Number(limit);
   const [products, total] = await Promise.all([
@@ -248,6 +260,32 @@ const deleteProduct = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Product archived" });
 });
 
+const getProductStats = asyncHandler(async (req, res) => {
+  const { isActive, category, stockFilter, search } = req.query;
+
+  const query = {};
+  if (isActive !== undefined) {
+    query.isActive = isActive === "true";
+  } else if (stockFilter === "outOfStock") {
+    query.stock = 0;
+  } else if (stockFilter === "lowStock") {
+    query.stock = { $gt: 0, $lte: 5 };
+  } else if (stockFilter === "archived") {
+    query.isActive = false;
+  }
+  if (category) query.category = category;
+  if (search) query.$or = [{ name: new RegExp(search, "i") }, { tags: new RegExp(search, "i") }];
+
+  const [total, active, lowStock, outOfStock] = await Promise.all([
+    Product.countDocuments(query),
+    Product.countDocuments({ ...query, isActive: true }),
+    // Low stock and out of stock count ALL products (active + archived)
+    Product.countDocuments({ ...query, stock: { $gt: 0, $lte: 5 } }),
+    Product.countDocuments({ ...query, stock: 0 }),
+  ]);
+  res.json({ success: true, data: { total, active, lowStock, outOfStock } });
+});
+
 export {
   getProducts,
   getFeatured,
@@ -257,4 +295,5 @@ export {
   deleteProduct,
   getAllProducts,
   uploadProductImagesController,
+  getProductStats,
 };
