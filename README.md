@@ -709,6 +709,12 @@ Review and adjust middleware ordering in each router before shipping the app to 
 - Enable `express-rate-limit` on sensitive auth endpoints.
 - Audit role changes via the activity‑log middleware.
 
----
+## Contributors
+
+- [Stephen Onyejuluwa](https://github.com/stevemarcel)
+
+## License
+
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
 Enjoy deploying Nriju!
