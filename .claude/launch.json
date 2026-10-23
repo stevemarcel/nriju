@@ -2,18 +2,24 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "Nriju Frontend",
+      "name": "Nriju Backend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "server"
+      ],
+      "port": 5000,
+      "autoPort": false
+    },
+    {
+      "name": "Nriju Preview",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
         "run",
         "client"
       ],
       "port": 5173,
-      "autoPort": true
-    },
-    {
-      "name": "Nriju Attach",
-      "url": "http://localhost:5174"
+      "autoPort": false
     }
   ]
 }
