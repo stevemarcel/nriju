@@ -68,7 +68,7 @@ const LoginPage = () => {
 
         <button
           onClick={handleGoogleLogin}
-          className="w-full py-2.5 border border-border rounded-lg flex items-center justify-center gap-2.5 hover:bg-background transition-colors text-sm font-medium mb-6"
+          className="w-full py-2.5 bg-[#f5f5f5] border border-border rounded-lg flex items-center justify-center gap-2.5 hover:bg-[#ebebeb] transition-colors text-sm font-medium mb-6"
         >
           <svg className="w-4 h-4" viewBox="0 0 24 24">
             <path
@@ -93,6 +93,14 @@ const LoginPage = () => {
             />
           </svg>
           Continue with Google
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate("/")}
+          className="w-full py-2.5 bg-transparent border border-primary text-primary hover:bg-primary/5 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm font-medium mb-6"
+        >
+          Browse as guest
         </button>
 
         <div className="relative mb-6">

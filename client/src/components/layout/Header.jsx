@@ -227,7 +227,7 @@ const Header = () => {
                 <Link
                   to="/login"
                   state={{ from: { pathname: "/" } }}
-                  className="px-3 py-1.5 text-sm font-medium text-text hover:text-primary transition-colors"
+                  className="px-3 py-1.5 text-sm font-medium text-text rounded-full hover:bg-background transition-colors"
                 >
                   Login
                 </Link>
@@ -237,9 +237,9 @@ const Header = () => {
               <div className="relative group">
                 <button
                   type="button"
-                  className="hidden sm:flex items-center gap-1 px-2 py-1.5 rounded-full hover:bg-background text-text-secondary text-sm font-medium"
+                  className="hidden sm:flex items-center gap-1 px-2 py-1.5 rounded-full hover:bg-background text-sm font-medium text-text"
                 >
-                  <HelpCircle className="w-4 h-4 text-text-secondary" />
+                  <HelpCircle className="w-4 h-4" />
                   Help
                   <ChevronDown className="w-3 h-3" />
                 </button>
@@ -296,14 +296,14 @@ const Header = () => {
                 aria-label="Open cart"
               >
                 <span className="relative">
-                  <ShoppingBag className="w-5 h-5 text-text" />
+                  <ShoppingBag className="w-4 h-4 text-text" />
                   {cartCount > 0 && (
                     <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-on-accent text-xs rounded-full flex items-center justify-center">
                       {cartCount}
                     </span>
                   )}
                 </span>
-                <span className="text-sm text-text">Cart</span>
+                <span className="text-sm font-medium text-text">Cart</span>
               </button>
               <button
                 onClick={() => dispatch(toggleCartDrawer())}
