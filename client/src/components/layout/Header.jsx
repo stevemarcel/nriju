@@ -7,12 +7,14 @@ import { clearAuth } from "../../slices/authSlice";
 import api from "../../services/api";
 import {
   ShoppingBag,
+  ShoppingCart,
   User,
   Shield,
   Package,
   LogOut,
   Search as SearchIcon,
   ChevronDown,
+  Heart,
   HelpCircle,
   BookOpen,
   MessageCircle,
@@ -53,6 +55,8 @@ const Header = () => {
   });
 
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
+  const { items: wishlistItems } = useAppSelector((s) => s.wishlist);
+  const wishlistCount = wishlistItems.length;
   const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
 
   const handleSearchSubmit = (e) => {
@@ -134,10 +138,10 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-surface border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-3 lg:grid lg:h-17 lg:grid-cols-[10rem_minmax(18rem,39rem)_auto] lg:gap-5">
+        <div className="flex h-16 items-center justify-between gap-3 lg:grid lg:h-17 lg:grid-cols-[10rem_minmax(18rem,39rem)_auto]">
           {/* Logo */}
-          <div className="flex shrink-0 items-center">
-            <Link to="/" className="flex items-center shrink-0">
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center">
               <img
                 src="/assets/logos/nriju-logo-full-colour.png"
                 alt="Nriju"
@@ -148,7 +152,7 @@ const Header = () => {
 
           {/* Search */}
           <form onSubmit={handleSearchSubmit} className="hidden min-w-0 items-center lg:flex">
-            <div className="flex w-full rounded-full overflow-hidden border border-border bg-background p-1">
+            <div className="flex h-10 w-full rounded-full overflow-hidden border border-border bg-background p-0.5 mr-3">
               <div className="flex items-center px-3 text-text-muted">
                 <SearchIcon className="w-4 h-4" />
               </div>
@@ -156,12 +160,12 @@ const Header = () => {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search products, brands and categories"
-                className="flex-1 py-2.5 px-2 text-sm bg-transparent text-text outline-none placeholder:text-text-muted"
+                placeholder="Search products ..."
+                className="flex-1 py-2.5 text-sm bg-transparent text-text outline-none placeholder:text-text-muted"
               />
               <button
                 type="submit"
-                className="bg-primary text-on-accent text-sm font-semibold px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity shrink-0"
+                className="bg-primary flex items-center text-on-accent text-sm font-semibold px-5 py-2.5 rounded-full hover:opacity-90 transition-opacity shrink-0"
               >
                 Search
               </button>
@@ -170,7 +174,7 @@ const Header = () => {
 
           {/* Actions */}
           <div className="flex shrink-0 justify-end">
-            <div className="flex shrink-0 items-center gap-3">
+            <div className="flex shrink-0 items-center gap-0.5">
               {/* Account dropdown */}
               {loading ? (
                 <div className="w-8 h-8 rounded-full bg-surface animate-pulse" />
@@ -178,7 +182,7 @@ const Header = () => {
                 <div className="relative group">
                   <button
                     type="button"
-                    className="flex items-center gap-2 p-1 rounded-full hover:bg-background"
+                    className="flex items-center gap-1 p-2 rounded-full hover:bg-background"
                   >
                     {user?.avatar ? (
                       <img
@@ -191,7 +195,9 @@ const Header = () => {
                         {user?.name?.charAt(0).toUpperCase() || "U"}
                       </div>
                     )}
-                    <span className="hidden md:block text-sm text-text">{user.name}</span>
+                    <span className="hidden md:block text-sm text-text font-medium truncate min-w-32">
+                      {user.name}
+                    </span>
                   </button>
 
                   <div className="absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-soft border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
@@ -237,11 +243,10 @@ const Header = () => {
               <div className="relative group">
                 <button
                   type="button"
-                  className="hidden sm:flex items-center gap-1 px-2 py-1.5 rounded-full hover:bg-background text-sm font-medium text-text"
+                  className="flex items-center gap-1 px-2 py-1.5 rounded-full hover:bg-background text-sm font-medium text-text"
                 >
                   <HelpCircle className="w-4 h-4" />
-                  Help
-                  <ChevronDown className="w-3 h-3" />
+                  <div className="hidden sm:block">Help</div>
                 </button>
                 <div className="absolute right-0 mt-2 w-52 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
                   <Link
@@ -289,6 +294,15 @@ const Header = () => {
                 </div>
               </div>
 
+              {/* Shop — large screens only; mobile covers it via the tab bar */}
+              <Link
+                to="/shop"
+                className="hidden md:flex items-center gap-1.5 px-2 py-1.5 rounded-full hover:bg-background transition-colors text-sm font-medium text-text"
+              >
+                <ShoppingBag className="w-4 h-4 text-text" />
+                Shop
+              </Link>
+
               {/* Cart */}
               <button
                 onClick={() => dispatch(toggleCartDrawer())}
@@ -296,26 +310,50 @@ const Header = () => {
                 aria-label="Open cart"
               >
                 <span className="relative">
-                  <ShoppingBag className="w-4 h-4 text-text" />
+                  <ShoppingCart className="w-4 h-4 text-text" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-on-accent text-xs rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary text-on-accent text-[0.5rem] font-medium rounded-full flex items-center justify-center">
                       {cartCount}
                     </span>
                   )}
                 </span>
                 <span className="text-sm font-medium text-text">Cart</span>
               </button>
+
+              {/* Cart — mobile only */}
               <button
                 onClick={() => dispatch(toggleCartDrawer())}
                 className="md:hidden relative p-2 rounded-full hover:bg-background transition-colors"
                 aria-label="Open cart"
               >
-                <ShoppingBag className="w-5 h-5 text-text" />
+                <ShoppingCart className="w-4 h-4 text-text" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-on-accent text-xs rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-on-accent text-xs rounded-full flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
+              </button>
+
+              {/* Wishlist */}
+              <button
+                onClick={() =>
+                  navigate(
+                    user ? "/account/wishlist" : "/login",
+                    user ? null : { state: { from: { pathname: "/account/wishlist" } } },
+                  )
+                }
+                className="hidden md:flex items-center gap-1.5 px-2 py-1.5 rounded-full hover:bg-background transition-colors"
+                aria-label="Wishlist"
+              >
+                <span className="relative">
+                  <Heart className="w-4 h-4 text-text" />
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-primary text-on-accent text-[0.5rem] font-medium rounded-full flex items-center justify-center">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </span>
+                <span className="text-sm font-medium text-text">Wishlist</span>
               </button>
             </div>
           </div>
