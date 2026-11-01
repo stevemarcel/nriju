@@ -60,7 +60,7 @@ const ProductCard = ({ product }) => {
       className="group block h-full rounded-card bg-surface border border-border shadow-soft p-3 transition-shadow hover:shadow-md"
     >
       {/* Image */}
-      <div className="relative aspect-square rounded-[12px] overflow-hidden bg-background">
+      <div className="relative aspect-square rounded-xl overflow-hidden bg-background">
         {imageCount > 0 ? (
           <img
             src={product.images[0]}

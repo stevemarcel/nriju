@@ -63,7 +63,7 @@ const Header = () => {
   return (
     <header className="sticky top-0 z-50 bg-surface border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-3 lg:grid lg:h-[68px] lg:grid-cols-[10rem_minmax(18rem,39rem)_auto] lg:gap-5">
+        <div className="flex h-16 items-center justify-between gap-3 lg:grid lg:h-17 lg:grid-cols-[10rem_minmax(18rem,39rem)_auto] lg:gap-5">
           {/* Logo */}
           <div className="flex shrink-0 items-center">
             <Link to="/" className="flex items-center shrink-0">
