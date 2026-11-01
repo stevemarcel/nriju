@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
-import ProductCard from "../../components/sections/ProductCard";
+import ProductCard from "../../components/ui/ProductCard";
 import { ArrowRight, Truck, Clock, ShieldCheck, Wheat, Soup, Beef } from "lucide-react";
 
 const HERO_IMAGE = "/assets/hero/hero-home.webp";
