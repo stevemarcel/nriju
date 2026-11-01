@@ -1,22 +1,31 @@
 @import "tailwindcss";
 
 @theme {
-  /* Nriju brand tokens — NR-04 */
-  --color-primary: #9a2b21; /* Pepper Stew */
-  --color-secondary: #fcbb31; /* Plantain */
-  --color-background: #fff6e9; /* Coconut */
-  --color-background-soft: #fefaf3; /* Light Coconut — closer to white, for account/admin pages */
-  --color-surface: #ffffff;
-  --color-text: #7b231b; /* Smoked Pepper */
-  --color-text-muted: #af554d; /* Tomato Foam */
-  --color-border: #7b231b20;
-  --color-border-soft: #f0e6d8;
+  /* Nriju brand tokens — NR-05 design system */
+  --color-primary: #9a2b21; /* Pepper Red — primary, CTAs, active */
+  --color-secondary: #fcbb31; /* Plantain Yellow — highlights only */
+  --color-background: #ffffff;
+  --color-background-soft: #fffaf3; /* warm surface, account/admin pages */
+  --color-surface: #fffaf3;
+  --color-text: #1c0707; /* text-primary */
+  --color-text-secondary: #7a7070;
+  --color-text-muted: #b7aeb1;
+  --color-border: #e5e7eb;
+  --color-border-soft: #f3eded;
+  --color-accent-soft: rgba(154, 43, 33, 0.12);
+  --color-on-accent: #ffffff;
 
   /* Typography */
   --font-heading: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Manrope", ui-sans-serif, system-ui, sans-serif;
 
   /* Breakpoints — Tailwind default sm/md/lg/xl */
+
+  /* Border radius tokens */
+  --radius-card: 16px;
+  --radius-button: 8px;
+  --radius-input: 8px;
+  --radius-chip: 999px;
 }
 
 @layer base {
@@ -36,8 +45,54 @@
   }
 }
 
+/* NR-05 design system — shared component classes */
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 bg-primary text-on-accent font-semibold rounded-button px-6 py-3 hover:opacity-90 transition-opacity;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 bg-transparent text-text-secondary font-medium rounded-button px-6 py-3 hover:bg-accent-soft transition-colors;
+  }
+  .card {
+    @apply bg-surface border border-border rounded-card p-5;
+  }
+  .row-item {
+    @apply flex items-center gap-3 bg-accent-soft rounded-xl p-3;
+  }
+  .chip {
+    @apply inline-flex items-center rounded-chip px-3 py-1 text-xs font-medium;
+  }
+  .label-text {
+    @apply text-xs font-medium uppercase tracking-[0.5em] text-text-muted;
+  }
+  .caption-text {
+    @apply text-xs text-text-muted;
+  }
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* NR-05 radius tokens as Tailwind utilities */
+@utility rounded-button {
+  border-radius: var(--radius-button);
+}
+@utility rounded-card {
+  border-radius: var(--radius-card);
+}
+@utility rounded-input {
+  border-radius: var(--radius-input);
+}
+@utility rounded-chip {
+  border-radius: var(--radius-chip);
+}
+
+/* NR-05 surface tokens as Tailwind utilities */
+@utility shadow-soft {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 8px 24px rgba(0, 0, 0, 0.06);
 }
