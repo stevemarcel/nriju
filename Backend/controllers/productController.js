@@ -205,8 +205,12 @@ const getAllProducts = asyncHandler(async (req, res) => {
   if (category) query.category = category;
 
   const skip = (Number(page) - 1) * Number(limit);
+  // Sort by createdAt desc, then _id as a deterministic tiebreaker. All
+  // products were seeded at the same timestamp, so without a stable second
+  // key MongoDB falls back to its natural order — which varies between
+  // queries and makes each page return a different, shuffled set.
   const [products, total] = await Promise.all([
-    Product.find(query).sort("-createdAt").skip(skip).limit(Number(limit)).populate("category"),
+    Product.find(query).sort("-createdAt _id").skip(skip).limit(Number(limit)).populate("category"),
     Product.countDocuments(query),
   ]);
 

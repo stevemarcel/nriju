@@ -11,7 +11,17 @@ import {
 } from "../../components/admin/AdminPrimitives";
 import ProductFormModal from "../../components/ui/ProductFormModal";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
-import { Plus, Edit, Trash2, Package, RotateCcw, Archive, Search } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Package,
+  RotateCcw,
+  Archive,
+  Search,
+  Check,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 const AdminProductsPage = () => {
@@ -22,6 +32,9 @@ const AdminProductsPage = () => {
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState(null); // null | "create" | {edit: product}
   const [confirmTarget, setConfirmTarget] = useState(null); // { product, action: 'delete' }
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [processingIds, setProcessingIds] = useState(new Set());
+  const isProcessing = (id) => processingIds.has(id);
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -31,7 +44,7 @@ const AdminProductsPage = () => {
   const { data, isPending } = useQuery({
     queryKey: ["admin", "products", page, search, statusFilter, categoryFilter],
     queryFn: async () => {
-      const params = new URLSearchParams({ page, limit: 20, search });
+      const params = new URLSearchParams({ page, limit: 10, search });
       if (statusFilter === "archived") params.set("isActive", "false");
       else if (statusFilter === "active") params.set("isActive", "true");
       else if (statusFilter === "lowStock") params.set("stockFilter", "lowStock");
@@ -64,22 +77,152 @@ const AdminProductsPage = () => {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
 
+  const toggleSelect = (id) =>
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const toggleAll = () =>
+    setSelectedIds((prev) =>
+      prev.size === products.length ? new Set() : new Set(products.map((p) => p._id)),
+    );
+
+  const handleBulkArchive = () => {
+    if (selectedIds.size === 0) return;
+    setConfirmTarget({ action: "bulk-archive", ids: [...selectedIds] });
+  };
+
+  const handleBulkRestore = () => {
+    if (selectedIds.size === 0) return;
+    setConfirmTarget({ action: "bulk-restore", ids: [...selectedIds] });
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    setConfirmTarget({ action: "bulk-delete", ids: [...selectedIds] });
+  };
+
+  const selectedProducts = products.filter((p) => selectedIds.has(p._id));
+  const hasArchived = selectedProducts.some((p) => !p.isActive);
+  const hasActive = selectedProducts.some((p) => p.isActive);
+
   const archiveMutation = useMutation({
-    mutationFn: async (p) => api.put(`/products/${p._id}`, { isActive: !p.isActive }),
-    onSuccess: invalidate,
+    mutationFn: async (p) => {
+      setProcessingIds((prev) => new Set(prev).add(p._id));
+      return api.put(`/products/${p._id}`, { isActive: !p.isActive });
+    },
+    onSuccess: (_data, p) => {
+      invalidate();
+      toast.success(p.isActive ? "Product archived" : "Product restored");
+    },
+    onSettled: (_data, _err, p) =>
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(p._id);
+        return next;
+      }),
   });
 
   const softDeleteMutation = useMutation({
-    mutationFn: (id) => api.put(`/products/${id}`, { isActive: false }),
-    onSuccess: invalidate,
+    mutationFn: (id) => {
+      setProcessingIds((prev) => new Set(prev).add(id));
+      return api.put(`/products/${id}`, { isActive: false });
+    },
+    onSuccess: () => {
+      invalidate();
+      toast.success("Product archived");
+    },
+    onSettled: (_data, _err, id) =>
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      }),
   });
 
   const permanentDeleteMutation = useMutation({
-    mutationFn: (id) => api.delete(`/products/${id}?permanent=true`),
+    mutationFn: (id) => {
+      setProcessingIds((prev) => new Set(prev).add(id));
+      return api.delete(`/products/${id}?permanent=true`);
+    },
     onSuccess: () => {
       invalidate();
       toast.success("Product permanently deleted");
     },
+    onSettled: (_data, _err, id) =>
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      }),
+  });
+
+  const bulkArchiveMutation = useMutation({
+    mutationFn: (ids) => {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.add(id));
+        return next;
+      });
+      return Promise.all(ids.map((id) => api.put(`/products/${id}`, { isActive: false })));
+    },
+    onSuccess: () => {
+      setSelectedIds(new Set());
+      invalidate();
+      toast.success("Products archived");
+    },
+    onSettled: (_data, _err, ids) =>
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      }),
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids) => {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.add(id));
+        return next;
+      });
+      return Promise.all(ids.map((id) => api.delete(`/products/${id}?permanent=true`)));
+    },
+    onSuccess: () => {
+      setSelectedIds(new Set());
+      invalidate();
+      toast.success("Products deleted");
+    },
+    onSettled: (_data, _err, ids) =>
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      }),
+  });
+
+  const bulkRestoreMutation = useMutation({
+    mutationFn: (ids) => {
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.add(id));
+        return next;
+      });
+      return Promise.all(ids.map((id) => api.put(`/products/${id}`, { isActive: true })));
+    },
+    onSuccess: () => {
+      setSelectedIds(new Set());
+      invalidate();
+      toast.success("Products restored");
+    },
+    onSettled: (_data, _err, ids) =>
+      setProcessingIds((prev) => {
+        const next = new Set(prev);
+        ids.forEach((id) => next.delete(id));
+        return next;
+      }),
   });
 
   const handleArchive = (p) => {
@@ -173,6 +316,36 @@ const AdminProductsPage = () => {
         ))}
       </div>
       <div className="bg-surface rounded-xl border border-border overflow-hidden">
+        {/* Bulk Actions */}
+        {selectedIds.size > 0 && (
+          <div className="bg-surface border border-border p-4 mb-4 rounded-xl flex items-center justify-between">
+            <span className="text-sm font-medium">{selectedIds.size} selected</span>
+            <div className="flex gap-2">
+              {hasActive && (
+                <button
+                  onClick={handleBulkArchive}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-background-soft hover:bg-rose-100 text-text-muted hover:text-rose-600 transition-colors flex items-center gap-1"
+                >
+                  <Archive className="w-3 h-3" /> Archive ({selectedIds.size})
+                </button>
+              )}
+              {hasArchived && (
+                <button
+                  onClick={handleBulkRestore}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg bg-background-soft hover:bg-emerald-50 text-text-muted hover:text-emerald-700 transition-colors flex items-center gap-1"
+                >
+                  <RotateCcw className="w-3 h-3" /> Restore ({selectedIds.size})
+                </button>
+              )}
+              <button
+                onClick={handleBulkDelete}
+                className="px-3 py-1.5 text-xs font-medium rounded-lg bg-background-soft hover:bg-rose-100 text-text-muted hover:text-rose-600 transition-colors flex items-center gap-1"
+              >
+                <Trash2 className="w-3 h-3" /> Delete ({selectedIds.size})
+              </button>
+            </div>
+          </div>
+        )}
         <div className="overflow-x-auto">
           {isPending ? (
             <TableSkeleton rows={6} cols={7} />
@@ -185,19 +358,35 @@ const AdminProductsPage = () => {
           ) : (
             <table className="w-full text-sm min-w-max">
               <thead>
-                <tr className="bg-background-soft/50">
-                  <th className="text-left font-medium py-3 px-4">Product</th>
-                  <th className="text-left font-medium py-3 px-4">Category</th>
-                  <th className="text-right font-medium py-3 px-4">Price</th>
-                  <th className="text-right font-medium py-3 px-4">Stock</th>
-                  <th className="text-center font-medium py-3 px-4">Status</th>
-                  <th className="text-right font-medium py-3 px-4">Added</th>
-                  <th className="text-center font-medium py-3 px-4">Actions</th>
+                <tr className="bg-background-soft/50 text-left">
+                  <th className="py-3 px-4 w-10">
+                    <input
+                      type="checkbox"
+                      className="rounded border-border"
+                      checked={products.length > 0 && selectedIds.size === products.length}
+                      onChange={toggleAll}
+                    />
+                  </th>
+                  <th className="font-medium py-3 px-4">Product</th>
+                  <th className="font-medium py-3 px-4">Category</th>
+                  <th className="font-medium py-3 px-4">Price</th>
+                  <th className="font-medium py-3 px-4">Stock</th>
+                  <th className="font-medium py-3 px-4">Status</th>
+                  <th className="font-medium py-3 px-4">Added</th>
+                  <th className="font-medium py-3 px-4">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {products.map((p) => (
                   <tr key={p._id} className="hover:bg-background-soft/30">
+                    <td className="py-3 px-4">
+                      <input
+                        type="checkbox"
+                        className="rounded border-border"
+                        checked={selectedIds.has(p._id)}
+                        onChange={() => toggleSelect(p._id)}
+                      />
+                    </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         {p.images?.[0] ? (
@@ -223,36 +412,46 @@ const AdminProductsPage = () => {
                     </td>
                     <td className="py-3 px-4 text-right">{p.stock}</td>
                     <td className="py-3 px-4 text-center">
-                      <span
-                        className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full ${
-                          p.isActive
-                            ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                            : "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
-                        }`}
-                      >
-                        {p.isActive ? (
-                          <svg
-                            className="w-3 h-3"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2.5}
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="w-3 h-3"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                            strokeWidth={2.5}
-                          >
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
-                          </svg>
-                        )}
-                        {p.isActive ? "Active" : "Archived"}
-                      </span>
+                      {isProcessing(p._id) ? (
+                        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-500 ring-1 ring-slate-200">
+                          <Loader2 className="w-3 h-3 animate-spin" /> Processing
+                        </span>
+                      ) : (
+                        <span
+                          className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full ${
+                            p.isActive
+                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+                              : "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
+                          }`}
+                        >
+                          {p.isActive ? (
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2.5}
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                          ) : (
+                            <svg
+                              className="w-3 h-3"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                              strokeWidth={2.5}
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
+                            </svg>
+                          )}
+                          {p.isActive ? "Active" : "Archived"}
+                        </span>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-right text-text-muted">
                       {formatDate(p.createdAt)}
@@ -263,13 +462,15 @@ const AdminProductsPage = () => {
                           <>
                             <button
                               onClick={() => toggleModal({ edit: p })}
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-primary/10 text-text-muted hover:text-primary transition-colors"
+                              disabled={isProcessing(p._id)}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-primary/10 text-text-muted hover:text-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Edit className="w-3 h-3" /> Edit
                             </button>
                             <button
                               onClick={() => handleSoftDelete(p)}
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-rose-100 text-text-muted hover:text-rose-600 transition-colors"
+                              disabled={isProcessing(p._id)}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-rose-100 text-text-muted hover:text-rose-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Archive className="w-3 h-3" /> Archive
                             </button>
@@ -278,13 +479,15 @@ const AdminProductsPage = () => {
                           <>
                             <button
                               onClick={() => handleArchive(p)}
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-emerald-50  text-text-muted hover:text-emerald-700 transition-colors"
+                              disabled={isProcessing(p._id)}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-emerald-50  text-text-muted hover:text-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <RotateCcw className="w-3 h-3" /> Restore
                             </button>
                             <button
                               onClick={() => handlePermanentDelete(p)}
-                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-rose-500 text-text-muted hover:text-rose-200 transition-colors"
+                              disabled={isProcessing(p._id)}
+                              className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-rose-500 text-text-muted hover:text-rose-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               <Trash2 className="w-3 h-3" /> Delete
                             </button>
@@ -320,20 +523,75 @@ const AdminProductsPage = () => {
       <ConfirmModal
         open={confirmTarget !== null}
         title={
-          confirmTarget?.action === "archive" ? "Archive product?" : "Permanently delete product?"
+          confirmTarget?.action === "archive" || confirmTarget?.action === "bulk-archive"
+            ? confirmTarget?.ids
+              ? `Archive ${confirmTarget.ids.length} product${confirmTarget.ids.length > 1 ? "s" : ""}?`
+              : "Archive product?"
+            : confirmTarget?.action === "restore" || confirmTarget?.action === "bulk-restore"
+              ? confirmTarget?.ids
+                ? `Restore ${confirmTarget.ids.length} product${confirmTarget.ids.length > 1 ? "s" : ""}?`
+                : "Restore product?"
+              : confirmTarget?.action === "delete"
+                ? "Permanently delete product?"
+                : `Delete ${confirmTarget?.ids?.length} product${confirmTarget?.ids?.length > 1 ? "s" : ""}?`
         }
         description={
-          confirmTarget?.action === "archive"
-            ? `Archive "${confirmTarget?.product?.name}"? It will be removed from the store.`
-            : `This will permanently remove "${confirmTarget?.product?.name}" and its images. This action cannot be undone.`
+          confirmTarget?.ids ? (
+            confirmTarget.action === "bulk-archive" ? (
+              <>
+                Archive {confirmTarget.ids.length} product{confirmTarget.ids.length > 1 ? "s" : ""}?
+                They will be removed from the store.
+              </>
+            ) : confirmTarget.action === "bulk-restore" ? (
+              <>
+                Restore {confirmTarget.ids.length} product{confirmTarget.ids.length > 1 ? "s" : ""}?
+                They will be back in the store.
+              </>
+            ) : (
+              <>
+                This will permanently remove {confirmTarget.ids.length} products and their images.
+                This action cannot be undone.
+              </>
+            )
+          ) : confirmTarget?.action === "archive" ? (
+            `Archive "${confirmTarget?.product?.name}"? It will be removed from the store.`
+          ) : confirmTarget?.action === "restore" ? (
+            `Restore "${confirmTarget?.product?.name}"? It will be back in the store.`
+          ) : (
+            `This will permanently remove "${confirmTarget?.product?.name}" and its images. This action cannot be undone.`
+          )
         }
-        confirmLabel={confirmTarget?.action === "archive" ? "Archive" : "Delete forever"}
-        confirmVariant={confirmTarget?.action === "archive" ? "primary" : "destructive"}
+        confirmLabel={
+          confirmTarget?.action === "archive"
+            ? "Archive"
+            : confirmTarget?.action === "bulk-archive"
+              ? `Archive ${confirmTarget.ids.length}`
+              : confirmTarget?.action === "bulk-restore"
+                ? `Restore ${confirmTarget.ids.length}`
+                : confirmTarget?.action === "restore"
+                  ? "Restore"
+                  : confirmTarget?.action === "bulk-delete"
+                    ? `Delete ${confirmTarget.ids.length}`
+                    : "Delete forever"
+        }
+        confirmVariant={
+          confirmTarget?.action === "archive" || confirmTarget?.action === "bulk-archive"
+            ? "primary"
+            : confirmTarget?.action === "restore" || confirmTarget?.action === "bulk-restore"
+              ? "primary"
+              : "destructive"
+        }
         onConfirm={() => {
           if (confirmTarget?.action === "archive") {
             softDeleteMutation.mutate(confirmTarget.product._id);
           } else if (confirmTarget?.action === "delete") {
             permanentDeleteMutation.mutate(confirmTarget.product._id);
+          } else if (confirmTarget?.action === "bulk-archive") {
+            bulkArchiveMutation.mutate(confirmTarget.ids);
+          } else if (confirmTarget?.action === "bulk-restore") {
+            bulkRestoreMutation.mutate(confirmTarget.ids);
+          } else if (confirmTarget?.action === "bulk-delete") {
+            bulkDeleteMutation.mutate(confirmTarget.ids);
           }
           setConfirmTarget(null);
         }}
