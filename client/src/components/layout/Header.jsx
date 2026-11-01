@@ -13,6 +13,29 @@ import {
   LogOut,
   Search as SearchIcon,
   ChevronDown,
+  HelpCircle,
+  BookOpen,
+  MessageCircle,
+  FolderOpen,
+  Truck,
+  RotateCcw,
+  Utensils,
+  Soup,
+  Drumstick,
+  Croissant,
+  Salad,
+  Wine,
+  IceCream,
+  Apple,
+  Carrot,
+  Grape,
+  Nut,
+  Cake,
+  Milk,
+  Beer,
+  Pizza,
+  Sandwich,
+  Coffee,
 } from "lucide-react";
 
 const Header = () => {
@@ -22,25 +45,12 @@ const Header = () => {
   const { user, loading } = useAppSelector((s) => s.auth);
   const { items } = useAppSelector((s) => s.cart);
   const [search, setSearch] = useState("");
-  const [helpOpen, setHelpOpen] = useState(false);
-  const helpRef = useRef(null);
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => (await api.get("/categories")).data.data,
     staleTime: 5 * 60 * 1000,
   });
-
-  // Close the Help dropdown when the user clicks anywhere outside it.
-  useEffect(() => {
-    const onClick = (e) => {
-      if (helpOpen && !helpRef.current?.contains(e.target)) {
-        setHelpOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [helpOpen]);
 
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
@@ -58,6 +68,67 @@ const Header = () => {
     } catch {}
     dispatch(clearAuth());
     navigate("/login", { state: { from: location }, replace: true });
+  };
+
+  // Pick a dish-related icon for a category name so the Help dropdown
+  // categories row doesn't all look identical.
+  const getCategoryIcon = (name) => {
+    const n = (name || "").toLowerCase();
+    if (n.includes("soup")) return <Soup className="w-4 h-4 text-text-muted" />;
+    if (
+      n.includes("swallow") ||
+      n.includes("fufu") ||
+      n.includes("yam") ||
+      n.includes("amala") ||
+      n.includes("eba") ||
+      n.includes("garri") ||
+      n.includes("semo")
+    )
+      return <Utensils className="w-4 h-4 text-text-muted" />;
+    if (
+      n.includes("protein") ||
+      n.includes("beef") ||
+      n.includes("chicken") ||
+      n.includes("fish") ||
+      n.includes("meat") ||
+      n.includes("suya")
+    )
+      return <Drumstick className="w-4 h-4 text-text-muted" />;
+    if (
+      n.includes("snack") ||
+      n.includes("boli") ||
+      n.includes("groundnut") ||
+      n.includes("akara") ||
+      n.includes("puff")
+    )
+      return <Croissant className="w-4 h-4 text-text-muted" />;
+    if (
+      n.includes("drink") ||
+      n.includes("zobo") ||
+      n.includes("tea") ||
+      n.includes("coffee") ||
+      n.includes("malt")
+    )
+      return <Coffee className="w-4 h-4 text-text-muted" />;
+    if (n.includes("oil") || n.includes("fat")) return <Wine className="w-4 h-4 text-text-muted" />;
+    if (n.includes("season") || n.includes("spice") || n.includes("salt") || n.includes("pepper"))
+      return <Nut className="w-4 h-4 text-text-muted" />;
+    if (
+      n.includes("fruit") ||
+      n.includes("plantain") ||
+      n.includes("banana") ||
+      n.includes("mango")
+    )
+      return <Apple className="w-4 h-4 text-text-muted" />;
+    if (n.includes("vegetable") || n.includes("leaf") || n.includes("spinach"))
+      return <Carrot className="w-4 h-4 text-text-muted" />;
+    if (n.includes("dessert") || n.includes("sweet") || n.includes("cake"))
+      return <Cake className="w-4 h-4 text-text-muted" />;
+    if (n.includes("dairy") || n.includes("milk") || n.includes("yogurt"))
+      return <Milk className="w-4 h-4 text-text-muted" />;
+    if (n.includes("bread") || n.includes("pie"))
+      return <Pizza className="w-4 h-4 text-text-muted" />;
+    return <Utensils className="w-4 h-4 text-text-muted" />;
   };
 
   return (
@@ -162,52 +233,81 @@ const Header = () => {
                 </Link>
               )}
 
-              {/* Help dropdown */}
-              <div ref={helpRef} className="relative">
+              {/* Help dropdown — hover to open, same behavior as account */}
+              <div className="relative group">
                 <button
-                  onClick={() => setHelpOpen(!helpOpen)}
+                  type="button"
                   className="hidden sm:flex items-center gap-1 px-2 py-1.5 rounded-full hover:bg-background text-text-secondary text-sm font-medium"
                 >
+                  <HelpCircle className="w-4 h-4 text-text-secondary" />
                   Help
                   <ChevronDown className="w-3 h-3" />
                 </button>
-                {helpOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-surface rounded-lg shadow-soft border border-border py-1 z-50">
-                    <Link
-                      to="/about"
-                      onClick={() => setHelpOpen(false)}
-                      className="block px-4 py-2 text-sm text-text hover:bg-background"
-                    >
-                      Our Story
-                    </Link>
-                    <Link
-                      to="/contact"
-                      onClick={() => setHelpOpen(false)}
-                      className="block px-4 py-2 text-sm text-text hover:bg-background"
-                    >
-                      Contact
-                    </Link>
-                    <div className="px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted">
-                      Categories
-                    </div>
-                    {categories?.map((cat) => (
-                      <Link
-                        key={cat._id}
-                        to={`/shop?category=${cat.slug}`}
-                        onClick={() => setHelpOpen(false)}
-                        className="block px-4 py-2 text-sm text-text hover:bg-background"
-                      >
-                        {cat.name}
-                      </Link>
-                    ))}
+                <div className="absolute right-0 mt-2 w-52 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                  <Link
+                    to="/about"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                  >
+                    <BookOpen className="w-4 h-4 text-text-muted" /> Our Story
+                  </Link>
+                  <Link
+                    to="/delivery"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                  >
+                    <Truck className="w-4 h-4 text-text-muted" /> Delivery Info
+                  </Link>
+                  <Link
+                    to="/returns"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                  >
+                    <RotateCcw className="w-4 h-4 text-text-muted" /> Returns
+                  </Link>
+                  <Link
+                    to="/faq"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                  >
+                    <HelpCircle className="w-4 h-4 text-text-muted" /> FAQ
+                  </Link>
+                  <Link
+                    to="/contact"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                  >
+                    <MessageCircle className="w-4 h-4 text-text-muted" /> Contact
+                  </Link>
+                  <div className="px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted flex items-center gap-2">
+                    <FolderOpen className="w-4 h-4" /> Categories
                   </div>
-                )}
+                  {categories?.map((cat) => (
+                    <Link
+                      key={cat._id}
+                      to={`/shop?category=${cat.slug}`}
+                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    >
+                      {getCategoryIcon(cat.name)} {cat.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
 
               {/* Cart */}
               <button
                 onClick={() => dispatch(toggleCartDrawer())}
-                className="relative p-2 rounded-full hover:bg-background transition-colors"
+                className="hidden md:flex items-center gap-1.5 px-2 py-1.5 rounded-full hover:bg-background transition-colors"
+                aria-label="Open cart"
+              >
+                <span className="relative">
+                  <ShoppingBag className="w-5 h-5 text-text" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-on-accent text-xs rounded-full flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </span>
+                <span className="text-sm text-text">Cart</span>
+              </button>
+              <button
+                onClick={() => dispatch(toggleCartDrawer())}
+                className="md:hidden relative p-2 rounded-full hover:bg-background transition-colors"
                 aria-label="Open cart"
               >
                 <ShoppingBag className="w-5 h-5 text-text" />
