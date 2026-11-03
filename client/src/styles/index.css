@@ -47,6 +47,13 @@
 
 /* NR-05 design system — shared component classes */
 @layer components {
+  /* Admin table selected row — preserves selection bg on hover */
+  .admin-table tbody tr.selected {
+    background-color: rgba(154, 43, 33, 0.08);
+  }
+  .admin-table tbody tr.selected:hover {
+    background-color: rgba(154, 43, 33, 0.08) !important;
+  }
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 bg-primary text-on-accent font-semibold rounded-button px-6 py-3 hover:opacity-90 transition-opacity;
   }

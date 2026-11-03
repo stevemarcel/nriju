@@ -109,6 +109,18 @@ const parseTags = (tags) => {
 
 const parseBool = (val) => val === true || val === "true";
 
+// Extract the Cloudinary public ID from a delivery URL. Query params (e.g.
+// ?_a=...) are stripped so the ID passed to deleteFromCloudinary is clean.
+const cloudinaryPublicIdFromUrl = (url) => {
+  if (!url) return null;
+  try {
+    const match = url.match(/\/upload\/[^/]+\/(.+?)(?:\?\w|=|$)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+};
+
 const createProduct = asyncHandler(async (req, res) => {
   const {
     name,
@@ -169,8 +181,23 @@ const updateProduct = asyncHandler(async (req, res) => {
   for (const key of allowed) {
     if (req.body[key] !== undefined) {
       if (key === "tags") product[key] = parseTags(req.body[key]);
-      else if (key === "images") product[key] = req.body[key];
-      else if (["isActive", "isFeatured", "notifyOnOutOfStock"].includes(key))
+      else if (key === "images") {
+        // Remove any images that were dropped so they don't accumulate in
+        // Cloudinary as orphaned assets. New images that overlap are skipped.
+        const oldImages = product.images ?? [];
+        const newImages = req.body[key];
+        const removed = oldImages.filter((url) => !newImages.includes(url));
+        if (removed.length) {
+          const { deleteFromCloudinary } = await import("../utils/cloudinaryUtils.js");
+          await Promise.all(
+            removed.map((url) => {
+              const id = cloudinaryPublicIdFromUrl(url);
+              return id ? deleteFromCloudinary(id).catch(() => {}) : Promise.resolve();
+            }),
+          );
+        }
+        product[key] = newImages;
+      } else if (["isActive", "isFeatured", "notifyOnOutOfStock"].includes(key))
         product[key] = parseBool(req.body[key]);
       else product[key] = req.body[key];
     }
@@ -235,16 +262,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
   const { permanent } = req.query;
   if (permanent === "true") {
     if (product.images?.length) {
-      const publicIds = product.images
-        .map((url) => {
-          try {
-            const match = url.match(/\/upload\/[^/]+\/(.+?)(?:\.\w+)?$/);
-            return match ? match[1] : null;
-          } catch {
-            return null;
-          }
-        })
-        .filter(Boolean);
+      const publicIds = product.images.map((url) => cloudinaryPublicIdFromUrl(url)).filter(Boolean);
       const { deleteFromCloudinary } = await import("../utils/cloudinaryUtils.js");
       await Promise.all(publicIds.map((id) => deleteFromCloudinary(id).catch(() => {})));
     }

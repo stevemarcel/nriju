@@ -108,8 +108,28 @@ const AdminProductsPage = () => {
   const hasArchived = selectedProducts.some((p) => !p.isActive);
   const hasActive = selectedProducts.some((p) => p.isActive);
 
+  // Optimistically flip the cached row status so the UI reflects the new
+  // state immediately. Without this, invalidateQueries triggers an async
+  // refetch while onSettled already clears the processing flag, so the row
+  // flickers back to the stale status ("Active") before the refetch lands.
+  // For deletions, drop the rows outright instead of leaving a stale
+  // "Archived" entry behind.
+  const optimisticUpdate = (ids, isActive, { remove = false } = {}) => {
+    queryClient.setQueriesData(["admin", "products"], (old) => {
+      // The prefix also matches the stats query, whose data is an object.
+      if (!old || !Array.isArray(old.data)) return old;
+      return {
+        ...old,
+        data: remove
+          ? old.data.filter((p) => !ids.includes(p._id))
+          : old.data.map((p) => (ids.includes(p._id) ? { ...p, isActive } : p)),
+      };
+    });
+  };
+
   const archiveMutation = useMutation({
     mutationFn: async (p) => {
+      optimisticUpdate([p._id], !p.isActive);
       setProcessingIds((prev) => new Set(prev).add(p._id));
       return api.put(`/products/${p._id}`, { isActive: !p.isActive });
     },
@@ -117,6 +137,7 @@ const AdminProductsPage = () => {
       invalidate();
       toast.success(p.isActive ? "Product archived" : "Product restored");
     },
+    onError: invalidate,
     onSettled: (_data, _err, p) =>
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -127,6 +148,7 @@ const AdminProductsPage = () => {
 
   const softDeleteMutation = useMutation({
     mutationFn: (id) => {
+      optimisticUpdate([id], false);
       setProcessingIds((prev) => new Set(prev).add(id));
       return api.put(`/products/${id}`, { isActive: false });
     },
@@ -134,6 +156,7 @@ const AdminProductsPage = () => {
       invalidate();
       toast.success("Product archived");
     },
+    onError: invalidate,
     onSettled: (_data, _err, id) =>
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -144,6 +167,7 @@ const AdminProductsPage = () => {
 
   const permanentDeleteMutation = useMutation({
     mutationFn: (id) => {
+      optimisticUpdate([id], false, { remove: true });
       setProcessingIds((prev) => new Set(prev).add(id));
       return api.delete(`/products/${id}?permanent=true`);
     },
@@ -151,6 +175,7 @@ const AdminProductsPage = () => {
       invalidate();
       toast.success("Product permanently deleted");
     },
+    onError: invalidate,
     onSettled: (_data, _err, id) =>
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -161,6 +186,7 @@ const AdminProductsPage = () => {
 
   const bulkArchiveMutation = useMutation({
     mutationFn: (ids) => {
+      optimisticUpdate(ids, false);
       setProcessingIds((prev) => {
         const next = new Set(prev);
         ids.forEach((id) => next.add(id));
@@ -173,6 +199,7 @@ const AdminProductsPage = () => {
       invalidate();
       toast.success("Products archived");
     },
+    onError: invalidate,
     onSettled: (_data, _err, ids) =>
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -183,6 +210,7 @@ const AdminProductsPage = () => {
 
   const bulkDeleteMutation = useMutation({
     mutationFn: (ids) => {
+      optimisticUpdate(ids, false, { remove: true });
       setProcessingIds((prev) => {
         const next = new Set(prev);
         ids.forEach((id) => next.add(id));
@@ -195,6 +223,7 @@ const AdminProductsPage = () => {
       invalidate();
       toast.success("Products deleted");
     },
+    onError: invalidate,
     onSettled: (_data, _err, ids) =>
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -205,6 +234,7 @@ const AdminProductsPage = () => {
 
   const bulkRestoreMutation = useMutation({
     mutationFn: (ids) => {
+      optimisticUpdate(ids, true);
       setProcessingIds((prev) => {
         const next = new Set(prev);
         ids.forEach((id) => next.add(id));
@@ -217,6 +247,7 @@ const AdminProductsPage = () => {
       invalidate();
       toast.success("Products restored");
     },
+    onError: invalidate,
     onSettled: (_data, _err, ids) =>
       setProcessingIds((prev) => {
         const next = new Set(prev);
@@ -358,34 +389,64 @@ const AdminProductsPage = () => {
           ) : (
             <table className="w-full text-sm min-w-max">
               <thead>
-                <tr className="bg-background-soft/50 text-left">
-                  <th className="py-3 px-4 w-10">
-                    <input
-                      type="checkbox"
-                      className="rounded border-border"
-                      checked={products.length > 0 && selectedIds.size === products.length}
-                      onChange={toggleAll}
-                    />
+                <tr className="bg-primary/95 text-on-accent text-xs uppercase tracking-wider font-semibold border-b-2 border-primary">
+                  <th className="py-4 px-4 w-10">
+                    <button
+                      onClick={toggleAll}
+                      aria-label={
+                        products.length > 0 && selectedIds.size === products.length
+                          ? "Deselect all products"
+                          : "Select all products"
+                      }
+                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
+                        products.length > 0 && selectedIds.size === products.length
+                          ? "border-on-accent bg-on-accent"
+                          : "border-white/60 bg-transparent hover:border-on-accent"
+                      }`}
+                    >
+                      {products.length > 0 && selectedIds.size === products.length && (
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                      )}
+                    </button>
                   </th>
-                  <th className="font-medium py-3 px-4">Product</th>
-                  <th className="font-medium py-3 px-4">Category</th>
-                  <th className="font-medium py-3 px-4">Price</th>
-                  <th className="font-medium py-3 px-4">Stock</th>
-                  <th className="font-medium py-3 px-4">Status</th>
-                  <th className="font-medium py-3 px-4">Added</th>
-                  <th className="font-medium py-3 px-4">Actions</th>
+                  <th className="text-left py-4 px-4">Product</th>
+                  <th className="py-4 px-4">Category</th>
+                  <th className="py-4 px-4">Price</th>
+                  <th className="py-4 px-4">Stock</th>
+                  <th className="py-4 px-4">Status</th>
+                  <th className="py-4 px-4">Added</th>
+                  <th className="py-4 px-4">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border admin-table">
                 {products.map((p) => (
-                  <tr key={p._id} className="hover:bg-background-soft/30">
+                  <tr
+                    key={p._id}
+                    className={`hover:bg-background-soft/30 ${
+                      selectedIds.has(p._id) ? "selected" : ""
+                    }`}
+                    style={
+                      selectedIds.has(p._id)
+                        ? { backgroundColor: "rgba(154, 43, 33, 0.08)" }
+                        : undefined
+                    }
+                  >
                     <td className="py-3 px-4">
-                      <input
-                        type="checkbox"
-                        className="rounded border-border"
-                        checked={selectedIds.has(p._id)}
-                        onChange={() => toggleSelect(p._id)}
-                      />
+                      <button
+                        onClick={() => toggleSelect(p._id)}
+                        aria-label={
+                          selectedIds.has(p._id) ? `Deselect ${p.name}` : `Select ${p.name}`
+                        }
+                        className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
+                          selectedIds.has(p._id)
+                            ? "border-primary bg-primary"
+                            : "border-border bg-transparent hover:border-primary/50"
+                        }`}
+                      >
+                        {selectedIds.has(p._id) && (
+                          <span className="w-1.5 h-1.5 rounded-full bg-on-accent" />
+                        )}
+                      </button>
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
@@ -406,11 +467,13 @@ const AdminProductsPage = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-text-muted">{p.category?.name || "—"}</td>
-                    <td className="py-3 px-4 text-right font-heading font-semibold">
+                    <td className="text-left py-3 px-4 text-text-muted">
+                      {p.category?.name || "—"}
+                    </td>
+                    <td className="py-3 px-4 text-left font-heading font-semibold">
                       {formatNaira(p.price)}
                     </td>
-                    <td className="py-3 px-4 text-right">{p.stock}</td>
+                    <td className="text-left py-3 px-4">{p.stock}</td>
                     <td className="py-3 px-4 text-center">
                       {isProcessing(p._id) ? (
                         <span className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full bg-slate-100 text-slate-500 ring-1 ring-slate-200">

@@ -1,5 +1,18 @@
 import asyncHandler from "express-async-handler";
 import Category from "../models/Category.js";
+import { deleteFromCloudinary } from "../utils/cloudinaryUtils.js";
+
+// Extract the Cloudinary public ID from a delivery URL. Query params are
+// stripped so the ID passed to deleteFromCloudinary is clean.
+const cloudinaryPublicIdFromUrl = (url) => {
+  if (!url) return null;
+  try {
+    const match = url.match(/\/upload\/[^/]+\/(.+?)(?:\?\w|=|$)/);
+    return match ? match[1] : null;
+  } catch {
+    return null;
+  }
+};
 
 // @DESCRIPTION List all active categories
 // @ROUTE       GET /api/v1/categories
@@ -52,7 +65,20 @@ const updateCategory = asyncHandler(async (req, res) => {
 
   const allowed = ["name", "description", "image", "isActive", "sortOrder"];
   for (const key of allowed) {
-    if (req.body[key] !== undefined) category[key] = req.body[key];
+    if (req.body[key] !== undefined) {
+      if (key === "image") {
+        // Remove old image if it changed so it doesn't accumulate in Cloudinary
+        const oldImage = category.image;
+        const newImage = req.body[key];
+        if (oldImage && oldImage !== newImage) {
+          const id = cloudinaryPublicIdFromUrl(oldImage);
+          if (id) await deleteFromCloudinary(id).catch(() => {});
+        }
+        category[key] = newImage;
+      } else {
+        category[key] = req.body[key];
+      }
+    }
   }
   category.updatedBy = req.user._id;
 
