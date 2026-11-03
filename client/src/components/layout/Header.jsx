@@ -47,6 +47,21 @@ const Header = () => {
   const { user, loading } = useAppSelector((s) => s.auth);
   const { items } = useAppSelector((s) => s.cart);
   const [search, setSearch] = useState("");
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const headerRef = useRef(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (headerRef.current && !headerRef.current.contains(event.target)) {
+        setAccountOpen(false);
+        setHelpOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const { data: categories } = useQuery({
     queryKey: ["categories"],
@@ -136,7 +151,7 @@ const Header = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-surface border-b border-border">
+    <header ref={headerRef} className="sticky top-0 z-50 bg-surface border-b border-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-3 lg:grid lg:h-17 lg:grid-cols-[10rem_minmax(18rem,39rem)_auto]">
           {/* Logo */}
@@ -175,13 +190,14 @@ const Header = () => {
           {/* Actions */}
           <div className="flex shrink-0 justify-end">
             <div className="flex shrink-0 items-center gap-0.5">
-              {/* Account dropdown */}
+              {/* Account dropdown — click to open */}
               {loading ? (
                 <div className="w-8 h-8 rounded-full bg-surface animate-pulse" />
               ) : user ? (
-                <div className="relative group">
+                <div className="relative">
                   <button
                     type="button"
+                    onClick={() => setAccountOpen(!accountOpen)}
                     className="flex items-center gap-1 p-2 rounded-full hover:bg-background"
                   >
                     {user?.avatar ? (
@@ -200,34 +216,42 @@ const Header = () => {
                     </span>
                   </button>
 
-                  <div className="absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-soft border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                    <Link
-                      to="/account"
-                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                    >
-                      <User className="w-4 h-4 text-text-muted" /> Account
-                    </Link>
-                    <Link
-                      to="/account/orders"
-                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                    >
-                      <Package className="w-4 h-4 text-text-muted" /> Orders
-                    </Link>
-                    {isAdmin && (
+                  {accountOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-soft border border-border py-1 z-50">
                       <Link
-                        to="/admin"
+                        to="/account"
                         className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                        onClick={() => setAccountOpen(false)}
                       >
-                        <Shield className="w-4 h-4 text-text-muted" /> Admin
+                        <User className="w-4 h-4 text-text-muted" /> Account
                       </Link>
-                    )}
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-background flex items-center gap-2"
-                    >
-                      <LogOut className="w-4 h-4" /> Logout
-                    </button>
-                  </div>
+                      <Link
+                        to="/account/orders"
+                        className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                        onClick={() => setAccountOpen(false)}
+                      >
+                        <Package className="w-4 h-4 text-text-muted" /> Orders
+                      </Link>
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                          onClick={() => setAccountOpen(false)}
+                        >
+                          <Shield className="w-4 h-4 text-text-muted" /> Admin
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => {
+                          handleLogout();
+                          setAccountOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-background flex items-center gap-2"
+                      >
+                        <LogOut className="w-4 h-4" /> Logout
+                      </button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <Link
@@ -239,59 +263,68 @@ const Header = () => {
                 </Link>
               )}
 
-              {/* Help dropdown — hover to open, same behavior as account */}
-              <div className="relative group">
+              {/* Help dropdown — click to open */}
+              <div className="relative">
                 <button
                   type="button"
+                  onClick={() => setHelpOpen(!helpOpen)}
                   className="flex items-center gap-1 px-2 py-1.5 rounded-full hover:bg-background text-sm font-medium text-text"
                 >
                   <HelpCircle className="w-4 h-4" />
                   <div className="hidden sm:block">Help</div>
                 </button>
-                <div className="absolute right-0 mt-2 w-52 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                  <Link
-                    to="/about"
-                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                  >
-                    <BookOpen className="w-4 h-4 text-text-muted" /> Our Story
-                  </Link>
-                  <Link
-                    to="/delivery"
-                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                  >
-                    <Truck className="w-4 h-4 text-text-muted" /> Delivery Info
-                  </Link>
-                  <Link
-                    to="/returns"
-                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                  >
-                    <RotateCcw className="w-4 h-4 text-text-muted" /> Returns
-                  </Link>
-                  <Link
-                    to="/faq"
-                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                  >
-                    <HelpCircle className="w-4 h-4 text-text-muted" /> FAQ
-                  </Link>
-                  <Link
-                    to="/contact"
-                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                  >
-                    <MessageCircle className="w-4 h-4 text-text-muted" /> Contact
-                  </Link>
-                  <div className="px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted flex items-center gap-2">
-                    <FolderOpen className="w-4 h-4" /> Categories
-                  </div>
-                  {categories?.map((cat) => (
+                {helpOpen && (
+                  <div className="absolute right-0 mt-2 w-52 bg-surface rounded-lg shadow-soft border border-border py-1 z-50">
                     <Link
-                      key={cat._id}
-                      to={`/shop?category=${cat.slug}`}
+                      to="/about"
                       className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                      onClick={() => setHelpOpen(false)}
                     >
-                      {getCategoryIcon(cat.name)} {cat.name}
+                      <BookOpen className="w-4 h-4 text-text-muted" /> Our Story
                     </Link>
-                  ))}
-                </div>
+                    <Link
+                      to="/delivery"
+                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                      onClick={() => setHelpOpen(false)}
+                    >
+                      <Truck className="w-4 h-4 text-text-muted" /> Delivery Info
+                    </Link>
+                    <Link
+                      to="/returns"
+                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                      onClick={() => setHelpOpen(false)}
+                    >
+                      <RotateCcw className="w-4 h-4 text-text-muted" /> Returns
+                    </Link>
+                    <Link
+                      to="/faq"
+                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                      onClick={() => setHelpOpen(false)}
+                    >
+                      <HelpCircle className="w-4 h-4 text-text-muted" /> FAQ
+                    </Link>
+                    <Link
+                      to="/contact"
+                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                      onClick={() => setHelpOpen(false)}
+                    >
+                      <MessageCircle className="w-4 h-4 text-text-muted" /> Contact
+                    </Link>
+                    <div className="px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted flex items-center gap-2">
+                      <FolderOpen className="w-4 h-4" /> Categories
+                    </div>
+                    {categories?.map((cat) => (
+                      <Link
+                        key={cat._id}
+                        to={`/shop?category=${cat.slug}`}
+                        className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                        onClick={() => setHelpOpen(false)}
+                      >
+                        {getCategoryIcon(cat.name)} {cat.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Shop — large screens only; mobile covers it via the tab bar */}

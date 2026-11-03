@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+﻿import { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../services/api";
 import {
@@ -11,6 +11,7 @@ import {
 } from "../../components/admin/AdminPrimitives";
 import ProductFormModal from "../../components/ui/ProductFormModal";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import { getCategoryIcon } from "../../utils/categoryIcons";
 import {
   Plus,
   Edit,
@@ -24,18 +25,7 @@ import {
   ChevronDown,
   FolderOpen,
   AlertCircle,
-  Utensils,
-  Soup,
-  Drumstick,
-  Croissant,
-  Coffee,
-  Wine,
-  Nut,
-  Apple,
-  Carrot,
-  Cake,
-  Milk,
-  Pizza,
+  Box,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -50,6 +40,8 @@ const AdminProductsPage = () => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [processingIds, setProcessingIds] = useState(new Set());
   const isProcessing = (id) => processingIds.has(id);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
 
   const statusLabels = {
     all: { label: "All Products", icon: <Package className="w-4 h-4" /> },
@@ -57,67 +49,6 @@ const AdminProductsPage = () => {
     archived: { label: "Archived", icon: <Archive className="w-4 h-4 text-slate-500" /> },
     lowStock: { label: "Low in stock", icon: <RotateCcw className="w-4 h-4 text-amber-500" /> },
     outOfStock: { label: "Out of stock", icon: <AlertCircle className="w-4 h-4 text-rose-500" /> },
-  };
-
-  // Match the dish-related icons used in the Help dropdown so the two
-  // category lists stay visually consistent.
-  const getCategoryIcon = (name) => {
-    const n = (name || "").toLowerCase();
-    if (n.includes("soup")) return <Soup className="w-4 h-4 text-text-muted" />;
-    if (
-      n.includes("swallow") ||
-      n.includes("fufu") ||
-      n.includes("yam") ||
-      n.includes("amala") ||
-      n.includes("eba") ||
-      n.includes("garri") ||
-      n.includes("semo")
-    )
-      return <Utensils className="w-4 h-4 text-text-muted" />;
-    if (
-      n.includes("protein") ||
-      n.includes("beef") ||
-      n.includes("chicken") ||
-      n.includes("fish") ||
-      n.includes("meat") ||
-      n.includes("suya")
-    )
-      return <Drumstick className="w-4 h-4 text-text-muted" />;
-    if (
-      n.includes("snack") ||
-      n.includes("boli") ||
-      n.includes("groundnut") ||
-      n.includes("akara") ||
-      n.includes("puff")
-    )
-      return <Croissant className="w-4 h-4 text-text-muted" />;
-    if (
-      n.includes("drink") ||
-      n.includes("zobo") ||
-      n.includes("tea") ||
-      n.includes("coffee") ||
-      n.includes("malt")
-    )
-      return <Coffee className="w-4 h-4 text-text-muted" />;
-    if (n.includes("oil") || n.includes("fat")) return <Wine className="w-4 h-4 text-text-muted" />;
-    if (n.includes("season") || n.includes("spice") || n.includes("salt") || n.includes("pepper"))
-      return <Nut className="w-4 h-4 text-text-muted" />;
-    if (
-      n.includes("fruit") ||
-      n.includes("plantain") ||
-      n.includes("banana") ||
-      n.includes("mango")
-    )
-      return <Apple className="w-4 h-4 text-text-muted" />;
-    if (n.includes("vegetable") || n.includes("leaf") || n.includes("spinach"))
-      return <Carrot className="w-4 h-4 text-text-muted" />;
-    if (n.includes("dessert") || n.includes("sweet") || n.includes("cake"))
-      return <Cake className="w-4 h-4 text-text-muted" />;
-    if (n.includes("dairy") || n.includes("milk") || n.includes("yogurt"))
-      return <Milk className="w-4 h-4 text-text-muted" />;
-    if (n.includes("bread") || n.includes("pie"))
-      return <Pizza className="w-4 h-4 text-text-muted" />;
-    return <Utensils className="w-4 h-4 text-text-muted" />;
   };
 
   const { data: categories = [] } = useQuery({
@@ -155,9 +86,46 @@ const AdminProductsPage = () => {
   });
 
   const stats = statsData?.data ?? { total: 0, active: 0, lowStock: 0, outOfStock: 0 };
-
   const products = data?.data ?? [];
   const meta = data?.meta ?? { total: 0, limit: 20 };
+
+  const statsCards = useMemo(
+    () => [
+      {
+        label: "Total Products",
+        value: stats.total,
+        icon: Box,
+        iconColor: "text-rose-600",
+        pct: 0,
+        trend: "neutral",
+      },
+      {
+        label: "Active",
+        value: stats.active,
+        icon: Check,
+        iconColor: "text-emerald-600",
+        pct: stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0,
+        trend: stats.total > 0 ? (stats.active / stats.total >= 0.8 ? "up" : "down") : "neutral",
+      },
+      {
+        label: "Low Stock",
+        value: stats.lowStock,
+        icon: RotateCcw,
+        iconColor: "text-amber-600",
+        pct: stats.total > 0 ? Math.round((stats.lowStock / stats.total) * 100) : 0,
+        trend: stats.lowStock === 0 ? "up" : stats.lowStock <= 2 ? "neutral" : "down",
+      },
+      {
+        label: "Out of Stock",
+        value: stats.outOfStock,
+        icon: AlertCircle,
+        iconColor: "text-rose-600",
+        pct: stats.total > 0 ? Math.round((stats.outOfStock / stats.total) * 100) : 0,
+        trend: stats.outOfStock === 0 ? "up" : "down",
+      },
+    ],
+    [stats.total, stats.active, stats.lowStock, stats.outOfStock],
+  );
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
 
@@ -192,12 +160,6 @@ const AdminProductsPage = () => {
   const hasArchived = selectedProducts.some((p) => !p.isActive);
   const hasActive = selectedProducts.some((p) => p.isActive);
 
-  // Optimistically flip the cached row status so the UI reflects the new
-  // state immediately. Without this, invalidateQueries triggers an async
-  // refetch while onSettled already clears the processing flag, so the row
-  // flickers back to the stale status ("Active") before the refetch lands.
-  // For deletions, drop the rows outright instead of leaving a stale
-  // "Archived" entry behind.
   const optimisticUpdate = (ids, isActive, { remove = false } = {}) => {
     queryClient.setQueriesData(["admin", "products"], (old) => {
       // The prefix also matches the stats query, whose data is an object.
@@ -358,7 +320,7 @@ const AdminProductsPage = () => {
     <div>
       <AdminPageHeader
         title="Products"
-        subtitle={`${products.length} products on this page.`}
+        subtitle=""
         action={
           <button
             onClick={() => toggleModal("create")}
@@ -369,7 +331,7 @@ const AdminProductsPage = () => {
         }
       />
       {/* Filter bar */}
-      <div className="bg-surface rounded-xl border border-border p-4 mb-4 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
         <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
           <input
@@ -380,101 +342,198 @@ const AdminProductsPage = () => {
               setPage(1);
             }}
             placeholder="Search products..."
-            className="w-full pl-9 pr-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
+            className="w-full pl-9 pr-4 py-2 bg-primary/5 border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
           />
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap">
-          <div className="relative group flex-1 sm:flex-none min-w-0">
-            <button className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors w-full sm:min-w-35">
+          <div className="relative flex-1 sm:flex-none min-w-0">
+            <button
+              type="button"
+              onClick={() => {
+                setStatusDropdownOpen((o) => !o);
+                setCategoryDropdownOpen(false);
+              }}
+              className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors w-full sm:min-w-35"
+            >
               {statusLabels[statusFilter].icon}
               <span className="flex-1 text-left">{statusLabels[statusFilter].label}</span>
-              <ChevronDown className="w-4 h-4 opacity-70 group-hover:rotate-180 transition-transform" />
+              <ChevronDown
+                className={`w-4 h-4 opacity-70 transition-transform ${statusDropdownOpen ? "rotate-180" : ""}`}
+              />
             </button>
-            <div className="absolute right-0 top-full mt-2 w-full sm:w-48 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-              {Object.entries(statusLabels).map(([value, { label, icon }]) => (
-                <button
-                  key={value}
-                  onClick={() => {
-                    setStatusFilter(value);
-                    setPage(1);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                    statusFilter === value ? "text-primary font-semibold bg-primary/5" : "text-text"
-                  }`}
-                >
-                  {icon}
-                  <span className="flex-1">{label}</span>
-                  {statusFilter === value && <Check className="w-3.5 h-3.5" />}
-                </button>
-              ))}
-            </div>
+            {statusDropdownOpen && (
+              <div className="absolute z-50 top-full left-0 mt-2 w-full sm:w-48 bg-surface rounded-xl shadow-soft border border-border py-1 overflow-hidden">
+                {Object.entries(statusLabels).map(([value, { label, icon }]) => (
+                  <button
+                    key={value}
+                    onClick={() => {
+                      setStatusFilter(value);
+                      setPage(1);
+                      setStatusDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                      statusFilter === value
+                        ? "text-primary font-semibold bg-primary/5"
+                        : "text-text"
+                    }`}
+                  >
+                    {icon}
+                    <span className="flex-1">{label}</span>
+                    {statusFilter === value && <Check className="w-3.5 h-3.5" />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="relative group flex-1 sm:flex-none min-w-0">
-            <button className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors w-full sm:min-w-35">
+          <div className="relative flex-1 sm:flex-none min-w-0">
+            <button
+              type="button"
+              onClick={() => {
+                setCategoryDropdownOpen((o) => !o);
+                setStatusDropdownOpen(false);
+              }}
+              className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors w-full sm:min-w-35"
+            >
               <FolderOpen className="w-4 h-4" />
               <span className="flex-1 text-left">
                 {categoryFilter === "all"
                   ? "All Categories"
                   : categories.find((c) => c._id === categoryFilter)?.name || "All Categories"}
               </span>
-              <ChevronDown className="w-4 h-4 opacity-70 group-hover:rotate-180 transition-transform" />
+              <ChevronDown
+                className={`w-4 h-4 opacity-70 transition-transform ${categoryDropdownOpen ? "rotate-180" : ""}`}
+              />
             </button>
-            <div className="absolute right-0 top-full mt-2 w-full sm:w-52 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 max-h-80 overflow-y-auto">
-              <button
-                onClick={() => {
-                  setCategoryFilter("all");
-                  setPage(1);
-                }}
-                className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                  categoryFilter === "all" ? "text-primary font-semibold bg-primary/5" : "text-text"
-                }`}
-              >
-                <FolderOpen className="w-4 h-4" />
-                <span className="flex-1">All Categories</span>
-                {categoryFilter === "all" && <Check className="w-3.5 h-3.5" />}
-              </button>
-              {categories.map((c) => (
+            {categoryDropdownOpen && (
+              <div className="absolute z-50 top-full left-0 mt-2 w-full sm:w-52 bg-surface rounded-xl shadow-soft border border-border py-1 max-h-72 overflow-y-auto">
                 <button
-                  key={c._id}
                   onClick={() => {
-                    setCategoryFilter(c._id);
+                    setCategoryFilter("all");
                     setPage(1);
+                    setCategoryDropdownOpen(false);
                   }}
                   className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                    categoryFilter === c._id
+                    categoryFilter === "all"
                       ? "text-primary font-semibold bg-primary/5"
                       : "text-text"
                   }`}
                 >
-                  {getCategoryIcon(c.name)}
-                  <span className="flex-1">{c.name}</span>
-                  {categoryFilter === c._id && <Check className="w-3.5 h-3.5" />}
+                  <FolderOpen className="w-4 h-4" />
+                  <span className="flex-1">All Categories</span>
+                  {categoryFilter === "all" && <Check className="w-3.5 h-3.5" />}
                 </button>
-              ))}
-            </div>
+                {categories.map((c) => (
+                  <button
+                    key={c._id}
+                    onClick={() => {
+                      setCategoryFilter(c._id);
+                      setPage(1);
+                      setCategoryDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                      categoryFilter === c._id
+                        ? "text-primary font-semibold bg-primary/5"
+                        : "text-text"
+                    }`}
+                  >
+                    {getCategoryIcon(c.name)}
+                    <span className="flex-1">{c.name}</span>
+                    {categoryFilter === c._id && <Check className="w-3.5 h-3.5" />}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-        {[
-          { label: "TOTAL", value: stats.total, color: "text-text" },
-          { label: "ACTIVE", value: stats.active, color: "text-emerald-700" },
-          { label: "LOW STOCK", value: stats.lowStock, color: "text-amber-600" },
-          { label: "OUT OF STOCK", value: stats.outOfStock, color: "text-rose-600" },
-        ].map((s) => (
-          <div key={s.label} className="bg-surface rounded-xl border border-border p-4">
-            <div className="text-xs text-text-muted uppercase tracking-wide">{s.label}</div>
-            <div className={`text-2xl font-heading font-bold mt-1 ${s.color}`}>{s.value}</div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        {statsCards.map((s) => (
+          <div
+            key={s.label}
+            className="relative bg-surface rounded-[20px] p-5 shadow-sm border border-border/60 overflow-hidden"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <div
+                className={`p-2 rounded-lg ${
+                  s.iconColor === "text-emerald-600"
+                    ? "bg-emerald-50"
+                    : s.iconColor === "text-amber-600"
+                      ? "bg-amber-50"
+                      : "bg-rose-50"
+                }`}
+              >
+                <s.icon className={`w-5 h-5 ${s.iconColor}`} />
+              </div>
+              <div
+                className={`px-2 py-0.5 rounded-md text-xs font-medium flex items-center gap-1 ${
+                  s.pct === 0 || s.pct === null
+                    ? "bg-background-soft text-text-muted"
+                    : s.trend === "up"
+                      ? "bg-emerald-50 text-emerald-600"
+                      : "bg-rose-50 text-rose-600"
+                }`}
+              >
+                {s.pct === 0 ? (
+                  "0%"
+                ) : (
+                  <>
+                    {s.trend === "up" && (
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2.5}
+                          d="M5 15l7-7 7 7"
+                        />
+                      </svg>
+                    )}
+                    {s.trend === "down" && (
+                      <svg
+                        className="w-3 h-3"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2.5}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    )}
+                    {s.trend === "up" && "+"}
+                    {s.trend === "down" && "-"}
+                    {s.pct}%
+                  </>
+                )}
+              </div>
+            </div>
+            <div className="text-sm font-medium text-text-muted">{s.label}</div>
+            <div className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</div>
+            {/* Background SVG shape */}
+            <svg
+              className="absolute -bottom-2 -right-2 w-20 h-20 text-primary/5 pointer-events-none"
+              viewBox="0 0 100 100"
+              fill="currentColor"
+            >
+              <path d="M100 0C44.77 0 0 44.77 0 100h100V0z" />
+            </svg>
           </div>
         ))}
       </div>
-      <div className="bg-surface rounded-xl border border-border overflow-hidden">
+      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 overflow-hidden">
         {/* Bulk Actions */}
         {selectedIds.size > 0 && (
-          <div className="bg-surface border border-border p-4 mb-4 rounded-xl flex items-center justify-between">
+          <div className="bg-surface border border-border/60 p-4 mb-4 rounded-[20px] flex items-center justify-between shadow-sm">
             <span className="text-sm font-medium">{selectedIds.size} selected</span>
             <div className="flex gap-2">
               {hasActive && (
