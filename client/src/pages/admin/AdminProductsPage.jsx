@@ -21,6 +21,9 @@ import {
   Search,
   Check,
   Loader2,
+  ChevronDown,
+  FolderOpen,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -35,6 +38,14 @@ const AdminProductsPage = () => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [processingIds, setProcessingIds] = useState(new Set());
   const isProcessing = (id) => processingIds.has(id);
+
+  const statusLabels = {
+    all: { label: "All Products", icon: <Package className="w-4 h-4" /> },
+    active: { label: "Active", icon: <Check className="w-4 h-4 text-emerald-500" /> },
+    archived: { label: "Archived", icon: <Archive className="w-4 h-4 text-slate-500" /> },
+    lowStock: { label: "Low in stock", icon: <RotateCcw className="w-4 h-4 text-amber-500" /> },
+    outOfStock: { label: "Out of stock", icon: <AlertCircle className="w-4 h-4 text-rose-500" /> },
+  };
 
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
@@ -300,35 +311,76 @@ const AdminProductsPage = () => {
           />
         </div>
         <div className="flex items-center gap-3 flex-wrap">
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            className="bg-primary text-white border-0 rounded-lg px-3 py-2 text-sm focus:outline-none cursor-pointer"
-          >
-            <option value="all">All Products</option>
-            <option value="active">Active</option>
-            <option value="archived">Archived</option>
-            <option value="lowStock">Low in stock</option>
-            <option value="outOfStock">Out of stock</option>
-          </select>
-          <select
-            value={categoryFilter}
-            onChange={(e) => {
-              setCategoryFilter(e.target.value);
-              setPage(1);
-            }}
-            className="bg-primary text-white border-0 rounded-lg px-3 py-2 text-sm focus:outline-none cursor-pointer"
-          >
-            <option value="all">All Categories</option>
-            {categories.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <div className="relative group">
+            <button className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors min-w-[140px]">
+              {statusLabels[statusFilter].icon}
+              <span className="flex-1 text-left">{statusLabels[statusFilter].label}</span>
+              <ChevronDown className="w-4 h-4 opacity-70 group-hover:rotate-180 transition-transform" />
+            </button>
+            <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              {Object.entries(statusLabels).map(([value, { label, icon }]) => (
+                <button
+                  key={value}
+                  onClick={() => {
+                    setStatusFilter(value);
+                    setPage(1);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                    statusFilter === value ? "text-primary font-semibold bg-primary/5" : "text-text"
+                  }`}
+                >
+                  {icon}
+                  <span className="flex-1">{label}</span>
+                  {statusFilter === value && <Check className="w-3.5 h-3.5" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative group">
+            <button className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors min-w-[150px]">
+              <FolderOpen className="w-4 h-4" />
+              <span className="flex-1 text-left">
+                {categoryFilter === "all"
+                  ? "All Categories"
+                  : categories.find((c) => c._id === categoryFilter)?.name || "All Categories"}
+              </span>
+              <ChevronDown className="w-4 h-4 opacity-70 group-hover:rotate-180 transition-transform" />
+            </button>
+            <div className="absolute right-0 top-full mt-2 w-52 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 max-h-80 overflow-y-auto">
+              <button
+                onClick={() => {
+                  setCategoryFilter("all");
+                  setPage(1);
+                }}
+                className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                  categoryFilter === "all" ? "text-primary font-semibold bg-primary/5" : "text-text"
+                }`}
+              >
+                <FolderOpen className="w-4 h-4" />
+                <span className="flex-1">All Categories</span>
+                {categoryFilter === "all" && <Check className="w-3.5 h-3.5" />}
+              </button>
+              {categories.map((c) => (
+                <button
+                  key={c._id}
+                  onClick={() => {
+                    setCategoryFilter(c._id);
+                    setPage(1);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                    categoryFilter === c._id
+                      ? "text-primary font-semibold bg-primary/5"
+                      : "text-text"
+                  }`}
+                >
+                  <Package className="w-4 h-4 opacity-50" />
+                  <span className="flex-1">{c.name}</span>
+                  {categoryFilter === c._id && <Check className="w-3.5 h-3.5" />}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
