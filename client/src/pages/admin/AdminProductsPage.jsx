@@ -24,6 +24,18 @@ import {
   ChevronDown,
   FolderOpen,
   AlertCircle,
+  Utensils,
+  Soup,
+  Drumstick,
+  Croissant,
+  Coffee,
+  Wine,
+  Nut,
+  Apple,
+  Carrot,
+  Cake,
+  Milk,
+  Pizza,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -45,6 +57,67 @@ const AdminProductsPage = () => {
     archived: { label: "Archived", icon: <Archive className="w-4 h-4 text-slate-500" /> },
     lowStock: { label: "Low in stock", icon: <RotateCcw className="w-4 h-4 text-amber-500" /> },
     outOfStock: { label: "Out of stock", icon: <AlertCircle className="w-4 h-4 text-rose-500" /> },
+  };
+
+  // Match the dish-related icons used in the Help dropdown so the two
+  // category lists stay visually consistent.
+  const getCategoryIcon = (name) => {
+    const n = (name || "").toLowerCase();
+    if (n.includes("soup")) return <Soup className="w-4 h-4 text-text-muted" />;
+    if (
+      n.includes("swallow") ||
+      n.includes("fufu") ||
+      n.includes("yam") ||
+      n.includes("amala") ||
+      n.includes("eba") ||
+      n.includes("garri") ||
+      n.includes("semo")
+    )
+      return <Utensils className="w-4 h-4 text-text-muted" />;
+    if (
+      n.includes("protein") ||
+      n.includes("beef") ||
+      n.includes("chicken") ||
+      n.includes("fish") ||
+      n.includes("meat") ||
+      n.includes("suya")
+    )
+      return <Drumstick className="w-4 h-4 text-text-muted" />;
+    if (
+      n.includes("snack") ||
+      n.includes("boli") ||
+      n.includes("groundnut") ||
+      n.includes("akara") ||
+      n.includes("puff")
+    )
+      return <Croissant className="w-4 h-4 text-text-muted" />;
+    if (
+      n.includes("drink") ||
+      n.includes("zobo") ||
+      n.includes("tea") ||
+      n.includes("coffee") ||
+      n.includes("malt")
+    )
+      return <Coffee className="w-4 h-4 text-text-muted" />;
+    if (n.includes("oil") || n.includes("fat")) return <Wine className="w-4 h-4 text-text-muted" />;
+    if (n.includes("season") || n.includes("spice") || n.includes("salt") || n.includes("pepper"))
+      return <Nut className="w-4 h-4 text-text-muted" />;
+    if (
+      n.includes("fruit") ||
+      n.includes("plantain") ||
+      n.includes("banana") ||
+      n.includes("mango")
+    )
+      return <Apple className="w-4 h-4 text-text-muted" />;
+    if (n.includes("vegetable") || n.includes("leaf") || n.includes("spinach"))
+      return <Carrot className="w-4 h-4 text-text-muted" />;
+    if (n.includes("dessert") || n.includes("sweet") || n.includes("cake"))
+      return <Cake className="w-4 h-4 text-text-muted" />;
+    if (n.includes("dairy") || n.includes("milk") || n.includes("yogurt"))
+      return <Milk className="w-4 h-4 text-text-muted" />;
+    if (n.includes("bread") || n.includes("pie"))
+      return <Pizza className="w-4 h-4 text-text-muted" />;
+    return <Utensils className="w-4 h-4 text-text-muted" />;
   };
 
   const { data: categories = [] } = useQuery({
@@ -289,14 +362,14 @@ const AdminProductsPage = () => {
         action={
           <button
             onClick={() => toggleModal("create")}
-            className="px-4 py-2 bg-primary text-white font-medium rounded-lg inline-flex items-center gap-2 hover:bg-primary/95 transition-colors"
+            className="w-full sm:w-auto px-4 py-2 bg-primary text-white font-medium rounded-lg inline-flex items-center justify-center gap-2 hover:bg-primary/95 transition-colors"
           >
             <Plus className="w-4 h-4" /> Add Product
           </button>
         }
       />
       {/* Filter bar */}
-      <div className="bg-surface rounded-xl border border-border p-4 mb-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+      <div className="bg-surface rounded-xl border border-border p-4 mb-4 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
         <div className="relative flex-1 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
           <input
@@ -310,14 +383,14 @@ const AdminProductsPage = () => {
             className="w-full pl-9 pr-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
           />
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative group">
-            <button className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors min-w-[140px]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap">
+          <div className="relative group flex-1 sm:flex-none min-w-0">
+            <button className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors w-full sm:min-w-35">
               {statusLabels[statusFilter].icon}
               <span className="flex-1 text-left">{statusLabels[statusFilter].label}</span>
               <ChevronDown className="w-4 h-4 opacity-70 group-hover:rotate-180 transition-transform" />
             </button>
-            <div className="absolute right-0 top-full mt-2 w-48 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+            <div className="absolute right-0 top-full mt-2 w-full sm:w-48 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
               {Object.entries(statusLabels).map(([value, { label, icon }]) => (
                 <button
                   key={value}
@@ -337,8 +410,8 @@ const AdminProductsPage = () => {
             </div>
           </div>
 
-          <div className="relative group">
-            <button className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors min-w-[150px]">
+          <div className="relative group flex-1 sm:flex-none min-w-0">
+            <button className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors w-full sm:min-w-35">
               <FolderOpen className="w-4 h-4" />
               <span className="flex-1 text-left">
                 {categoryFilter === "all"
@@ -347,7 +420,7 @@ const AdminProductsPage = () => {
               </span>
               <ChevronDown className="w-4 h-4 opacity-70 group-hover:rotate-180 transition-transform" />
             </button>
-            <div className="absolute right-0 top-full mt-2 w-52 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 max-h-80 overflow-y-auto">
+            <div className="absolute right-0 top-full mt-2 w-full sm:w-52 bg-surface rounded-lg shadow-soft border border-border py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 max-h-80 overflow-y-auto">
               <button
                 onClick={() => {
                   setCategoryFilter("all");
@@ -374,7 +447,7 @@ const AdminProductsPage = () => {
                       : "text-text"
                   }`}
                 >
-                  <Package className="w-4 h-4 opacity-50" />
+                  {getCategoryIcon(c.name)}
                   <span className="flex-1">{c.name}</span>
                   {categoryFilter === c._id && <Check className="w-3.5 h-3.5" />}
                 </button>

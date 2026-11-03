@@ -48,30 +48,67 @@ export const EmptyState = ({ icon, title, description, action }) => (
 );
 
 // Pagination controls. `total` and `limit` drive the page count.
+// Renders a pill of numbered pages (active page filled with primary) with
+// prev/next chevrons on either side, matching the reference pagination UI.
 export const Pagination = ({ page, total, limit, onChange }) => {
   const pages = Math.max(1, Math.ceil(total / limit));
   if (pages <= 1) return null;
 
   const go = (p) => onChange(Math.min(Math.max(1, p), pages));
 
+  // Build the visible page range: show up to 5 consecutive pages, then an
+  // ellipsis, then the last page — similar to the reference pagination.
+  const visible = [];
+  const maxVisible = 5;
+  if (pages <= maxVisible + 2) {
+    for (let i = 1; i <= pages; i++) visible.push(i);
+  } else {
+    const start = Math.max(1, Math.min(page - 2, pages - maxVisible + 1));
+    for (let i = start; i < start + maxVisible; i++) visible.push(i);
+    if (visible[visible.length - 1] !== pages) visible.push(pages);
+  }
+
   return (
-    <div className="flex items-center justify-center gap-2 mt-6">
+    <div className="flex items-center justify-center gap-3 mt-6">
       <button
         onClick={() => go(page - 1)}
         disabled={page === 1}
-        className="w-9 h-9 rounded-lg border border-border bg-surface disabled:opacity-40 hover:bg-background transition-colors"
+        className="w-9 h-9 rounded-full border border-border bg-surface disabled:opacity-40 hover:bg-background transition-colors flex items-center justify-center"
       >
-        <ChevronLeft className="w-4 h-4 mx-auto" />
+        <ChevronLeft className="w-4 h-4 text-text-muted" />
       </button>
-      <span className="text-sm text-text-muted px-2">
-        Page {page} of {pages}
-      </span>
+
+      <div className="flex items-center gap-1 bg-surface border border-border rounded-full px-2 py-1">
+        {visible.map((p, idx) => {
+          const isLast = idx === visible.length - 1;
+          const showEllipsis = !isLast && p !== pages - 1 && visible[idx + 1] === pages;
+          if (showEllipsis) {
+            return (
+              <span key="ellipsis" className="px-1.5 text-text-muted text-sm select-none">
+                ...
+              </span>
+            );
+          }
+          return (
+            <button
+              key={p}
+              onClick={() => go(p)}
+              className={`w-8 h-8 rounded-full text-sm font-medium transition-colors flex items-center justify-center ${
+                p === page ? "bg-primary text-on-accent" : "text-text-muted hover:bg-background"
+              }`}
+            >
+              {p}
+            </button>
+          );
+        })}
+      </div>
+
       <button
         onClick={() => go(page + 1)}
         disabled={page === pages}
-        className="w-9 h-9 rounded-lg border border-border bg-surface disabled:opacity-40 hover:bg-background transition-colors"
+        className="w-9 h-9 rounded-full border border-border bg-surface disabled:opacity-40 hover:bg-background transition-colors flex items-center justify-center"
       >
-        <ChevronRight className="w-4 h-4 mx-auto" />
+        <ChevronRight className="w-4 h-4 text-text-muted" />
       </button>
     </div>
   );

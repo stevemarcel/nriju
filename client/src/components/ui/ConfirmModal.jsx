@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { X } from "lucide-react";
+import { X, AlertTriangle } from "lucide-react";
 
 export const ConfirmModal = ({
   open,
@@ -42,50 +42,59 @@ export const ConfirmModal = ({
 
   if (!open) return null;
 
-  const btnCls =
+  const confirmBtnCls =
     confirmVariant === "destructive"
-      ? "bg-rose-600 hover:bg-rose-700 text-white"
-      : "bg-primary hover:bg-primary/95 text-white";
+      ? "bg-primary text-white hover:bg-primary/90"
+      : "bg-primary text-white hover:bg-primary/90";
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center p-4"
+      className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]"
       ref={ref}
       onTransitionEnd={handleTransitionEnd}
     >
-      <div className="absolute inset-0 bg-black/60" onClick={handleCancel} />
+      <div className="absolute inset-0" onClick={handleCancel} />
       <div
-        className={`relative w-full max-w-sm bg-surface rounded-xl border border-border shadow-lg animate-in ${
-          visible ? "" : "animate-out"
+        className={`relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-300 ease-out ${
+          visible ? "scale-100 opacity-100" : "scale-95 opacity-0"
         }`}
       >
-        <div className="flex items-center justify-between p-5 border-b border-border">
-          <h2 className="font-heading text-base font-semibold text-text">{title}</h2>
-          <button
-            onClick={handleCancel}
-            className="p-1 rounded hover:bg-background-soft text-text-muted"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        {description && (
-          <div className="px-5 py-4">
-            <p className="text-sm text-text-muted leading-relaxed">{description}</p>
+        {/* Close Button */}
+        <button
+          onClick={handleCancel}
+          className="absolute right-5 top-5 p-1.5 rounded-full bg-rose-50 text-primary hover:bg-rose-100 transition-colors z-10"
+        >
+          <X className="w-4 h-4 stroke-[3px]" />
+        </button>
+
+        <div className="p-8 pt-10 flex flex-col items-center text-center">
+          {/* Icon */}
+          <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center mb-6">
+            <AlertTriangle className="w-8 h-8 text-primary fill-primary" />
           </div>
-        )}
-        <div className="flex justify-end gap-3 p-5 pt-3 border-t border-border">
-          <button
-            onClick={handleCancel}
-            className="px-4 py-2 text-sm text-text-muted hover:bg-background-soft rounded-lg transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleConfirm}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${btnCls}`}
-          >
-            {confirmLabel}
-          </button>
+
+          <h2 className="text-[28px] font-bold text-text mb-3 leading-tight">
+            {title || "Are you sure?"}
+          </h2>
+
+          <p className="text-text-secondary text-base leading-relaxed max-w-[320px]">
+            {description}
+          </p>
+
+          <div className="flex w-full gap-4 mt-10">
+            <button
+              onClick={handleCancel}
+              className="flex-1 px-6 py-3.5 text-base font-bold text-primary bg-rose-50 hover:bg-rose-100 rounded-[14px] transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirm}
+              className={`flex-1 px-6 py-3.5 text-base font-bold rounded-[14px] transition-all active:scale-[0.98] ${confirmBtnCls}`}
+            >
+              {confirmLabel || "Confirm"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
