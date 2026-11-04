@@ -24,17 +24,21 @@ import {
 import { getCategoryIcon } from "../../utils/categoryIcons";
 
 const Header = () => {
+  // --- Router hooks ---
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // --- Auth ---
   const { user, loading } = useAppSelector((s) => s.auth);
-  const { items } = useAppSelector((s) => s.cart);
+
+  // --- UI state ---
   const [search, setSearch] = useState("");
   const [accountOpen, setAccountOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const headerRef = useRef(null);
 
-  // Close dropdowns when clicking outside
+  // Close both dropdowns when the user clicks outside the header.
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (headerRef.current && !headerRef.current.contains(event.target)) {
@@ -46,17 +50,21 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // --- Derived values ---
+  const { items } = useAppSelector((s) => s.cart);
+  const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
+  const { items: wishlistItems } = useAppSelector((s) => s.wishlist);
+  const wishlistCount = wishlistItems.length;
+  const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
+
+  // --- Queries ---
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => (await api.get("/categories")).data.data,
     staleTime: 5 * 60 * 1000,
   });
 
-  const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
-  const { items: wishlistItems } = useAppSelector((s) => s.wishlist);
-  const wishlistCount = wishlistItems.length;
-  const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
-
+  // --- Render handlers ---
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const params = new URLSearchParams();
@@ -182,7 +190,7 @@ const Header = () => {
               ) : (
                 <Link
                   to="/login"
-                  state={{ from: { pathname: "/" } }}
+                  state={{ from: location }}
                   className="px-3 py-1.5 text-sm font-medium text-text rounded-full hover:bg-background transition-colors"
                 >
                   Login
