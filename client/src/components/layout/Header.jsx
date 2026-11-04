@@ -124,7 +124,7 @@ const Header = () => {
               {loading ? (
                 <div className="w-8 h-8 rounded-full bg-surface animate-pulse" />
               ) : user ? (
-                <div className="group relative pb-2">
+                <div className="group relative">
                   <button
                     type="button"
                     onClick={() => setAccountOpen(!accountOpen)}
@@ -198,7 +198,7 @@ const Header = () => {
               )}
 
               {/* Help dropdown — click to open */}
-              <div className="group relative pb-2">
+              <div className="group relative">
                 <button
                   type="button"
                   onClick={() => setHelpOpen(!helpOpen)}
@@ -265,7 +265,7 @@ const Header = () => {
                 </div>
               </div>
 
-              {/* Shop — large screens only; mobile covers it via the tab bar */}
+              {/* Shop - large screens only; mobile covers it via the tab bar */}
               <Link
                 to="/shop"
                 className="hidden md:flex items-center gap-1.5 px-2 py-1.5 rounded-full hover:bg-background transition-colors text-sm font-medium text-text"
