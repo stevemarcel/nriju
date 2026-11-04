@@ -330,6 +330,7 @@ const AdminProductsPage = () => {
       />
       {/* Filter bar */}
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">
+        {/* Search */}
         <div className="relative flex-3 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
           <input
@@ -343,13 +344,18 @@ const AdminProductsPage = () => {
             className="w-full pl-9 pr-4 py-2 bg-primary/5 border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
           />
         </div>
+
         <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 flex-wrap flex-2">
-          <div className="relative w-full md:w-0 md:flex-1 min-w-0">
+          {/* Status Filter */}
+          <div className="relative w-full md:w-0 md:flex-1">
             <Dropdown
               trigger={
                 <>
                   {statusLabels[statusFilter].icon}
-                  <span className="flex-1 text-left"> {statusLabels[statusFilter].label}</span>
+                  <span className="flex-1 text-left whitespace-nowrap">
+                    {" "}
+                    {statusLabels[statusFilter].label}
+                  </span>
                 </>
               }
               color="primary"
@@ -375,12 +381,13 @@ const AdminProductsPage = () => {
             </Dropdown>
           </div>
 
-          <div className="relative w-full md:w-0 md:flex-1 min-w-0">
+          {/* Category Filter */}
+          <div className="relative w-full md:w-0 md:flex-1">
             <Dropdown
               trigger={
                 <>
                   <FolderOpen className="w-4 h-4" />
-                  <span className="flex-1 text-left">
+                  <span className="flex-1 text-left whitespace-nowrap">
                     {categoryFilter === "all"
                       ? "All Categories"
                       : categories.find((c) => c._id === categoryFilter)?.name || "All Categories"}
