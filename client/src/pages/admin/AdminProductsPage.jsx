@@ -11,6 +11,7 @@ import {
 } from "../../components/admin/AdminPrimitives";
 import ProductFormModal from "../../components/ui/ProductFormModal";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import Dropdown from "../../components/ui/Dropdown";
 import { getCategoryIcon } from "../../utils/categoryIcons";
 import {
   Plus,
@@ -22,7 +23,6 @@ import {
   Search,
   Check,
   Loader2,
-  ChevronDown,
   FolderOpen,
   AlertCircle,
   Box,
@@ -40,8 +40,6 @@ const AdminProductsPage = () => {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [processingIds, setProcessingIds] = useState(new Set());
   const isProcessing = (id) => processingIds.has(id);
-  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
-  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
 
   const statusLabels = {
     all: { label: "All Products", icon: <Package className="w-4 h-4" /> },
@@ -347,103 +345,86 @@ const AdminProductsPage = () => {
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap">
           <div className="relative flex-1 sm:flex-none min-w-0">
-            <button
-              type="button"
-              onClick={() => {
-                setStatusDropdownOpen((o) => !o);
-                setCategoryDropdownOpen(false);
-              }}
-              className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors w-full sm:min-w-35"
+            <Dropdown
+              trigger={
+                <>
+                  {statusLabels[statusFilter].icon}
+                  <span className="flex-1 text-left">{statusLabels[statusFilter].label}</span>
+                </>
+              }
+              color="primary"
+              menuClassName="sm:w-48"
             >
-              {statusLabels[statusFilter].icon}
-              <span className="flex-1 text-left">{statusLabels[statusFilter].label}</span>
-              <ChevronDown
-                className={`w-4 h-4 opacity-70 transition-transform ${statusDropdownOpen ? "rotate-180" : ""}`}
-              />
-            </button>
-            {statusDropdownOpen && (
-              <div className="absolute z-50 top-full left-0 mt-2 w-full sm:w-48 bg-surface rounded-xl shadow-soft border border-border py-1 overflow-hidden">
-                {Object.entries(statusLabels).map(([value, { label, icon }]) => (
-                  <button
-                    key={value}
-                    onClick={() => {
-                      setStatusFilter(value);
-                      setPage(1);
-                      setStatusDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                      statusFilter === value
-                        ? "text-primary font-semibold bg-primary/5"
-                        : "text-text"
-                    }`}
-                  >
-                    {icon}
-                    <span className="flex-1">{label}</span>
-                    {statusFilter === value && <Check className="w-3.5 h-3.5" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="relative flex-1 sm:flex-none min-w-0">
-            <button
-              type="button"
-              onClick={() => {
-                setCategoryDropdownOpen((o) => !o);
-                setStatusDropdownOpen(false);
-              }}
-              className="flex items-center gap-2 px-3 py-2 bg-primary text-white text-sm font-medium rounded-xl hover:bg-primary/90 transition-colors w-full sm:min-w-35"
-            >
-              <FolderOpen className="w-4 h-4" />
-              <span className="flex-1 text-left">
-                {categoryFilter === "all"
-                  ? "All Categories"
-                  : categories.find((c) => c._id === categoryFilter)?.name || "All Categories"}
-              </span>
-              <ChevronDown
-                className={`w-4 h-4 opacity-70 transition-transform ${categoryDropdownOpen ? "rotate-180" : ""}`}
-              />
-            </button>
-            {categoryDropdownOpen && (
-              <div className="absolute z-50 top-full left-0 mt-2 w-full sm:w-52 bg-surface rounded-xl shadow-soft border border-border py-1 max-h-72 overflow-y-auto">
+              {Object.entries(statusLabels).map(([value, { label, icon }]) => (
                 <button
+                  key={value}
                   onClick={() => {
-                    setCategoryFilter("all");
+                    setStatusFilter(value);
                     setPage(1);
-                    setCategoryDropdownOpen(false);
                   }}
                   className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                    categoryFilter === "all"
+                    statusFilter === value
                       ? "text-primary font-semibold bg-primary/5"
                       : "text-text"
                   }`}
                 >
-                  <FolderOpen className="w-4 h-4" />
-                  <span className="flex-1">All Categories</span>
-                  {categoryFilter === "all" && <Check className="w-3.5 h-3.5" />}
+                  {icon}
+                  <span className="flex-1">{label}</span>
+                  {statusFilter === value && <Check className="w-3.5 h-3.5" />}
                 </button>
-                {categories.map((c) => (
-                  <button
-                    key={c._id}
-                    onClick={() => {
-                      setCategoryFilter(c._id);
-                      setPage(1);
-                      setCategoryDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                      categoryFilter === c._id
-                        ? "text-primary font-semibold bg-primary/5"
-                        : "text-text"
-                    }`}
-                  >
-                    {getCategoryIcon(c.name)}
-                    <span className="flex-1">{c.name}</span>
-                    {categoryFilter === c._id && <Check className="w-3.5 h-3.5" />}
-                  </button>
-                ))}
-              </div>
-            )}
+              ))}
+            </Dropdown>
+          </div>
+
+          <div className="relative flex-1 sm:flex-none min-w-0">
+            <Dropdown
+              trigger={
+                <>
+                  <FolderOpen className="w-4 h-4" />
+                  <span className="flex-1 text-left">
+                    {categoryFilter === "all"
+                      ? "All Categories"
+                      : categories.find((c) => c._id === categoryFilter)?.name || "All Categories"}
+                  </span>
+                </>
+              }
+              color="primary"
+              menuClassName="sm:w-52"
+            >
+              <button
+                onClick={() => {
+                  setCategoryFilter("all");
+                  setPage(1);
+                }}
+                className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                  categoryFilter === "all"
+                    ? "text-primary font-semibold bg-primary/5"
+                    : "text-text"
+                }`}
+              >
+                <FolderOpen className="w-4 h-4" />
+                <span className="flex-1">All Categories</span>
+                {categoryFilter === "all" && <Check className="w-3.5 h-3.5" />}
+              </button>
+              {categories.map((c) => (
+                <button
+                  key={c._id}
+                  onClick={() => {
+                    setCategoryFilter(c._id);
+                    setPage(1);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                    categoryFilter === c._id
+                      ? "text-primary font-semibold bg-primary/5"
+                      : "text-text"
+                  }`}
+                >
+                  {getCategoryIcon(c.name)}
+                  <span className="flex-1">{c.name}</span>
+                  {categoryFilter === c._id && <Check className="w-3.5 h-3.5" />}
+                </button>
+              ))}
+            </Dropdown>
           </div>
         </div>
       </div>

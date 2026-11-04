@@ -13,7 +13,6 @@ import {
   Package,
   LogOut,
   Search as SearchIcon,
-  ChevronDown,
   Heart,
   HelpCircle,
   BookOpen,
@@ -25,18 +24,13 @@ import {
   Soup,
   Drumstick,
   Croissant,
-  Salad,
   Wine,
-  IceCream,
   Apple,
   Carrot,
-  Grape,
   Nut,
   Cake,
   Milk,
-  Beer,
   Pizza,
-  Sandwich,
   Coffee,
 } from "lucide-react";
 
@@ -89,8 +83,6 @@ const Header = () => {
     navigate("/login", { state: { from: location }, replace: true });
   };
 
-  // Pick a dish-related icon for a category name so the Help dropdown
-  // categories row doesn't all look identical.
   const getCategoryIcon = (name) => {
     const n = (name || "").toLowerCase();
     if (n.includes("soup")) return <Soup className="w-4 h-4 text-text-muted" />;
@@ -194,7 +186,7 @@ const Header = () => {
               {loading ? (
                 <div className="w-8 h-8 rounded-full bg-surface animate-pulse" />
               ) : user ? (
-                <div className="relative">
+                <div className="group relative pb-2">
                   <button
                     type="button"
                     onClick={() => setAccountOpen(!accountOpen)}
@@ -216,42 +208,46 @@ const Header = () => {
                     </span>
                   </button>
 
-                  {accountOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-soft border border-border py-1 z-50">
+                  <div
+                    className={`absolute right-0 top-full w-48 bg-surface rounded-lg shadow-soft border border-border py-1 z-50 transition-opacity duration-150 ${
+                      accountOpen
+                        ? "opacity-100 visible"
+                        : "opacity-0 invisible group-hover:opacity-100 group-hover:visible"
+                    }`}
+                  >
+                    <Link
+                      to="/account"
+                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <User className="w-4 h-4 text-text-muted" /> Account
+                    </Link>
+                    <Link
+                      to="/account/orders"
+                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                      onClick={() => setAccountOpen(false)}
+                    >
+                      <Package className="w-4 h-4 text-text-muted" /> Orders
+                    </Link>
+                    {isAdmin && (
                       <Link
-                        to="/account"
+                        to="/admin"
                         className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                         onClick={() => setAccountOpen(false)}
                       >
-                        <User className="w-4 h-4 text-text-muted" /> Account
+                        <Shield className="w-4 h-4 text-text-muted" /> Admin
                       </Link>
-                      <Link
-                        to="/account/orders"
-                        className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                        onClick={() => setAccountOpen(false)}
-                      >
-                        <Package className="w-4 h-4 text-text-muted" /> Orders
-                      </Link>
-                      {isAdmin && (
-                        <Link
-                          to="/admin"
-                          className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                          onClick={() => setAccountOpen(false)}
-                        >
-                          <Shield className="w-4 h-4 text-text-muted" /> Admin
-                        </Link>
-                      )}
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setAccountOpen(false);
-                        }}
-                        className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-background flex items-center gap-2"
-                      >
-                        <LogOut className="w-4 h-4" /> Logout
-                      </button>
-                    </div>
-                  )}
+                    )}
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setAccountOpen(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-background flex items-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" /> Logout
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <Link
@@ -264,7 +260,7 @@ const Header = () => {
               )}
 
               {/* Help dropdown — click to open */}
-              <div className="relative">
+              <div className="group relative pb-2">
                 <button
                   type="button"
                   onClick={() => setHelpOpen(!helpOpen)}
@@ -273,58 +269,62 @@ const Header = () => {
                   <HelpCircle className="w-4 h-4" />
                   <div className="hidden sm:block">Help</div>
                 </button>
-                {helpOpen && (
-                  <div className="absolute right-0 mt-2 w-52 bg-surface rounded-lg shadow-soft border border-border py-1 z-50">
-                    <Link
-                      to="/about"
-                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                      onClick={() => setHelpOpen(false)}
-                    >
-                      <BookOpen className="w-4 h-4 text-text-muted" /> Our Story
-                    </Link>
-                    <Link
-                      to="/delivery"
-                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                      onClick={() => setHelpOpen(false)}
-                    >
-                      <Truck className="w-4 h-4 text-text-muted" /> Delivery Info
-                    </Link>
-                    <Link
-                      to="/returns"
-                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                      onClick={() => setHelpOpen(false)}
-                    >
-                      <RotateCcw className="w-4 h-4 text-text-muted" /> Returns
-                    </Link>
-                    <Link
-                      to="/faq"
-                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                      onClick={() => setHelpOpen(false)}
-                    >
-                      <HelpCircle className="w-4 h-4 text-text-muted" /> FAQ
-                    </Link>
-                    <Link
-                      to="/contact"
-                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                      onClick={() => setHelpOpen(false)}
-                    >
-                      <MessageCircle className="w-4 h-4 text-text-muted" /> Contact
-                    </Link>
-                    <div className="px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted flex items-center gap-2">
-                      <FolderOpen className="w-4 h-4" /> Categories
-                    </div>
-                    {categories?.map((cat) => (
-                      <Link
-                        key={cat._id}
-                        to={`/shop?category=${cat.slug}`}
-                        className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                        onClick={() => setHelpOpen(false)}
-                      >
-                        {getCategoryIcon(cat.name)} {cat.name}
-                      </Link>
-                    ))}
+                <div
+                  className={`absolute right-0 top-full w-52 bg-surface rounded-lg shadow-soft border border-border py-1 z-50 transition-opacity duration-150 ${
+                    helpOpen
+                      ? "opacity-100 visible"
+                      : "opacity-0 invisible group-hover:opacity-100 group-hover:visible"
+                  }`}
+                >
+                  <Link
+                    to="/about"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    onClick={() => setHelpOpen(false)}
+                  >
+                    <BookOpen className="w-4 h-4 text-text-muted" /> Our Story
+                  </Link>
+                  <Link
+                    to="/delivery"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    onClick={() => setHelpOpen(false)}
+                  >
+                    <Truck className="w-4 h-4 text-text-muted" /> Delivery Info
+                  </Link>
+                  <Link
+                    to="/returns"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    onClick={() => setHelpOpen(false)}
+                  >
+                    <RotateCcw className="w-4 h-4 text-text-muted" /> Returns
+                  </Link>
+                  <Link
+                    to="/faq"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    onClick={() => setHelpOpen(false)}
+                  >
+                    <HelpCircle className="w-4 h-4 text-text-muted" /> FAQ
+                  </Link>
+                  <Link
+                    to="/contact"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    onClick={() => setHelpOpen(false)}
+                  >
+                    <MessageCircle className="w-4 h-4 text-text-muted" /> Contact
+                  </Link>
+                  <div className="px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted flex items-center gap-2">
+                    <FolderOpen className="w-4 h-4" /> Categories
                   </div>
-                )}
+                  {categories?.map((cat) => (
+                    <Link
+                      key={cat._id}
+                      to={`/shop?category=${cat.slug}`}
+                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                      onClick={() => setHelpOpen(false)}
+                    >
+                      {getCategoryIcon(cat.name)} {cat.name}
+                    </Link>
+                  ))}
+                </div>
               </div>
 
               {/* Shop — large screens only; mobile covers it via the tab bar */}

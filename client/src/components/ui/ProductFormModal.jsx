@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Save, X, ChevronDown, FolderOpen, Check, Package, Utensils } from "lucide-react";
+import { Save, X, FolderOpen, Check, Package, Utensils } from "lucide-react";
+import Dropdown from "./Dropdown";
 import { toast } from "sonner";
 import api from "../../services/api";
 import { toKobo } from "../../utils/formatMoney";
@@ -196,54 +197,45 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 <label className="block text-sm font-medium text-text mb-1.5">Unit</label>
 
                 <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setUnitOpen((o) => !o);
-                      setTypeOpen(false);
+                  <Dropdown
+                    trigger={<span className="min-w-0 truncate">{form.unit || "Select unit"}</span>}
+                    color="muted"
+                    fullWidth
+                    open={unitOpen}
+                    onOpenChange={(next) => {
+                      setUnitOpen(next);
+                      if (next) setTypeOpen(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm text-left"
                   >
-                    <span className="flex-1 truncate">{form.unit || "Select unit"}</span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-text-muted transition-transform ${unitOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                  {unitOpen && (
-                    <div className="absolute z-50 mt-1 w-full bg-surface rounded-lg shadow-soft border border-border py-1 max-h-52 overflow-y-auto">
-                      {[
-                        "portion",
-                        "bowl",
-                        "500ml",
-                        "litre",
-                        "pack",
-                        "bottle",
-                        "tub",
-                        "piece",
-                        "per kg",
-                        "1 Litre",
-                        "500ml bottle",
-                        "250g",
-                        "500g",
-                      ].map((unit) => (
-                        <button
-                          key={unit}
-                          type="button"
-                          onClick={() => {
-                            handleChange("unit", unit);
-                            setUnitOpen(false);
-                          }}
-                          className={`w-full text-left px-4 py-2.5 text-sm hover:bg-background transition-colors ${
-                            form.unit === unit
-                              ? "text-primary font-semibold bg-primary/5"
-                              : "text-text"
-                          }`}
-                        >
-                          {unit}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                    {[
+                      "portion",
+                      "bowl",
+                      "500ml",
+                      "litre",
+                      "pack",
+                      "bottle",
+                      "tub",
+                      "piece",
+                      "per kg",
+                      "1 Litre",
+                      "500ml bottle",
+                      "250g",
+                      "500g",
+                    ].map((unit) => (
+                      <button
+                        key={unit}
+                        type="button"
+                        onClick={() => handleChange("unit", unit)}
+                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-background transition-colors ${
+                          form.unit === unit
+                            ? "text-primary font-semibold bg-primary/5"
+                            : "text-text"
+                        }`}
+                      >
+                        {unit}
+                      </button>
+                    ))}
+                  </Dropdown>
                 </div>
               </div>
 
@@ -252,40 +244,33 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 <label className="block text-sm font-medium text-text mb-1.5">Type</label>
 
                 <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTypeOpen((o) => !o);
-                      setUnitOpen(false);
+                  <Dropdown
+                    trigger={
+                      <span className="min-w-0 truncate">{form.productType || "Select type"}</span>
+                    }
+                    color="muted"
+                    fullWidth
+                    open={typeOpen}
+                    onOpenChange={(next) => {
+                      setTypeOpen(next);
+                      if (next) setUnitOpen(false);
                     }}
-                    className="w-full flex items-center gap-2 px-3 py-2 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm text-left"
                   >
-                    <span className="flex-1 truncate">{form.productType || "Select type"}</span>
-                    <ChevronDown
-                      className={`w-4 h-4 text-text-muted transition-transform ${typeOpen ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                  {typeOpen && (
-                    <div className="absolute z-50 mt-1 w-full bg-surface rounded-lg shadow-soft border border-border py-1">
-                      {["cooked", "packaged", "fresh"].map((type) => (
-                        <button
-                          key={type}
-                          type="button"
-                          onClick={() => {
-                            handleChange("productType", type);
-                            setTypeOpen(false);
-                          }}
-                          className={`w-full text-left px-4 py-2.5 text-sm hover:bg-background transition-colors capitalize ${
-                            form.productType === type
-                              ? "text-primary font-semibold bg-primary/5"
-                              : "text-text"
-                          }`}
-                        >
-                          {type}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                    {["cooked", "packaged", "fresh"].map((type) => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => handleChange("productType", type)}
+                        className={`w-full text-left px-4 py-2.5 text-sm hover:bg-background transition-colors capitalize ${
+                          form.productType === type
+                            ? "text-primary font-semibold bg-primary/5"
+                            : "text-text"
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    ))}
+                  </Dropdown>
                 </div>
               </div>
             </div>
@@ -303,58 +288,49 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
               <label className="block text-sm font-medium text-text mb-1.5">Product Category</label>
 
               <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setCategoryOpen((o) => !o)}
-                  className="w-full flex items-center gap-2 px-3 py-2 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm text-left"
+                <Dropdown
+                  trigger={
+                    <>
+                      <FolderOpen className="w-4 h-4 text-text-muted mr-2" />
+                      <span className="min-w-0 truncate">
+                        {categories.find((c) => c._id === form.category)?.name || "Select category"}
+                      </span>
+                    </>
+                  }
+                  color="muted"
+                  fullWidth
+                  open={categoryOpen}
+                  onOpenChange={setCategoryOpen}
+                  menuClassName="max-h-52"
                 >
-                  <FolderOpen className="w-4 h-4 text-text-muted" />
-                  <span className="flex-1 truncate">
-                    {categories.find((c) => c._id === form.category)?.name || "Select category"}
-                  </span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-text-muted transition-transform ${categoryOpen ? "rotate-180" : ""}`}
-                  />
-                </button>
-                {categoryOpen && (
-                  <div className="absolute z-50 mt-1 w-full bg-surface rounded-lg shadow-soft border border-border py-1 max-h-52 overflow-y-auto">
+                  <button
+                    type="button"
+                    onClick={() => handleChange("category", "")}
+                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                      form.category === "" ? "text-primary font-semibold bg-primary/5" : "text-text"
+                    }`}
+                  >
+                    <FolderOpen className="w-4 h-4" />
+                    <span className="flex-1">All Categories</span>
+                    {form.category === "" && <Check className="w-3.5 h-3.5" />}
+                  </button>
+                  {categories.map((category) => (
                     <button
+                      key={category._id}
                       type="button"
-                      onClick={() => {
-                        handleChange("category", "");
-                        setCategoryOpen(false);
-                      }}
+                      onClick={() => handleChange("category", category._id)}
                       className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                        form.category === ""
+                        form.category === category._id
                           ? "text-primary font-semibold bg-primary/5"
                           : "text-text"
                       }`}
                     >
-                      <FolderOpen className="w-4 h-4" />
-                      <span className="flex-1">All Categories</span>
-                      {form.category === "" && <Check className="w-3.5 h-3.5" />}
+                      {getCategoryIcon(category.name)}
+                      <span className="flex-1">{category.name}</span>
+                      {form.category === category._id && <Check className="w-3.5 h-3.5" />}
                     </button>
-                    {categories.map((category) => (
-                      <button
-                        key={category._id}
-                        type="button"
-                        onClick={() => {
-                          handleChange("category", category._id);
-                          setCategoryOpen(false);
-                        }}
-                        className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                          form.category === category._id
-                            ? "text-primary font-semibold bg-primary/5"
-                            : "text-text"
-                        }`}
-                      >
-                        {getCategoryIcon(category.name)}
-                        <span className="flex-1">{category.name}</span>
-                        {form.category === category._id && <Check className="w-3.5 h-3.5" />}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                  ))}
+                </Dropdown>
               </div>
             </div>
           </div>
