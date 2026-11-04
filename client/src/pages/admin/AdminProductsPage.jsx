@@ -349,7 +349,7 @@ const AdminProductsPage = () => {
               trigger={
                 <>
                   {statusLabels[statusFilter].icon}
-                  <span className="flex-1 text-left">{statusLabels[statusFilter].label}</span>
+                  <span className="flex-1 text-left"> {statusLabels[statusFilter].label}</span>
                 </>
               }
               color="primary"
@@ -363,9 +363,7 @@ const AdminProductsPage = () => {
                     setPage(1);
                   }}
                   className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                    statusFilter === value
-                      ? "text-primary font-semibold bg-primary/5"
-                      : "text-text"
+                    statusFilter === value ? "text-primary font-semibold bg-primary/5" : "text-text"
                   }`}
                 >
                   {icon}
@@ -397,9 +395,7 @@ const AdminProductsPage = () => {
                   setPage(1);
                 }}
                 className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                  categoryFilter === "all"
-                    ? "text-primary font-semibold bg-primary/5"
-                    : "text-text"
+                  categoryFilter === "all" ? "text-primary font-semibold bg-primary/5" : "text-text"
                 }`}
               >
                 <FolderOpen className="w-4 h-4" />

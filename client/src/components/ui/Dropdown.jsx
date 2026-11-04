@@ -84,6 +84,11 @@ const Dropdown = ({
           />
         )}
       </button>
+      {/* Transparent bridge to maintain hover between trigger and menu */}
+      <div
+        className="absolute top-full left-0 w-full h-1.5"
+        style={{ width: "100%", minWidth: "100%" }}
+      />
       <div
         className={`absolute z-50 top-full left-0 mt-0.5 w-full bg-surface rounded-xl shadow-soft border border-border py-1 overflow-hidden transition-opacity duration-150 ${open ? "opacity-100 visible" : "opacity-0 invisible"} group-hover:opacity-100 group-hover:visible ${menuClassName} ${align === "right" ? "right-0 left-auto" : ""}`}
       >

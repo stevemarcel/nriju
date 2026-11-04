@@ -301,7 +301,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   fullWidth
                   open={categoryOpen}
                   onOpenChange={setCategoryOpen}
-                  menuClassName="max-h-52"
+                  menuClassName="max-h-96"
                 >
                   <button
                     type="button"
