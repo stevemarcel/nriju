@@ -329,8 +329,8 @@ const AdminProductsPage = () => {
         }
       />
       {/* Filter bar */}
-      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
-        <div className="relative flex-1 min-w-0">
+      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">
+        <div className="relative flex-3 min-w-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
           <input
             type="text"
@@ -343,8 +343,8 @@ const AdminProductsPage = () => {
             className="w-full pl-9 pr-4 py-2 bg-primary/5 border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
           />
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-wrap">
-          <div className="relative flex-1 sm:flex-none min-w-0">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 flex-wrap flex-2">
+          <div className="relative w-full md:w-0 md:flex-1 min-w-0">
             <Dropdown
               trigger={
                 <>
@@ -353,6 +353,7 @@ const AdminProductsPage = () => {
                 </>
               }
               color="primary"
+              fullWidth
               menuClassName="sm:w-48"
             >
               {Object.entries(statusLabels).map(([value, { label, icon }]) => (
@@ -374,7 +375,7 @@ const AdminProductsPage = () => {
             </Dropdown>
           </div>
 
-          <div className="relative flex-1 sm:flex-none min-w-0">
+          <div className="relative w-full md:w-0 md:flex-1 min-w-0">
             <Dropdown
               trigger={
                 <>
@@ -387,6 +388,7 @@ const AdminProductsPage = () => {
                 </>
               }
               color="primary"
+              fullWidth
               menuClassName="sm:w-52"
             >
               <button
