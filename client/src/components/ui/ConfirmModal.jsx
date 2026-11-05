@@ -1,12 +1,33 @@
 import { useState, useEffect, useRef } from "react";
 import { X, AlertTriangle } from "lucide-react";
 
+const VARIANT_STYLES = {
+  destructive: {
+    iconBg: "bg-rose-50",
+    icon: "text-rose-500 fill-rose-500",
+    button: "bg-rose-500 text-white hover:bg-rose-600",
+    cancel: "bg-rose-50 text-rose-500 hover:bg-rose-100",
+  },
+  primary: {
+    iconBg: "bg-primary/10",
+    icon: "text-primary fill-primary",
+    button: "bg-primary text-white hover:bg-primary/90",
+    cancel: "bg-primary/10 text-primary hover:bg-primary/20",
+  },
+  success: {
+    iconBg: "bg-emerald-50",
+    icon: "text-emerald-500 fill-emerald-500",
+    button: "bg-emerald-500 text-white hover:bg-emerald-600",
+    cancel: "bg-emerald-50 text-emerald-500 hover:bg-emerald-100",
+  },
+};
+
 export const ConfirmModal = ({
   open,
   title,
   description,
   confirmLabel,
-  confirmVariant = "destructive",
+  variant = "destructive",
   onConfirm,
   onCancel,
 }) => {
