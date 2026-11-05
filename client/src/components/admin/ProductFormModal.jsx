@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Save, X, FolderOpen, Check, Package, Utensils } from "lucide-react";
-import Dropdown from "./Dropdown";
+import Dropdown from "../ui/Dropdown";
 import { toast } from "sonner";
 import api from "../../services/api";
 import { toKobo } from "../../utils/formatMoney";
 import { getCategoryIcon } from "../../utils/categoryIcons";
-import ImageUpload from "./ImageUpload";
+import ImageUpload from "../ui/ImageUpload";
 
 const initialForm = {
   name: "",
@@ -99,9 +99,9 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 w-full max-w-2xl max-h-[90vh] flex flex-col">
+      <div className="bg-background rounded-[20px] shadow-sm border border-border/60 w-full max-w-2xl max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-border/60">
+        <div className="bg-surface rounded-t-[20px] flex items-center justify-between p-5 border-b border-border/60">
           <h2 className="font-heading text-xl font-bold text-text">
             {mode === "create" ? "Add Product" : `Edit "${product?.name}"`}
           </h2>
@@ -134,7 +134,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   required
                   value={form.name}
                   onChange={(event) => handleChange("name", event.target.value)}
-                  className="w-full px-3 py-2 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                  className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
                 />
               </div>
 
@@ -146,7 +146,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   value={form.description}
                   onChange={(event) => handleChange("description", event.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm resize-y"
+                  className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm resize-y"
                 />
               </div>
             </div>
@@ -172,7 +172,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   required
                   value={form.price}
                   onChange={(event) => handleChange("price", event.target.value)}
-                  className="w-full px-3 py-2 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                  className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
                 />
               </div>
 
@@ -188,7 +188,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   step="0.01"
                   value={form.compareAtPrice}
                   onChange={(event) => handleChange("compareAtPrice", event.target.value)}
-                  className="w-full px-3 py-2 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                  className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
                 />
               </div>
 
@@ -199,7 +199,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 <div className="relative">
                   <Dropdown
                     trigger={<span className="min-w-0 truncate">{form.unit || "Select unit"}</span>}
-                    color="muted"
+                    color="surface"
                     fullWidth
                     open={unitOpen}
                     onOpenChange={(next) => {
@@ -227,9 +227,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                         type="button"
                         onClick={() => handleChange("unit", unit)}
                         className={`w-full text-left px-4 py-2.5 text-sm hover:bg-background transition-colors ${
-                          form.unit === unit
-                            ? "text-primary font-semibold bg-primary/5"
-                            : "text-text"
+                          form.unit === unit ? "text-primary font-semibold bg-surface" : "text-text"
                         }`}
                       >
                         {unit}
@@ -248,7 +246,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                     trigger={
                       <span className="min-w-0 truncate">{form.productType || "Select type"}</span>
                     }
-                    color="muted"
+                    color="surface"
                     fullWidth
                     open={typeOpen}
                     onOpenChange={(next) => {
@@ -263,7 +261,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                         onClick={() => handleChange("productType", type)}
                         className={`w-full text-left px-4 py-2.5 text-sm hover:bg-background transition-colors capitalize ${
                           form.productType === type
-                            ? "text-primary font-semibold bg-primary/5"
+                            ? "text-primary font-semibold bg-surface"
                             : "text-text"
                         }`}
                       >
@@ -297,7 +295,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                       </span>
                     </>
                   }
-                  color="muted"
+                  color="surface"
                   fullWidth
                   open={categoryOpen}
                   onOpenChange={setCategoryOpen}
@@ -307,7 +305,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                     type="button"
                     onClick={() => handleChange("category", "")}
                     className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                      form.category === "" ? "text-primary font-semibold bg-primary/5" : "text-text"
+                      form.category === "" ? "text-primary font-semibold bg-surface" : "text-text"
                     }`}
                   >
                     <FolderOpen className="w-4 h-4" />
@@ -321,7 +319,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                       onClick={() => handleChange("category", category._id)}
                       className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
                         form.category === category._id
-                          ? "text-primary font-semibold bg-primary/5"
+                          ? "text-primary font-semibold bg-surface"
                           : "text-text"
                       }`}
                     >
@@ -361,7 +359,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 value={form.tags}
                 onChange={(event) => handleChange("tags", event.target.value)}
                 placeholder="jollof, party"
-                className="w-full px-3 py-2 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
               />
             </div>
           </div>
@@ -421,7 +419,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
               type="button"
               onClick={onClose}
               disabled={uploading || saveMutation.isPending}
-              className="px-4 py-2 text-sm font-medium text-text-muted bg-background-soft hover:bg-primary/5 border border-border rounded-xl disabled:opacity-60 disabled:pointer-events-none transition-colors"
+              className="px-4 py-2 text-sm font-medium text-text-muted bg-background hover:bg-background-soft border border-border rounded-xl disabled:opacity-60 disabled:pointer-events-none transition-colors"
             >
               Cancel
             </button>

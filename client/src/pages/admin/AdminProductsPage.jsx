@@ -9,7 +9,7 @@ import {
   formatNaira,
   formatDate,
 } from "../../components/admin/AdminPrimitives";
-import ProductFormModal from "../../components/ui/ProductFormModal";
+import ProductFormModal from "../../components/admin/ProductFormModal";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import Dropdown from "../../components/ui/Dropdown";
 import { getCategoryIcon } from "../../utils/categoryIcons";
