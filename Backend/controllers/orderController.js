@@ -156,7 +156,7 @@ const getOrderById = asyncHandler(async (req, res) => {
   const order = await Order.findById(req.params.id)
     .populate("items.product", "name images")
     .populate("coupon", "code")
-    .populate("user", "name email");
+    .populate("user", "name email avatar phone");
 
   if (!order) {
     res.status(404);
@@ -211,7 +211,7 @@ const getAllOrders = asyncHandler(async (req, res) => {
     .sort("-createdAt")
     .skip((Number(page) - 1) * Number(limit))
     .limit(Number(limit))
-    .populate("user", "name email")
+    .populate("user", "name email avatar phone")
     .populate("items.product", "name images")
     .populate("coupon", "code");
 

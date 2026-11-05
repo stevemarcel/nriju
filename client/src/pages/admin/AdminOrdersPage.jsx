@@ -23,6 +23,7 @@ import {
   CheckCircle,
   X,
   RotateCcw,
+  Save,
 } from "lucide-react";
 
 const STATUS_OPTIONS = [
@@ -287,111 +288,185 @@ const OrderDetailModal = ({ order, statusMap, statusOptions, onClose, onUpdated 
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-surface rounded-2xl border border-border w-full max-w-3xl max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between p-5 border-b border-border">
+      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div className="flex items-center justify-between p-5 border-b border-border/60">
           <h2 className="font-heading text-xl font-bold text-text">Order {order.orderNumber}</h2>
-          <button onClick={onClose} className="p-1 rounded hover:bg-background-soft">
-            <Package className="w-5 h-5" />
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg hover:bg-background-soft/80 transition-colors text-text-muted hover:text-rose-500"
+          >
+            <X className="w-5 h-5" />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-text-muted mb-1">Status</label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg text-sm"
-              >
-                {statusOptions.map((s) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-text-muted mb-1">
-                Tracking code
-              </label>
-              <input
-                type="text"
-                value={trackingCode}
-                onChange={(e) => setTrackingCode(e.target.value)}
-                className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg text-sm"
-                placeholder="Leave blank to clear"
-              />
+          {/* Customer info card */}
+          <div className="bg-background-soft/70 rounded-[20px] p-5 border border-border/60">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 overflow-hidden">
+                {order.user?.profileImage || order.user?.avatar ? (
+                  <img
+                    src={order.user.profileImage || order.user.avatar}
+                    alt={order.user?.name || order.guestName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-semibold text-primary">
+                    {(order.user?.name || order.guestName || "G").charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div>
+                <h3 className="font-heading font-semibold text-text">Customer Information</h3>
+                <p className="text-sm text-text-muted mt-1">
+                  {order.user?.name || order.guestName || "Guest"}
+                </p>
+                <p className="text-xs text-text-muted mt-1">Customer</p>
+                <p className="text-xs text-text-muted mt-3">
+                  Email: {order.user?.email || "N/A"}
+                  <br />
+                  Phone: {order.user?.phone || order.guestPhone || "N/A"}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="border-t border-border pt-4">
-            <h3 className="font-heading font-semibold mb-3">Items</h3>
-            <div className="divide-y divide-border">
+          {/* Order items card */}
+          <div className="bg-background-soft/70 rounded-[20px] p-5 border border-border/60">
+            <h3 className="font-heading font-semibold text-text mb-4">Order Items</h3>
+            <div className="divide-y divide-border/60">
               {order.items.map((item, i) => (
-                <div key={i} className="flex items-center gap-3 py-2">
+                <div key={i} className="flex items-center gap-4 py-3">
                   {item.image ? (
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-12 h-12 rounded object-cover"
+                      className="w-16 h-16 rounded-xl object-cover shrink-0"
                     />
                   ) : (
-                    <span className="text-2xl">🍲</span>
+                    <div className="w-16 h-16 rounded-xl bg-surface flex items-center justify-center shrink-0 border border-border/60">
+                      <Package className="w-8 h-8 text-text-muted" />
+                    </div>
                   )}
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium text-text">{item.name}</span>
-                    <span className="block text-xs text-text-muted">
-                      {item.quantity} × {formatNaira(item.price)}
-                    </span>
+                    <span className="font-medium text-text block">{item.name}</span>
+                    <span className="text-xs text-text-muted">Qty: {item.quantity}</span>
                   </div>
+                  <span className="font-heading font-semibold text-text whitespace-nowrap">
+                    {formatNaira(item.price * item.quantity)}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-text-muted">Subtotal</span>
-              <span className="ml-2 font-medium text-text">{formatNaira(order.subtotal)}</span>
+          {/* Shipping card */}
+          <div className="bg-background-soft/70 rounded-[20px] p-5 border border-border/60">
+            <h3 className="font-heading font-semibold text-text mb-3">Shipping Address</h3>
+            <div className="text-sm text-text bg-background-soft/50 rounded-xl px-4 py-3">
+              {order.shippingAddress?.name || "—"}
+              <br />
+              {order.shippingAddress?.line1 || "—"}
+              <br />
+              {order.shippingAddress?.city || "—"}, {order.shippingAddress?.state || ""}
+              <br />
+              {order.shippingAddress?.country || "—"}
             </div>
-            <div>
-              <span className="text-text-muted">Discount</span>
-              <span className="ml-2 font-medium text-text">{formatNaira(order.discount || 0)}</span>
+          </div>
+
+          {/* Order summary card */}
+          <div className="bg-background-soft/70 rounded-[20px] p-5 border border-border/60">
+            <h3 className="font-heading font-semibold text-text mb-4">Order Summary</h3>
+            <div className="space-y-3 text-sm bg-background-soft/30 rounded-xl px-4 py-4">
+              <div className="flex justify-between">
+                <span className="text-text-muted">Subtotal</span>
+                <span className="font-medium text-text">{formatNaira(order.subtotal)}</span>
+              </div>
+              {order.discount && order.discount > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-text-muted">Discount</span>
+                  <span className="font-medium text-text">-{formatNaira(order.discount)}</span>
+                </div>
+              )}
+              {order.deliveryFee && order.deliveryFee > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-text-muted">Delivery</span>
+                  <span className="font-medium text-text">{formatNaira(order.deliveryFee)}</span>
+                </div>
+              )}
+              <div className="border-t border-border/60 pt-3 flex justify-between font-bold text-text">
+                <span>Total</span>
+                <span className="font-heading">{formatNaira(order.total)}</span>
+              </div>
             </div>
-            <div>
-              <span className="text-text-muted">Delivery fee</span>
-              <span className="ml-2 font-medium text-text">
-                {formatNaira(order.deliveryFee || 0)}
-              </span>
-            </div>
-            <div>
-              <span className="text-text-muted font-semibold">Total</span>
-              <span className="ml-2 font-heading font-bold text-text">
-                {formatNaira(order.total)}
-              </span>
-            </div>
-            <div className="col-span-2">
-              <span className="text-text-muted">Shipping to</span>
-              <div className="text-sm text-text mt-1">
-                {order.shippingAddress?.name}, {order.shippingAddress?.line1},{" "}
-                {order.shippingAddress?.city}
+          </div>
+
+          {/* Status & tracking card */}
+          <div className="bg-background-soft/70 rounded-[20px] p-5 border border-border/60">
+            <h3 className="font-heading font-semibold text-text mb-4">Status & Tracking</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-text-muted mb-2">Status</label>
+                <Dropdown
+                  trigger={
+                    <>
+                      <div className="mr-2">
+                        {STATUS_OPTIONS.find((s) => s.value === status)?.icon || (
+                          <Package className="w-4 h-4" />
+                        )}
+                      </div>
+                      <span className="flex-1 text-left whitespace-nowrap">
+                        {STATUS_OPTIONS.find((s) => s.value === status)?.label || "Select Status"}
+                      </span>
+                    </>
+                  }
+                  color="muted"
+                  fullWidth
+                  menuClassName="sm:w-full"
+                >
+                  {STATUS_OPTIONS.filter((s) => s.value).map((s) => (
+                    <button
+                      key={s.value}
+                      onClick={() => setStatus(s.value)}
+                      className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                        status === s.value ? "text-primary font-semibold bg-primary/5" : "text-text"
+                      }`}
+                    >
+                      {s.icon}
+                      <span className="flex-1">{s.label}</span>
+                      {status === s.value && <Check className="w-3.5 h-3.5" />}
+                    </button>
+                  ))}
+                </Dropdown>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-muted mb-2">
+                  Tracking code
+                </label>
+                <input
+                  type="text"
+                  value={trackingCode}
+                  onChange={(e) => setTrackingCode(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                  placeholder="Leave blank to clear"
+                />
               </div>
             </div>
           </div>
         </div>
-        <div className="p-5 border-t border-border flex justify-end gap-3">
+        <div className="p-5 border-t border-border/60 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-text-muted hover:bg-background-soft rounded-lg"
+            className="px-4 py-2 text-sm font-medium text-text-muted bg-background-soft hover:bg-primary/5 border border-border rounded-xl transition-colors"
           >
             Close
           </button>
           <button
             onClick={handleSave}
             disabled={updateMutation.isPending}
-            className="px-5 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary/95 disabled:opacity-60 transition-colors"
+            className="px-5 py-2 bg-primary text-white font-medium rounded-xl inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-60 transition-colors shadow-sm"
           >
-            Save status
+            <Save className="w-4 h-4" />
+            {updateMutation.isPending ? "Saving..." : "Save status"}
           </button>
         </div>
       </div>
