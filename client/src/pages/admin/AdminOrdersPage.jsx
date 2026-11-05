@@ -258,7 +258,6 @@ const AdminOrdersPage = () => {
       {detailOrder && (
         <OrderDetailsModal
           order={detailOrder}
-          statusMap={STATUS_MAP}
           statusOptions={STATUS_OPTIONS.filter((o) => o.value)}
           onClose={() => setDetailOrder(null)}
           onUpdated={() => {

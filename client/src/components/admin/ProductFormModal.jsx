@@ -109,7 +109,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded hover:bg-background-soft transition-colors"
+            className="p-1 rounded hover:bg-primary/10 hover:text-primary transition-all"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -419,7 +419,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
               type="button"
               onClick={onClose}
               disabled={uploading || saveMutation.isPending}
-              className="px-4 py-2 text-sm font-medium text-text-muted bg-background hover:bg-background-soft border border-border rounded-xl disabled:opacity-60 disabled:pointer-events-none transition-colors"
+              className="px-4 py-2 text-sm font-medium text-text-muted bg-background hover:bg-background-soft/50 border border-border rounded-xl disabled:opacity-60 disabled:pointer-events-none transition-colors"
             >
               Cancel
             </button>
