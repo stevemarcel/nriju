@@ -32,11 +32,11 @@ import { toast } from "sonner";
 const AdminProductsPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // all | active | archived | lowStock | outOfStock
+  const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [page, setPage] = useState(1);
-  const [modal, setModal] = useState(null); // null | "create" | {edit: product}
-  const [confirmTarget, setConfirmTarget] = useState(null); // { product, action: 'delete' }
+  const [modal, setModal] = useState(null);
+  const [confirmTarget, setConfirmTarget] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [processingIds, setProcessingIds] = useState(new Set());
   const isProcessing = (id) => processingIds.has(id);
@@ -49,6 +49,49 @@ const AdminProductsPage = () => {
     outOfStock: { label: "Out of stock", icon: <AlertCircle className="w-4 h-4 text-rose-500" /> },
   };
 
+  // --- Query helpers ---
+  const buildParams = (extra = {}) => {
+    const params = new URLSearchParams();
+    if (statusFilter === "archived") params.set("isActive", "false");
+    else if (statusFilter === "active") params.set("isActive", "true");
+    else if (statusFilter === "lowStock") params.set("stockFilter", "lowStock");
+    else if (statusFilter === "outOfStock") params.set("stockFilter", "outOfStock");
+    if (categoryFilter !== "all") params.set("category", categoryFilter);
+    Object.entries(extra).forEach(([k, v]) => v && params.set(k, v));
+    return params;
+  };
+
+  // --- Stats card helper ---
+  const trendPct = (s) => {
+    if (s.pct === 0 || s.pct === null) return "0%";
+    return (
+      <>
+        {s.trend === "up" && (
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M5 15l7-7 7 7"
+            />
+          </svg>
+        )}
+        {s.trend === "down" && (
+          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.5}
+              d="M19 9l-7 7-7-7"
+            />
+          </svg>
+        )}
+        {s.trend === "up" ? "+" : "-"}
+        {s.pct}%
+      </>
+    );
+  };
+
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => (await api.get("/categories")).data.data,
@@ -57,13 +100,7 @@ const AdminProductsPage = () => {
   const { data, isPending } = useQuery({
     queryKey: ["admin", "products", page, search, statusFilter, categoryFilter],
     queryFn: async () => {
-      const params = new URLSearchParams({ page, limit: 10, search });
-      if (statusFilter === "archived") params.set("isActive", "false");
-      else if (statusFilter === "active") params.set("isActive", "true");
-      else if (statusFilter === "lowStock") params.set("stockFilter", "lowStock");
-      else if (statusFilter === "outOfStock") params.set("stockFilter", "outOfStock");
-      if (categoryFilter !== "all") params.set("category", categoryFilter);
-      const res = await api.get(`/products/all?${params.toString()}`);
+      const res = await api.get(`/products/all?${buildParams({ page, limit: 10 }).toString()}`);
       return res.data;
     },
   });
@@ -71,14 +108,7 @@ const AdminProductsPage = () => {
   const { data: statsData } = useQuery({
     queryKey: ["admin", "products", "stats", statusFilter, categoryFilter, search],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (statusFilter === "archived") params.set("isActive", "false");
-      else if (statusFilter === "active") params.set("isActive", "true");
-      else if (statusFilter === "lowStock") params.set("stockFilter", "lowStock");
-      else if (statusFilter === "outOfStock") params.set("stockFilter", "outOfStock");
-      if (categoryFilter !== "all") params.set("category", categoryFilter);
-      if (search) params.set("search", search);
-      const res = await api.get(`/products/stats?${params.toString()}`);
+      const res = await api.get(`/products/stats?${buildParams({ search }).toString()}`);
       return res.data;
     },
   });
@@ -351,7 +381,7 @@ const AdminProductsPage = () => {
             <Dropdown
               trigger={
                 <>
-                  {statusLabels[statusFilter].icon}
+                  <div className="mr-2">{statusLabels[statusFilter].icon}</div>
                   <span className="flex-1 text-left whitespace-nowrap">
                     {" "}
                     {statusLabels[statusFilter].label}
@@ -386,7 +416,7 @@ const AdminProductsPage = () => {
             <Dropdown
               trigger={
                 <>
-                  <FolderOpen className="w-4 h-4" />
+                  <FolderOpen className="w-4 h-4 mr-2" />
                   <span className="flex-1 text-left whitespace-nowrap">
                     {categoryFilter === "all"
                       ? "All Categories"
@@ -462,45 +492,7 @@ const AdminProductsPage = () => {
                       : "bg-rose-50 text-rose-600"
                 }`}
               >
-                {s.pct === 0 ? (
-                  "0%"
-                ) : (
-                  <>
-                    {s.trend === "up" && (
-                      <svg
-                        className="w-3 h-3"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2.5}
-                          d="M5 15l7-7 7 7"
-                        />
-                      </svg>
-                    )}
-                    {s.trend === "down" && (
-                      <svg
-                        className="w-3 h-3"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2.5}
-                          d="M19 9l-7 7-7-7"
-                        />
-                      </svg>
-                    )}
-                    {s.trend === "up" && "+"}
-                    {s.trend === "down" && "-"}
-                    {s.pct}%
-                  </>
-                )}
+                {trendPct(s)}
               </div>
             </div>
             <div className="text-sm font-medium text-text-muted">{s.label}</div>
