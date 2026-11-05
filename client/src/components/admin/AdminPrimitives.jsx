@@ -16,7 +16,10 @@ export const AdminPageHeader = ({ title, subtitle, action }) => (
 export const StatusPill = ({ status, map }) => {
   const cfg = map[status] || { label: status, cls: "bg-background text-text-muted" };
   return (
-    <span className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${cfg.cls}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${cfg.cls}`}
+    >
+      {cfg.icon && <span className="w-3 h-3 shrink-0">{cfg.icon}</span>}
       {cfg.label}
     </span>
   );
