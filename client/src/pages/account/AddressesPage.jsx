@@ -415,6 +415,7 @@ const AddressesPage = () => {
         title="Remove address?"
         description="This saved address will be permanently removed from your account."
         confirmLabel="Remove address"
+        variant="destructive"
         onConfirm={handleDelete}
         onCancel={() => setAddressToDelete(null)}
       />

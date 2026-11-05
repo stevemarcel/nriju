@@ -815,11 +815,11 @@ const AdminProductsPage = () => {
                     ? `Delete ${confirmTarget.ids.length}`
                     : "Delete forever"
         }
-        confirmVariant={
+        variant={
           confirmTarget?.action === "archive" || confirmTarget?.action === "bulk-archive"
-            ? "primary"
+            ? "archive"
             : confirmTarget?.action === "restore" || confirmTarget?.action === "bulk-restore"
-              ? "primary"
+              ? "success"
               : "destructive"
         }
         onConfirm={() => {

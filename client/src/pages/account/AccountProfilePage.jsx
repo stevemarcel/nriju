@@ -288,6 +288,7 @@ const AccountProfilePage = () => {
         title="Remove address?"
         description="This saved address will be permanently removed from your account."
         confirmLabel={deletingAddress ? "Removing..." : "Remove address"}
+        variant="destructive"
         onConfirm={handleDeleteAddress}
         onCancel={() => !deletingAddress && setAddressToDelete(null)}
       />

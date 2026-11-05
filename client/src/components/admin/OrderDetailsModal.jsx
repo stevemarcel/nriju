@@ -266,6 +266,7 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
         title="Update order status?"
         description="This will save the new status and tracking code for this order."
         confirmLabel="Save status"
+        variant="success"
         onConfirm={handleConfirm}
         onCancel={() => setConfirmOpen(false)}
       />

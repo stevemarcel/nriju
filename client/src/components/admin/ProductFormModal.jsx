@@ -312,22 +312,25 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                     <span className="flex-1">All Categories</span>
                     {form.category === "" && <Check className="w-3.5 h-3.5" />}
                   </button>
-                  {categories.map((category) => (
-                    <button
-                      key={category._id}
-                      type="button"
-                      onClick={() => handleChange("category", category._id)}
-                      className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                        form.category === category._id
-                          ? "text-primary font-semibold bg-surface"
-                          : "text-text"
-                      }`}
-                    >
-                      {getCategoryIcon(category.name)}
-                      <span className="flex-1">{category.name}</span>
-                      {form.category === category._id && <Check className="w-3.5 h-3.5" />}
-                    </button>
-                  ))}
+                  {categories.map((category) => {
+                    const { Icon, color } = getCategoryIcon(category.name);
+                    return (
+                      <button
+                        key={category._id}
+                        type="button"
+                        onClick={() => handleChange("category", category._id)}
+                        className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                          form.category === category._id
+                            ? "text-primary font-semibold bg-surface"
+                            : "text-text"
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 ${color}`} />
+                        <span className="flex-1">{category.name}</span>
+                        {form.category === category._id && <Check className="w-3.5 h-3.5" />}
+                      </button>
+                    );
+                  })}
                 </Dropdown>
               </div>
             </div>

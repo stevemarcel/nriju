@@ -252,16 +252,20 @@ const Header = () => {
                   <div className="px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted flex items-center gap-2">
                     <FolderOpen className="w-4 h-4" /> Categories
                   </div>
-                  {categories?.map((cat) => (
-                    <Link
-                      key={cat._id}
-                      to={`/shop?category=${cat.slug}`}
-                      className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
-                      onClick={() => setHelpOpen(false)}
-                    >
-                      {getCategoryIcon(cat.name)} {cat.name}
-                    </Link>
-                  ))}
+                  {categories?.map((cat) => {
+                    const { Icon, color } = getCategoryIcon(cat.name);
+                    return (
+                      <Link
+                        key={cat._id}
+                        to={`/shop?category=${cat.slug}`}
+                        className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                        onClick={() => setHelpOpen(false)}
+                      >
+                        <Icon className={`w-4 h-4 ${color}`} />
+                        {cat.name}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
 
