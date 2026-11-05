@@ -73,24 +73,24 @@ export const ConfirmModal = ({
             <AlertTriangle className="w-8 h-8 text-primary fill-primary" />
           </div>
 
-          <h2 className="text-[28px] font-bold text-text mb-3 leading-tight">
+          <h2 className="text-xl md:text-2xl font-bold text-text mb-3 leading-tight">
             {title || "Are you sure?"}
           </h2>
 
-          <p className="text-text-secondary text-base leading-relaxed max-w-[320px]">
+          <p className="text-text-secondary text-sm md:text-base leading-relaxed max-w-[320px]">
             {description}
           </p>
 
           <div className="flex w-full gap-4 mt-10">
             <button
               onClick={handleCancel}
-              className="flex-1 px-6 py-3.5 text-base font-bold text-primary bg-rose-50 hover:bg-rose-100 rounded-[14px] transition-colors"
+              className="flex-1 px-6 py-3.5 text-sm md:text-base font-bold text-primary bg-rose-50 hover:bg-rose-100 rounded-[14px] transition-colors"
             >
               Cancel
             </button>
             <button
               onClick={handleConfirm}
-              className={`flex-1 px-6 py-3.5 text-base font-bold rounded-[14px] transition-all active:scale-[0.98] ${confirmBtnCls}`}
+              className={`flex-1 px-6 py-3.5 text-sm md:text-base font-bold rounded-[14px] transition-all active:scale-[0.98] ${confirmBtnCls}`}
             >
               {confirmLabel || "Confirm"}
             </button>

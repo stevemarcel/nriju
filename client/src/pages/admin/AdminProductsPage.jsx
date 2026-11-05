@@ -42,11 +42,11 @@ const AdminProductsPage = () => {
   const isProcessing = (id) => processingIds.has(id);
 
   const statusLabels = {
-    all: { label: "All Products", icon: <Package className="w-4 h-4" /> },
-    active: { label: "Active", icon: <Check className="w-4 h-4 text-emerald-500" /> },
-    archived: { label: "Archived", icon: <Archive className="w-4 h-4 text-slate-500" /> },
-    lowStock: { label: "Low in stock", icon: <RotateCcw className="w-4 h-4 text-amber-500" /> },
-    outOfStock: { label: "Out of stock", icon: <AlertCircle className="w-4 h-4 text-rose-500" /> },
+    all: { label: "All Products", Icon: Package, color: "text-text-muted" },
+    active: { label: "Active", Icon: Check, color: "text-emerald-500" },
+    archived: { label: "Archived", Icon: Archive, color: "text-slate-500" },
+    lowStock: { label: "Low in stock", Icon: RotateCcw, color: "text-amber-500" },
+    outOfStock: { label: "Out of stock", Icon: AlertCircle, color: "text-rose-500" },
   };
 
   // --- Query helpers ---
@@ -381,7 +381,12 @@ const AdminProductsPage = () => {
             <Dropdown
               trigger={
                 <>
-                  <div className="mr-2">{statusLabels[statusFilter].icon}</div>
+                  {(() => {
+                    const { Icon, color } = statusLabels[statusFilter];
+                    return (
+                      <Icon className={`w-4 h-4 mr-2 ${color} text-white group-hover:text-white`} />
+                    );
+                  })()}
                   <span className="flex-1 text-left whitespace-nowrap">
                     {" "}
                     {statusLabels[statusFilter].label}
@@ -392,7 +397,7 @@ const AdminProductsPage = () => {
               fullWidth
               menuClassName="sm:w-48"
             >
-              {Object.entries(statusLabels).map(([value, { label, icon }]) => (
+              {Object.entries(statusLabels).map(([value, { label, Icon, color }]) => (
                 <button
                   key={value}
                   onClick={() => {
@@ -403,7 +408,7 @@ const AdminProductsPage = () => {
                     statusFilter === value ? "text-primary font-semibold bg-primary/5" : "text-text"
                   }`}
                 >
-                  {icon}
+                  <Icon className={`w-4 h-4 ${color}`} />
                   <span className="flex-1">{label}</span>
                   {statusFilter === value && <Check className="w-3.5 h-3.5" />}
                 </button>
@@ -416,7 +421,15 @@ const AdminProductsPage = () => {
             <Dropdown
               trigger={
                 <>
-                  <FolderOpen className="w-4 h-4 mr-2" />
+                  {(() => {
+                    const cat = categories.find((c) => c._id === categoryFilter);
+                    const { Icon, color } = cat
+                      ? getCategoryIcon(cat.name)
+                      : { Icon: FolderOpen, color: "text-text-muted" };
+                    return (
+                      <Icon className={`w-4 h-4 mr-2 ${color} text-white group-hover:text-white`} />
+                    );
+                  })()}
                   <span className="flex-1 text-left whitespace-nowrap">
                     {categoryFilter === "all"
                       ? "All Categories"
@@ -441,24 +454,27 @@ const AdminProductsPage = () => {
                 <span className="flex-1">All Categories</span>
                 {categoryFilter === "all" && <Check className="w-3.5 h-3.5" />}
               </button>
-              {categories.map((c) => (
-                <button
-                  key={c._id}
-                  onClick={() => {
-                    setCategoryFilter(c._id);
-                    setPage(1);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                    categoryFilter === c._id
-                      ? "text-primary font-semibold bg-primary/5"
-                      : "text-text"
-                  }`}
-                >
-                  {getCategoryIcon(c.name)}
-                  <span className="flex-1">{c.name}</span>
-                  {categoryFilter === c._id && <Check className="w-3.5 h-3.5" />}
-                </button>
-              ))}
+              {categories.map((c) => {
+                const { Icon, color } = getCategoryIcon(c.name);
+                return (
+                  <button
+                    key={c._id}
+                    onClick={() => {
+                      setCategoryFilter(c._id);
+                      setPage(1);
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                      categoryFilter === c._id
+                        ? "text-primary font-semibold bg-primary/5"
+                        : "text-text"
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 ${color}`} />
+                    <span className="flex-1">{c.name}</span>
+                    {categoryFilter === c._id && <Check className="w-3.5 h-3.5" />}
+                  </button>
+                );
+              })}
             </Dropdown>
           </div>
         </div>

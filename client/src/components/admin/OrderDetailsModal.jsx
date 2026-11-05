@@ -18,27 +18,15 @@ import { ConfirmModal } from "../ui/ConfirmModal";
 import api from "../../services/api";
 
 const STATUS_OPTIONS = [
-  { value: "pending", label: "Pending", icon: <Clock className="w-3 h-3 text-amber-500" /> },
-  {
-    value: "confirmed",
-    label: "Confirmed",
-    icon: <CheckCircle className="w-3 h-3 text-blue-500" />,
-  },
-  { value: "preparing", label: "Preparing", icon: <Package className="w-3 h-3 text-violet-500" /> },
-  { value: "ready_for_pickup", label: "Ready", icon: <Truck className="w-3 h-3 text-cyan-500" /> },
-  { value: "on_the_way", label: "On the way", icon: <Truck className="w-3 h-3 text-indigo-500" /> },
-  {
-    value: "delivered",
-    label: "Delivered",
-    icon: <CheckCircle className="w-3 h-3 text-emerald-500" />,
-  },
-  {
-    value: "picked_up",
-    label: "Picked up",
-    icon: <CheckCircle className="w-3 h-3 text-emerald-500" />,
-  },
-  { value: "cancelled", label: "Cancelled", icon: <X className="w-3 h-3 text-rose-500" /> },
-  { value: "refunded", label: "Refunded", icon: <RotateCcw className="w-3 h-3 text-slate-500" /> },
+  { value: "pending", label: "Pending", Icon: Clock, color: "text-amber-500" },
+  { value: "confirmed", label: "Confirmed", Icon: CheckCircle, color: "text-blue-500" },
+  { value: "preparing", label: "Preparing", Icon: Package, color: "text-violet-500" },
+  { value: "ready_for_pickup", label: "Ready", Icon: Truck, color: "text-cyan-500" },
+  { value: "on_the_way", label: "On the way", Icon: Truck, color: "text-indigo-500" },
+  { value: "delivered", label: "Delivered", Icon: CheckCircle, color: "text-emerald-500" },
+  { value: "picked_up", label: "Picked up", Icon: CheckCircle, color: "text-emerald-500" },
+  { value: "cancelled", label: "Cancelled", Icon: X, color: "text-rose-500" },
+  { value: "refunded", label: "Refunded", Icon: RotateCcw, color: "text-slate-500" },
 ];
 
 const formatNaira = (amount) => {
@@ -143,9 +131,11 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
                     trigger={
                       <>
                         <div className="mr-2">
-                          {statusOptions.find((s) => s.value === status)?.icon || (
-                            <Package className="w-4 h-4" />
-                          )}
+                          {(() => {
+                            const current = statusOptions.find((s) => s.value === status);
+                            const Icon = current?.Icon || Package;
+                            return <Icon className="w-4 h-4 text-text-muted" />;
+                          })()}
                         </div>
                         <span className="flex-1 text-left whitespace-nowrap">
                           {statusOptions.find((s) => s.value === status)?.label || "Select Status"}
@@ -168,7 +158,7 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
                               : "text-text"
                           }`}
                         >
-                          {s.icon}
+                          <s.Icon className={`w-3 h-3 ${s.color}`} />
                           <span className="flex-1">{s.label}</span>
                           {status === s.value && <Check className="w-3.5 h-3.5" />}
                         </button>

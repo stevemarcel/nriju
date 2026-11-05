@@ -26,32 +26,16 @@ import {
 } from "lucide-react";
 
 const STATUS_OPTIONS = [
-  { value: "", label: "All statuses", icon: <ShoppingCart className="w-4 h-4" /> },
-  { value: "pending", label: "Pending", icon: <Clock className="w-4 h-4 text-amber-500" /> },
-  {
-    value: "confirmed",
-    label: "Confirmed",
-    icon: <CheckCircle className="w-4 h-4 text-blue-500" />,
-  },
-  { value: "preparing", label: "Preparing", icon: <Package className="w-4 h-4 text-violet-500" /> },
-  {
-    value: "ready_for_pickup",
-    label: "Ready for pickup",
-    icon: <Truck className="w-4 h-4 text-cyan-500" />,
-  },
-  { value: "on_the_way", label: "On the way", icon: <Truck className="w-4 h-4 text-indigo-500" /> },
-  {
-    value: "delivered",
-    label: "Delivered",
-    icon: <CheckCircle className="w-4 h-4 text-emerald-500" />,
-  },
-  {
-    value: "picked_up",
-    label: "Picked up",
-    icon: <CheckCircle className="w-4 h-4 text-emerald-500" />,
-  },
-  { value: "cancelled", label: "Cancelled", icon: <X className="w-4 h-4 text-rose-500" /> },
-  { value: "refunded", label: "Refunded", icon: <RotateCcw className="w-4 h-4 text-slate-500" /> },
+  { value: "", label: "All statuses", Icon: ShoppingCart, color: "text-text-muted" },
+  { value: "pending", label: "Pending", Icon: Clock, color: "text-amber-500" },
+  { value: "confirmed", label: "Confirmed", Icon: CheckCircle, color: "text-blue-500" },
+  { value: "preparing", label: "Preparing", Icon: Package, color: "text-violet-500" },
+  { value: "ready_for_pickup", label: "Ready for pickup", Icon: Truck, color: "text-cyan-500" },
+  { value: "on_the_way", label: "On the way", Icon: Truck, color: "text-indigo-500" },
+  { value: "delivered", label: "Delivered", Icon: CheckCircle, color: "text-emerald-500" },
+  { value: "picked_up", label: "Picked up", Icon: CheckCircle, color: "text-emerald-500" },
+  { value: "cancelled", label: "Cancelled", Icon: X, color: "text-rose-500" },
+  { value: "refunded", label: "Refunded", Icon: RotateCcw, color: "text-slate-500" },
 ];
 
 const STATUS_MAP = {
@@ -152,9 +136,12 @@ const AdminOrdersPage = () => {
             <Dropdown
               trigger={
                 <>
-                  <div className="mr-2">
-                    {STATUS_OPTIONS.find((s) => s.value === statusFilter).icon}
-                  </div>
+                  {(() => {
+                    const { Icon, color } = STATUS_OPTIONS.find((s) => s.value === statusFilter);
+                    return (
+                      <Icon className={`w-4 h-4 mr-2 ${color} text-white group-hover:text-white`} />
+                    );
+                  })()}
                   <span className="flex-1 text-left whitespace-nowrap">
                     {" "}
                     {STATUS_OPTIONS.find((s) => s.value === statusFilter).label}
@@ -178,7 +165,7 @@ const AdminOrdersPage = () => {
                       : "text-text"
                   }`}
                 >
-                  {s.icon}
+                  <s.Icon className={`w-4 h-4 ${s.color}`} />
                   <span className="flex-1">{s.label}</span>
                   {statusFilter === s.value && <Check className="w-3.5 h-3.5" />}
                 </button>
