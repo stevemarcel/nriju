@@ -18,7 +18,11 @@ const getInventory = asyncHandler(async (req, res) => {
 
   const [batches, total] = await Promise.all([
     Inventory.find(query)
-      .populate("product", "name sku")
+      .populate("product", "name sku images category unit")
+      .populate({
+        path: "product",
+        populate: { path: "category", select: "name" },
+      })
       .populate("createdBy", "name")
       .populate("updatedBy", "name")
       .sort("expiryDate")

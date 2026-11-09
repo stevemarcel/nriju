@@ -5,6 +5,7 @@ import Product from "../models/Product.js";
 // Single source of truth for availability: sum ACTIVE, UNEXPIRED batches.
 // This replaces the earlier `stock || 10` seed fallback, which made
 // availability fiction. Call after any batch create/edit/void.
+// Note: quantities may be negative for adjustments/damaged batches; we cap at 0.
 export const computeAvailableStock = async (productId, session) => {
   const [agg] = await Inventory.aggregate([
     {
@@ -16,7 +17,7 @@ export const computeAvailableStock = async (productId, session) => {
     },
     { $group: { _id: null, total: { $sum: "$quantity" } } },
   ]);
-  return agg?.total ?? 0;
+  return Math.max(0, agg?.total ?? 0);
 };
 
 // Recompute + persist the denormalized Product.stock mirror. Lightweight

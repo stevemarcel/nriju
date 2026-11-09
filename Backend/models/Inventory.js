@@ -11,7 +11,7 @@ const inventorySchema = new mongoose.Schema(
       index: true,
     },
     batch: { type: String, required: true, trim: true },
-    quantity: { type: Number, required: true, min: 0 },
+    quantity: { type: Number, required: true }, // allow negative for adjustments/damaged
     expiryDate: { type: Date, required: true, index: true },
     receivedDate: { type: Date, default: Date.now },
     supplier: { type: String, default: "" },
