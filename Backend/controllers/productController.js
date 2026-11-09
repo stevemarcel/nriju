@@ -176,6 +176,7 @@ const updateProduct = asyncHandler(async (req, res) => {
     "isActive",
     "isFeatured",
     "notifyOnOutOfStock",
+    "costPrice",
     "images",
   ];
   for (const key of allowed) {

@@ -7,16 +7,31 @@ import { recomputeStock, recomputeStocks } from "../services/inventoryService.js
 // @ROUTE       GET /api/v1/inventory
 // @ACCESS      Admin
 const getInventory = asyncHandler(async (req, res) => {
-  const { product, isActive, expiryBefore } = req.query;
+  const { product, isActive, expiryBefore, source, reason, page = 1, limit = 50 } = req.query;
 
   const query = {};
   if (product) query.product = product;
   if (isActive !== undefined) query.isActive = isActive === "true";
   if (expiryBefore) query.expiryDate = { $lt: new Date(expiryBefore) };
+  if (source) query.source = source;
+  if (reason) query.reason = new RegExp(reason, "i");
 
-  const batches = await Inventory.find(query).populate("product", "name sku").sort("expiryDate");
+  const [batches, total] = await Promise.all([
+    Inventory.find(query)
+      .populate("product", "name sku")
+      .populate("createdBy", "name")
+      .populate("updatedBy", "name")
+      .sort("expiryDate")
+      .skip((Number(page) - 1) * Number(limit))
+      .limit(Number(limit)),
+    Inventory.countDocuments(query),
+  ]);
 
-  res.json({ success: true, data: batches });
+  res.json({
+    success: true,
+    data: batches,
+    meta: { page: Number(page), limit: Number(limit), total },
+  });
 });
 
 // @DESCRIPTION Get low stock or expiring soon items
@@ -44,7 +59,7 @@ const getInventoryAlerts = asyncHandler(async (req, res) => {
 // @ROUTE       POST /api/v1/inventory
 // @ACCESS      Admin
 const createInventoryBatch = asyncHandler(async (req, res) => {
-  const { productId, batch, quantity, expiryDate, supplier, location } = req.body;
+  const { productId, batch, quantity, expiryDate, supplier, location, reason, source } = req.body;
 
   const product = await Product.findById(productId);
   if (!product) {
@@ -59,10 +74,22 @@ const createInventoryBatch = asyncHandler(async (req, res) => {
     expiryDate,
     supplier,
     location,
+    createdBy: req.user._id,
+    updatedBy: req.user._id,
+    reason: reason || (source === "damaged" ? "damaged goods" : "restock"),
+    source: source || "restock",
   });
 
   // Recompute the product's stock
   const newStock = await recomputeStock(productId);
+
+  // Enrich activity log
+  req.activity = {
+    action: "inventory.batch.created",
+    entity: "inventory",
+    entityId: inventoryBatch._id,
+    description: `${req.user.name} added ${quantity}${product.unit} of ${product.name} (batch: ${batch})`,
+  };
 
   res.status(201).json({
     success: true,
@@ -82,15 +109,33 @@ const updateInventoryBatch = asyncHandler(async (req, res) => {
     throw new Error("Inventory batch not found");
   }
 
-  const allowed = ["batch", "quantity", "expiryDate", "supplier", "location", "isActive"];
+  const allowed = [
+    "batch",
+    "quantity",
+    "expiryDate",
+    "supplier",
+    "location",
+    "isActive",
+    "reason",
+    "source",
+  ];
   for (const key of allowed) {
     if (req.body[key] !== undefined) batch[key] = req.body[key];
   }
 
+  batch.updatedBy = req.user._id;
   await batch.save();
 
   // Recompute the product's stock
   const newStock = await recomputeStock(batch.product._id);
+
+  // Enrich activity log
+  req.activity = {
+    action: "inventory.batch.updated",
+    entity: "inventory",
+    entityId: batch._id,
+    description: `${req.user.name} updated batch ${batch.batch} (${batch.quantity}${batch.product.unit})`,
+  };
 
   res.json({
     success: true,
@@ -111,10 +156,20 @@ const voidInventoryBatch = asyncHandler(async (req, res) => {
   }
 
   batch.isActive = false;
+  batch.updatedBy = req.user._id;
+  batch.source = "void";
   await batch.save();
 
   // Recompute the product's stock
   const newStock = await recomputeStock(batch.product._id);
+
+  // Enrich activity log
+  req.activity = {
+    action: "inventory.batch.voided",
+    entity: "inventory",
+    entityId: batch._id,
+    description: `${req.user.name} voided batch ${batch.batch} (${batch.quantity}${batch.product.unit})`,
+  };
 
   res.json({
     success: true,

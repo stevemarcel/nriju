@@ -77,6 +77,9 @@ const productSchema = new mongoose.Schema(
       index: true,
     },
 
+    // Cost price (integer kobo) — for margin/valuation reports
+    costPrice: { ...integerKobo(false), default: 0 },
+
     // ── cooked-item production fields ──────────────────────────
     prepLeadTime: { type: Number, default: 0 },
     maxDailyQty: { type: Number, default: 0 },
