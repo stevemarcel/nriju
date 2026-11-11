@@ -1,24 +1,25 @@
-import { Router } from "express";
+import express from "express";
 import {
   getInventory,
-  getInventoryAlerts,
-  createInventoryBatch,
-  updateInventoryBatch,
-  voidInventoryBatch,
-  recomputeProductStock,
+  getInventoryStats,
+  addStock,
+  removeStock,
+  adjustStockDirect,
+  damageStock,
 } from "../controllers/inventoryController.js";
 import { auth, admin } from "../middleware/auth.js";
 
-const router = Router();
+const router = express.Router();
 
-// Admin-only inventory routes
 router.use(auth);
 router.use(admin);
+
 router.get("/", getInventory);
-router.get("/alerts", getInventoryAlerts);
-router.post("/", createInventoryBatch);
-router.put("/:id", updateInventoryBatch);
-router.delete("/:id", voidInventoryBatch);
-router.post("/:productId/recompute", recomputeProductStock);
+router.get("/stats", getInventoryStats);
+
+router.post("/:productId/add", addStock);
+router.post("/:productId/remove", removeStock);
+router.post("/:productId/adjust", adjustStockDirect);
+router.post("/:productId/damage", damageStock);
 
 export default router;

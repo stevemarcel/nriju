@@ -10,6 +10,7 @@ import {
   formatDate,
 } from "../../components/admin/AdminPrimitives";
 import ProductFormModal from "../../components/admin/ProductFormModal";
+import StockActionModal from "../../components/admin/StockActionModal";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import Dropdown from "../../components/ui/Dropdown";
 import { getCategoryIcon } from "../../utils/categoryIcons";
@@ -26,6 +27,10 @@ import {
   FolderOpen,
   AlertCircle,
   Box,
+  ArrowDownUp,
+  Minus,
+  Edit3,
+  ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -36,6 +41,7 @@ const AdminProductsPage = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState(null);
+  const [stockModal, setStockModal] = useState(null);
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [processingIds, setProcessingIds] = useState(new Set());
@@ -697,7 +703,7 @@ const AdminProductsPage = () => {
                     <td className="py-3 px-4 text-right text-text-muted">
                       {formatDate(p.createdAt)}
                     </td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-3 px-4 text-center overflow-visible">
                       <div className="flex justify-center gap-1.5">
                         {p.isActive ? (
                           <>
@@ -708,6 +714,55 @@ const AdminProductsPage = () => {
                             >
                               <Edit className="w-3 h-3" /> Edit
                             </button>
+                            <Dropdown
+                              trigger={
+                                <>
+                                  <ArrowDownUp className="w-3 h-3" /> Adjust
+                                </>
+                              }
+                              color="table"
+                              noBorder
+                              direction="down"
+                              menuClassName="sm:w-44"
+                              portal
+                            >
+                              <button
+                                onClick={() => setStockModal({ product: p, action: "add" })}
+                                disabled={isProcessing(p._id)}
+                                className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 hover:bg-background transition-colors disabled:opacity-50"
+                              >
+                                <Plus className="w-3.5 h-3.5 text-emerald-500" /> Add Stock
+                              </button>
+                              <button
+                                onClick={() => setStockModal({ product: p, action: "remove" })}
+                                disabled={isProcessing(p._id)}
+                                className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 hover:bg-background transition-colors disabled:opacity-50"
+                              >
+                                <Minus className="w-3.5 h-3.5 text-rose-500" /> Remove Stock
+                              </button>
+                              <button
+                                onClick={() => setStockModal({ product: p, action: "adjust" })}
+                                disabled={isProcessing(p._id)}
+                                className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 hover:bg-background transition-colors disabled:opacity-50"
+                              >
+                                <Edit3 className="w-3.5 h-3.5 text-amber-500" /> Adjust Stock
+                              </button>
+                              <button
+                                onClick={() => setStockModal({ product: p, action: "damage" })}
+                                disabled={isProcessing(p._id)}
+                                className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 hover:bg-background transition-colors disabled:opacity-50"
+                              >
+                                <ShieldAlert className="w-3.5 h-3.5 text-orange-500" /> Record
+                                Damage
+                              </button>
+                              <button
+                                onClick={() => setStockModal({ product: p, action: "return" })}
+                                disabled={isProcessing(p._id)}
+                                className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 hover:bg-background transition-colors disabled:opacity-50"
+                              >
+                                <RotateCcw className="w-3.5 h-3.5 text-blue-500" /> Record Return
+                              </button>
+                            </Dropdown>
                             <button
                               onClick={() => handleSoftDelete(p)}
                               disabled={isProcessing(p._id)}
@@ -757,6 +812,15 @@ const AdminProductsPage = () => {
             setModal(null);
             invalidate();
           }}
+        />
+      )}
+
+      {/* Stock Action Modal */}
+      {stockModal && (
+        <StockActionModal
+          product={stockModal.product}
+          action={stockModal.action}
+          onClose={() => setStockModal(null)}
         />
       )}
 

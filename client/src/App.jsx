@@ -37,6 +37,7 @@ const AddressesPage = lazy(() => import("./pages/account/AddressesPage"));
 const ChangePasswordPage = lazy(() => import("./pages/account/ChangePasswordPage"));
 const WishlistPage = lazy(() => import("./pages/account/WishlistPage"));
 
+// ADMIN PAGES
 const AdminDashboardPage = lazy(() => import("./pages/admin/AdminDashboardPage"));
 const AdminProductsPage = lazy(() => import("./pages/admin/AdminProductsPage"));
 const AdminOrdersPage = lazy(() => import("./pages/admin/AdminOrdersPage"));
@@ -44,7 +45,7 @@ const AdminCustomersPage = lazy(() => import("./pages/admin/AdminCustomersPage")
 const AdminUsersPage = lazy(() => import("./pages/admin/AdminUsersPage"));
 const AdminReviewsPage = lazy(() => import("./pages/admin/AdminReviewsPage"));
 const AdminCouponsPage = lazy(() => import("./pages/admin/AdminCouponsPage"));
-const AdminInventoryPage = lazy(() => import("./pages/admin/AdminInventoryPage"));
+// const AdminInventoryPage = lazy(() => import("./pages/admin/AdminInventoryPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
 
 const App = () => {
@@ -180,7 +181,7 @@ const App = () => {
             <Route path="users" element={<AdminUsersPage />} />
             <Route path="reviews" element={<AdminReviewsPage />} />
             <Route path="coupons" element={<AdminCouponsPage />} />
-            <Route path="inventory" element={<AdminInventoryPage />} />
+            {/* <Route path="inventory" element={<AdminInventoryPage />} /> */}
             <Route path="settings" element={<AdminSettingsPage />} />
           </Route>
         </Routes>

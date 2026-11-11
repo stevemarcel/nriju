@@ -96,7 +96,7 @@ const AdminOrdersPage = () => {
   const { data, isPending } = useQuery({
     queryKey: ["admin", "orders", page, search, statusFilter],
     queryFn: async () => {
-      const params = new URLSearchParams({ page, limit: 20 });
+      const params = new URLSearchParams({ page, limit: 10 });
       if (search) params.set("search", search);
       if (statusFilter) params.set("status", statusFilter);
       const res = await api.get(`/orders/all?${params.toString()}`);
@@ -105,13 +105,13 @@ const AdminOrdersPage = () => {
   });
 
   const orders = data?.data ?? [];
-  const meta = data?.meta ?? { total: 0, limit: 20 };
+  const meta = data?.meta ?? { total: 0, limit: 10 };
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
 
   return (
     <div>
-      <AdminPageHeader title="Orders" subtitle={`${orders.length} orders on this page.`} />
+      <AdminPageHeader title="Orders" />
 
       {/* Filter bar */}
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">

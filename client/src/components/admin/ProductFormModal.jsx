@@ -18,6 +18,7 @@ const initialForm = {
   category: "",
   images: [],
   tags: "",
+  stock: "",
   isFeatured: false,
   isActive: true,
   notifyOnOutOfStock: false,
@@ -40,6 +41,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
         category: product.category?._id ?? product.category ?? "",
         images: product.images ?? [],
         tags: Array.isArray(product.tags) ? product.tags.join(", ") : (product.tags ?? ""),
+        stock: product.stock ?? "",
         isFeatured: product.isFeatured ?? false,
         isActive: product.isActive ?? true,
         notifyOnOutOfStock: product.notifyOnOutOfStock ?? false,
@@ -64,6 +66,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
           .split(",")
           .map((tag) => tag.trim())
           .filter(Boolean),
+        stock: form.stock ? Number(form.stock) : undefined,
         isFeatured: form.isFeatured,
         isActive: form.isActive,
         notifyOnOutOfStock: form.notifyOnOutOfStock,
@@ -188,6 +191,21 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   step="0.01"
                   value={form.compareAtPrice}
                   onChange={(event) => handleChange("compareAtPrice", event.target.value)}
+                  className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                />
+              </div>
+
+              {/* Stock */}
+              <div>
+                <label className="block text-sm font-medium text-text mb-1.5">Stock</label>
+
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={form.stock}
+                  onChange={(event) => handleChange("stock", event.target.value)}
+                  placeholder="Enter initial stock quantity"
                   className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
                 />
               </div>

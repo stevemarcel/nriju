@@ -38,7 +38,7 @@ const LoginPage = () => {
       const res = await api.post("/auth/login", { email, password });
       dispatch(setUser(res.data.data));
       // Merge guest cart into server cart
-      await dispatch(mergeGuestCart());
+      dispatch(mergeGuestCart());
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Login failed. Please try again.");
