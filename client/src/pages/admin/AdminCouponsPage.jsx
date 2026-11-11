@@ -6,13 +6,18 @@ import {
   TableSkeleton,
   EmptyState,
   Pagination,
-  FilterBar,
+  StatusPill,
   formatDate,
   formatNaira,
 } from "../../components/admin/AdminPrimitives";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
-import { Plus, Edit, Trash2, Save, X, Ticket } from "lucide-react";
+import { Plus, Edit, Trash2, Save, X, Ticket, Search } from "lucide-react";
 import { toKobo } from "../../utils/formatMoney";
+
+const COUPON_STATUS_MAP = {
+  active: { label: "Active", cls: "bg-emerald-100 text-emerald-700" },
+  inactive: { label: "Inactive", cls: "bg-slate-100 text-slate-600" },
+};
 
 const AdminCouponsPage = () => {
   const queryClient = useQueryClient();
@@ -62,16 +67,32 @@ const AdminCouponsPage = () => {
         action={
           <button
             onClick={() => setModal("create")}
-            className="px-4 py-2 bg-primary text-white font-medium rounded-lg inline-flex items-center gap-2 hover:bg-primary/95 transition-colors"
+            className="w-full sm:w-auto px-4 py-2 bg-primary text-white font-medium rounded-lg inline-flex items-center justify-center gap-2 hover:bg-primary/95 transition-colors"
           >
             <Plus className="w-4 h-4" /> Add Coupon
           </button>
         }
       />
 
-      <FilterBar search={search} onSearch={(v) => setSearch(v)} selects={[]} />
+      {/* Filter bar */}
+      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">
+        {/* Search */}
+        <div className="relative flex-3 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Search coupons..."
+            className="w-full pl-9 pr-4 py-2 bg-primary/5 border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
+          />
+        </div>
+      </div>
 
-      <div className="bg-surface rounded-xl border border-border overflow-hidden">
+      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 overflow-hidden">
         <div className="overflow-x-auto">
           {isPending ? (
             <TableSkeleton rows={6} cols={7} />
@@ -83,17 +104,17 @@ const AdminCouponsPage = () => {
           ) : (
             <table className="w-full text-sm min-w-max">
               <thead>
-                <tr className="bg-background-soft/50">
-                  <th className="text-left font-medium py-3 px-4">Code</th>
-                  <th className="text-left font-medium py-3 px-4">Type</th>
-                  <th className="text-right font-medium py-3 px-4">Value</th>
-                  <th className="text-right font-medium py-3 px-4">Min Order</th>
-                  <th className="text-center font-medium py-3 px-4">Status</th>
-                  <th className="text-right font-medium py-3 px-4">Expires</th>
-                  <th className="text-center font-medium py-3 px-4">Actions</th>
+                <tr className="bg-primary/95 text-on-accent text-xs uppercase tracking-wider font-semibold border-b-2 border-primary">
+                  <th className="text-left py-4 px-4">Code</th>
+                  <th className="text-left py-4 px-4">Type</th>
+                  <th className="text-right py-4 px-4">Value</th>
+                  <th className="text-right py-4 px-4">Min Order</th>
+                  <th className="text-center py-4 px-4">Status</th>
+                  <th className="text-right py-4 px-4">Expires</th>
+                  <th className="text-center py-4 px-4">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border admin-table">
                 {coupons.map((c) => (
                   <tr key={c._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4">
@@ -110,29 +131,26 @@ const AdminCouponsPage = () => {
                       {formatNaira(c.minOrder || 0)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <span
-                        className={`inline-block w-2 h-2 rounded-full mr-1 ${c.isActive ? "bg-emerald-500" : "bg-rose-500"}`}
-                      />
-                      {c.isActive ? "Active" : "Inactive"}
+                      <StatusPill status={c.isActive ? "active" : "inactive"} map={COUPON_STATUS_MAP} />
                     </td>
                     <td className="py-3 px-4 text-right text-text-muted">
                       {formatDate(c.expiryDate)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <div className="flex justify-center gap-1">
+                      <div className="flex justify-center gap-1.5">
                         <button
                           onClick={() => setModal({ edit: c })}
-                          className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-primary"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-primary/10 text-text-muted hover:text-primary transition-colors"
                           title="Edit"
                         >
-                          <Edit className="w-3.5 h-3.5 mx-auto" />
+                          <Edit className="w-3 h-3" /> Edit
                         </button>
                         <button
                           onClick={() => setDeleteTarget(c)}
-                          className="w-7 h-7 rounded bg-background-soft hover:bg-rose-100 text-rose-600"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-rose-100 text-text-muted hover:text-rose-600 transition-colors"
                           title="Delete"
                         >
-                          <Trash2 className="w-3.5 h-3.5 mx-auto" />
+                          <Trash2 className="w-3 h-3" /> Delete
                         </button>
                       </div>
                     </td>
