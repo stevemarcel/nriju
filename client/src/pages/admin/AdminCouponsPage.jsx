@@ -6,7 +6,6 @@ import {
   TableSkeleton,
   EmptyState,
   Pagination,
-  StatusPill,
   formatDate,
   formatNaira,
 } from "../../components/admin/AdminPrimitives";
@@ -15,8 +14,8 @@ import { Plus, Edit, Trash2, Save, X, Ticket, Search } from "lucide-react";
 import { toKobo } from "../../utils/formatMoney";
 
 const COUPON_STATUS_MAP = {
-  active: { label: "Active", cls: "bg-emerald-100 text-emerald-700" },
-  inactive: { label: "Inactive", cls: "bg-slate-100 text-slate-600" },
+  true: { label: "Active", cls: "bg-emerald-100 text-emerald-700", dotColor: "bg-emerald-500" },
+  false: { label: "Inactive", cls: "bg-slate-100 text-slate-600", dotColor: "bg-slate-500" },
 };
 
 const AdminCouponsPage = () => {
@@ -131,7 +130,7 @@ const AdminCouponsPage = () => {
                       {formatNaira(c.minOrder || 0)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <StatusPill status={c.isActive ? "active" : "inactive"} map={COUPON_STATUS_MAP} />
+                      <StatusPill status={String(c.isActive)} map={COUPON_STATUS_MAP} dot />
                     </td>
                     <td className="py-3 px-4 text-right text-text-muted">
                       {formatDate(c.expiryDate)}

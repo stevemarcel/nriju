@@ -66,6 +66,11 @@ const ROLE_MAP = {
   },
 };
 
+const ACTIVE_STATUS_MAP = {
+  true: { label: "Active", cls: "bg-emerald-100 text-emerald-700", dotColor: "bg-emerald-500" },
+  false: { label: "Inactive", cls: "bg-slate-100 text-slate-600", dotColor: "bg-slate-500" },
+};
+
 const AdminUsersPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -304,16 +309,8 @@ const AdminUsersPage = () => {
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
                           {u.isActive ? "Deactivating..." : "Activating..."}
                         </span>
-                      ) : u.isActive ? (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          Active
-                        </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
-                          <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
-                          Inactive
-                        </span>
+                        <StatusPill status={String(u.isActive)} map={ACTIVE_STATUS_MAP} dot />
                       )}
                     </td>
                     <td className="py-3 px-4 text-right text-text-muted">

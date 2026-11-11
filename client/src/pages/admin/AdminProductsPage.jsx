@@ -6,6 +6,7 @@ import {
   TableSkeleton,
   EmptyState,
   Pagination,
+  StatusPill,
   formatNaira,
   formatDate,
 } from "../../components/admin/AdminPrimitives";
@@ -33,6 +34,11 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
+
+const PRODUCT_STATUS_MAP = {
+  true: { label: "Active", cls: "bg-emerald-100 text-emerald-700", dotColor: "bg-emerald-500" },
+  false: { label: "Archived", cls: "bg-rose-100 text-rose-700", dotColor: "bg-rose-500" },
+};
 
 const AdminProductsPage = () => {
   const queryClient = useQueryClient();
@@ -664,40 +670,7 @@ const AdminProductsPage = () => {
                           <Loader2 className="w-3 h-3 animate-spin" /> Processing
                         </span>
                       ) : (
-                        <span
-                          className={`inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1 rounded-full ${
-                            p.isActive
-                              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                              : "bg-slate-100 text-slate-600 ring-1 ring-slate-200"
-                          }`}
-                        >
-                          {p.isActive ? (
-                            <svg
-                              className="w-3 h-3"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2.5}
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                          ) : (
-                            <svg
-                              className="w-3 h-3"
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
-                              strokeWidth={2.5}
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
-                            </svg>
-                          )}
-                          {p.isActive ? "Active" : "Archived"}
-                        </span>
+                        <StatusPill status={String(p.isActive)} map={PRODUCT_STATUS_MAP} dot />
                       )}
                     </td>
                     <td className="py-3 px-4 text-right text-text-muted">

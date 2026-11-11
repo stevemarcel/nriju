@@ -13,13 +13,18 @@ const AdminPageHeader = ({ title, subtitle, action }) => (
 );
 
 // Colour-coded status pill. Statuses are domain-specific, so callers pass a map.
-const StatusPill = ({ status, map }) => {
+// `dot` renders a 1.5px dot instead of an icon — used for binary on/off states.
+const StatusPill = ({ status, map, dot = false }) => {
   const cfg = map[status] || { label: status, cls: "bg-background text-text-muted" };
   return (
     <span
       className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${cfg.cls}`}
     >
-      {cfg.icon && <span className="w-3 h-3 shrink-0">{cfg.icon}</span>}
+      {dot ? (
+        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dotColor || "bg-current"}`} />
+      ) : (
+        cfg.icon && <span className="w-3 h-3 shrink-0">{cfg.icon}</span>
+      )}
       {cfg.label}
     </span>
   );
