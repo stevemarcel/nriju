@@ -19,6 +19,13 @@ const COUPON_STATUS_MAP = {
   false: { label: "Inactive", cls: "bg-slate-100 text-slate-600", dotColor: "bg-slate-500" },
 };
 
+// A coupon is inactive when it is toggled off OR its expiry date has passed.
+const isCouponActive = (c) => {
+  if (!c.isActive) return false;
+  if (c.expiryDate && new Date(c.expiryDate) < new Date(new Date().toDateString())) return false;
+  return true;
+};
+
 const AdminCouponsPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -131,7 +138,7 @@ const AdminCouponsPage = () => {
                       {formatNaira(c.minOrder || 0)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      <StatusPill status={String(c.isActive)} map={COUPON_STATUS_MAP} dot />
+                      <StatusPill status={String(isCouponActive(c))} map={COUPON_STATUS_MAP} dot />
                     </td>
                     <td className="py-3 px-4 text-right text-text-muted">
                       {formatDate(c.expiryDate)}
