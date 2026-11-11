@@ -41,11 +41,32 @@ const getStats = asyncHandler(async (req, res) => {
 // @ROUTE       GET /api/v1/admin/users
 // @ACCESS      Admin
 const getUsers = asyncHandler(async (req, res) => {
-  const { role, isActive, search, page = 1, limit = 20 } = req.query;
+  const { role, roles, isActive, search, page = 1, limit = 20 } = req.query;
 
   const query = {};
-  if (role) query.role = role;
-  if (isActive !== undefined) query.isActive = isActive === "true";
+
+  // Role filtering (supports one or multiple roles).
+  // Example: ?roles=admin,superAdmin
+  // Backward compatible: ?role=admin
+  const selectedRoles = roles
+    ? roles
+        .split(",")
+        .map((r) => r.trim())
+        .filter(Boolean)
+    : role
+      ? [role]
+      : [];
+
+  if (selectedRoles.length) {
+    query.role = { $in: selectedRoles };
+  }
+
+  // Account status filtering.
+  if (isActive !== undefined) {
+    query.isActive = isActive === "true";
+  }
+
+  // Search by name or email.
   if (search) {
     query.$or = [{ name: new RegExp(search, "i") }, { email: new RegExp(search, "i") }];
   }
@@ -60,7 +81,11 @@ const getUsers = asyncHandler(async (req, res) => {
   res.json({
     success: true,
     data: users,
-    meta: { page: Number(page), limit: Number(limit), total },
+    meta: {
+      page: Number(page),
+      limit: Number(limit),
+      total,
+    },
   });
 });
 

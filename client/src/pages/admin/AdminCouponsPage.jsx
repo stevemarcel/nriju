@@ -9,8 +9,8 @@ import {
   FilterBar,
   formatDate,
   formatNaira,
-  confirmDelete,
 } from "../../components/admin/AdminPrimitives";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { Plus, Edit, Trash2, Save, X, Ticket } from "lucide-react";
 import { toKobo } from "../../utils/formatMoney";
 
@@ -42,6 +42,8 @@ const AdminCouponsPage = () => {
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "coupons"] });
 
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
   // The old delete handler called api.delete without awaiting, then
   // invalidated — which could fire before the request landed. A real
   // mutation keeps the request in flight until the cache clears.
@@ -50,10 +52,7 @@ const AdminCouponsPage = () => {
     onSuccess: invalidate,
   });
 
-  const handleDelete = (c) => {
-    if (!confirmDelete(`Deactivate "${c.code}"?`)) return;
-    deleteMutation.mutate(c._id);
-  };
+  const handleDelete = (c) => setDeleteTarget(c);
 
   return (
     <div>
@@ -129,12 +128,7 @@ const AdminCouponsPage = () => {
                           <Edit className="w-3.5 h-3.5 mx-auto" />
                         </button>
                         <button
-                          onClick={() => {
-                            if (confirmDelete(`Deactivate "${c.code}"?`)) {
-                              api.delete(`/coupons/${c._id}`);
-                              invalidate();
-                            }
-                          }}
+                          onClick={() => setDeleteTarget(c)}
                           className="w-7 h-7 rounded bg-background-soft hover:bg-rose-100 text-rose-600"
                           title="Delete"
                         >

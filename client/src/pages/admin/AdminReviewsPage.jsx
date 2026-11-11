@@ -6,18 +6,18 @@ import {
   TableSkeleton,
   EmptyState,
   Pagination,
-  FilterBar,
   StatusPill,
   formatDate,
-  confirmDelete,
 } from "../../components/admin/AdminPrimitives";
-import { Star } from "lucide-react";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import Dropdown from "../../components/ui/Dropdown";
+import { Star, Search, Check, Clock, CheckCircle, X } from "lucide-react";
 
 const FILTER_OPTIONS = [
-  { value: "", label: "All" },
-  { value: "pending", label: "Pending" },
-  { value: "approved", label: "Approved" },
-  { value: "rejected", label: "Rejected" },
+  { value: "", label: "All", icon: Star, color: "text-text-muted" },
+  { value: "pending", label: "Pending", icon: Clock, color: "text-amber-500" },
+  { value: "approved", label: "Approved", icon: CheckCircle, color: "text-emerald-500" },
+  { value: "rejected", label: "Rejected", icon: X, color: "text-rose-500" },
 ];
 
 const STATUS_MAP = {
@@ -31,6 +31,7 @@ const AdminReviewsPage = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
+  const [moderateTarget, setModerateTarget] = useState(null);
 
   const { data, isPending } = useQuery({
     queryKey: ["admin", "reviews", page, search, statusFilter],
@@ -51,38 +52,79 @@ const AdminReviewsPage = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] }),
   });
 
-  const handleModerate = (r, newStatus) => {
-    if (!confirmDelete(`Mark this review as ${newStatus}?`)) return;
-    moderateMutation.mutate({ id: r._id, patch: { status: newStatus } });
-  };
+  const handleModerate = (r, newStatus) => setModerateTarget({ review: r, status: newStatus });
 
   return (
     <div>
       <AdminPageHeader title="Reviews" subtitle={`${reviews.length} reviews on this page.`} />
 
-      <FilterBar
-        search={search}
-        onSearch={(v) => {
-          setSearch(v);
-          setPage(1);
-        }}
-        selects={[
-          {
-            label: "status",
-            value: statusFilter,
-            onChange: (v) => {
-              setStatusFilter(v);
+      {/* Filter bar */}
+      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">
+        {/* Search */}
+        <div className="relative flex-3 min-w-0">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
               setPage(1);
-            },
-            options: FILTER_OPTIONS,
-          },
-        ]}
-      />
+            }}
+            placeholder="Search reviews..."
+            className="w-full pl-9 pr-4 py-2 bg-primary/5 border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
+          />
+        </div>
 
-      <div className="bg-surface rounded-xl border border-border overflow-hidden">
+        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 flex-wrap flex-2">
+          {/* Status Filter */}
+          <div className="relative w-full md:w-0 md:flex-1">
+            <Dropdown
+              trigger={
+                <>
+                  {(() => {
+                    const { icon, color } = FILTER_OPTIONS.find((s) => s.value === statusFilter);
+                    const Icon = icon || Star;
+                    return (
+                      <Icon className={`w-4 h-4 mr-2 ${color} text-white group-hover:text-white`} />
+                    );
+                  })()}
+                  <span className="flex-1 text-left whitespace-nowrap">
+                    {" "}
+                    {FILTER_OPTIONS.find((s) => s.value === statusFilter).label}
+                  </span>
+                </>
+              }
+              color="primary"
+              fullWidth
+              menuClassName="sm:w-48"
+            >
+              {FILTER_OPTIONS.map((s) => (
+                <button
+                  key={s.value}
+                  onClick={() => {
+                    setStatusFilter(s.value);
+                    setPage(1);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                    statusFilter === s.value
+                      ? "text-primary font-semibold bg-primary/5"
+                      : "text-text"
+                  }`}
+                >
+                  <s.icon className={`w-4 h-4 ${s.color}`} />
+                  <span className="flex-1">{s.label}</span>
+                  {statusFilter === s.value && <Check className="w-3.5 h-3.5" />}
+                </button>
+              ))}
+            </Dropdown>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 overflow-hidden">
         <div className="overflow-x-auto">
           {isPending ? (
-            <TableSkeleton rows={6} cols={6} />
+            <TableSkeleton rows={6} cols={7} />
           ) : !reviews.length ? (
             <EmptyState
               icon={<Star className="mx-auto w-10 h-10 text-text-muted" />}
@@ -91,16 +133,17 @@ const AdminReviewsPage = () => {
           ) : (
             <table className="w-full text-sm min-w-max">
               <thead>
-                <tr className="bg-background-soft/50">
-                  <th className="text-left font-medium py-3 px-4">Product</th>
-                  <th className="text-left font-medium py-3 px-4">Reviewer</th>
-                  <th className="center font-medium py-3 px-4">Rating</th>
-                  <th className="text-left font-medium py-3 px-4">Title</th>
-                  <th className="center font-medium py-3 px-4">Status</th>
-                  <th className="text-right font-medium py-3 px-4">Date</th>
+                <tr className="bg-primary/95 text-on-accent text-xs uppercase tracking-wider font-semibold border-b-2 border-primary">
+                  <th className="text-left py-4 px-4">Product</th>
+                  <th className="text-left py-4 px-4">Reviewer</th>
+                  <th className="text-center py-4 px-4">Rating</th>
+                  <th className="text-left py-4 px-4">Title</th>
+                  <th className="text-center py-4 px-4">Status</th>
+                  <th className="text-right py-4 px-4">Date</th>
+                  <th className="text-center py-4 px-4">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="divide-y divide-border admin-table">
                 {reviews.map((r) => (
                   <tr key={r._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4 text-text">{r.product?.name || "—"}</td>
@@ -120,16 +163,16 @@ const AdminReviewsPage = () => {
                     </td>
                     <td className="py-3 px-4 text-center">
                       {r.status === "pending" && (
-                        <div className="flex justify-center gap-1">
+                        <div className="flex justify-center gap-1.5">
                           <button
                             onClick={() => handleModerate(r, "approved")}
-                            className="px-2 py-1 text-xs bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
                           >
                             Approve
                           </button>
                           <button
                             onClick={() => handleModerate(r, "rejected")}
-                            className="px-2 py-1 text-xs bg-rose-100 text-rose-700 rounded hover:bg-rose-200"
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors"
                           >
                             Reject
                           </button>
@@ -145,6 +188,24 @@ const AdminReviewsPage = () => {
       </div>
 
       <Pagination page={page} total={meta.total} limit={meta.limit} onChange={setPage} />
+
+      {moderateTarget && (
+        <ConfirmModal
+          open={!!moderateTarget}
+          title="Moderate review"
+          description={`Mark this review as ${moderateTarget.status}?`}
+          variant="primary"
+          confirmLabel="Continue"
+          onConfirm={() => {
+            moderateMutation.mutate({
+              id: moderateTarget.review._id,
+              patch: { status: moderateTarget.status },
+            });
+            setModerateTarget(null);
+          }}
+          onCancel={() => setModerateTarget(null)}
+        />
+      )}
     </div>
   );
 };

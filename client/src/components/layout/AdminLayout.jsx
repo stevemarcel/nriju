@@ -23,7 +23,7 @@ const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
-  { to: "/admin/customers", label: "Customers", icon: Users },
+  // { to: "/admin/customers", label: "Customers", icon: Users },
   { to: "/admin/users", label: "Staff & Users", icon: UserCog },
   { to: "/admin/reviews", label: "Reviews", icon: Star },
   { to: "/admin/coupons", label: "Coupons", icon: Ticket },

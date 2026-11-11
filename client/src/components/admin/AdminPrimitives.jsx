@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Page title + subtitle + optional action button. Keeps admin headers consistent.
-export const AdminPageHeader = ({ title, subtitle, action }) => (
+const AdminPageHeader = ({ title, subtitle, action }) => (
   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
     <div>
       <h1 className="font-heading text-2xl md:text-3xl font-bold text-text">{title}</h1>
@@ -13,7 +13,7 @@ export const AdminPageHeader = ({ title, subtitle, action }) => (
 );
 
 // Colour-coded status pill. Statuses are domain-specific, so callers pass a map.
-export const StatusPill = ({ status, map }) => {
+const StatusPill = ({ status, map }) => {
   const cfg = map[status] || { label: status, cls: "bg-background text-text-muted" };
   return (
     <span
@@ -26,7 +26,7 @@ export const StatusPill = ({ status, map }) => {
 };
 
 // Generic loading skeleton for list pages.
-export const TableSkeleton = ({ rows = 6, cols = 4 }) => (
+const TableSkeleton = ({ rows = 6, cols = 4 }) => (
   <div className="bg-surface rounded-xl border border-border overflow-hidden">
     <div className="divide-y divide-border">
       {[...Array(rows)].map((_, r) => (
@@ -41,7 +41,7 @@ export const TableSkeleton = ({ rows = 6, cols = 4 }) => (
 );
 
 // Empty state when a list has no results.
-export const EmptyState = ({ icon, title, description, action }) => (
+const EmptyState = ({ icon, title, description, action }) => (
   <div className="text-center py-16 bg-surface rounded-xl border border-dashed border-border">
     {icon && <div className="text-4xl mb-4">{icon}</div>}
     <h3 className="font-heading text-lg font-semibold mb-1">{title}</h3>
@@ -53,7 +53,7 @@ export const EmptyState = ({ icon, title, description, action }) => (
 // Pagination controls. `total` and `limit` drive the page count.
 // Renders a pill of numbered pages (active page filled with primary) with
 // prev/next chevrons on either side, matching the reference pagination UI.
-export const Pagination = ({ page, total, limit, onChange }) => {
+const Pagination = ({ page, total, limit, onChange }) => {
   const pages = Math.max(1, Math.ceil(total / limit));
   if (pages <= 1) return null;
 
@@ -118,7 +118,7 @@ export const Pagination = ({ page, total, limit, onChange }) => {
 };
 
 // Shared filter row: a text search + a select.
-export const FilterBar = ({ search, onSearch, selects }) => (
+const FilterBar = ({ search, onSearch, selects }) => (
   <div className="flex flex-col sm:flex-row gap-3 mb-6">
     <div className="relative flex-1 max-w-md">
       <input
@@ -149,17 +149,25 @@ export const FilterBar = ({ search, onSearch, selects }) => (
 );
 
 // Format integer kobo to a naira display string.
-export const formatNaira = (kobo) =>
+const formatNaira = (kobo) =>
   `₦${(Number(kobo) / 100).toLocaleString("en-NG", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
   })}`;
 
 // Format a date into a compact, human-readable string.
-export const formatDate = (d) =>
+const formatDate = (d) =>
   d
     ? new Date(d).toLocaleDateString("en-NG", { year: "numeric", month: "short", day: "numeric" })
     : "—";
 
-// Confirm-and-execute helper used by every delete action.
-export const confirmDelete = (message) => window.confirm(message || "Are you sure?");
+export {
+  AdminPageHeader,
+  StatusPill,
+  TableSkeleton,
+  EmptyState,
+  Pagination,
+  FilterBar,
+  formatNaira,
+  formatDate,
+};
