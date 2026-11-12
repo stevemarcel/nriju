@@ -6,9 +6,23 @@ const activityLogSchema = new mongoose.Schema(
     action: { type: String, required: true }, // e.g., "order.placed", "product.created"
     entity: { type: String, required: true }, // e.g., "order", "product"
     entityId: { type: mongoose.Schema.Types.ObjectId, index: true },
+    entityName: { type: String }, // Human-readable name (e.g., "Kilishi")
     description: { type: String, default: "" },
     ip: { type: String, default: "" },
     userAgent: { type: String, default: "" },
+    targetUser: { type: String }, // Who the action affects (for user/account changes)
+    targetUserRole: { type: String, enum: ["customer", "admin", "superAdmin"] },
+    changes: [
+      {
+        field: { type: String },
+        from: { type: mongoose.Schema.Types.Mixed },
+        to: { type: mongoose.Schema.Types.Mixed },
+      },
+    ],
+    actionType: {
+      type: String,
+      enum: ["create", "update", "delete", "role_change", "status_toggle"],
+    },
   },
   { timestamps: { createdAt: true, updatedAt: false } },
 );

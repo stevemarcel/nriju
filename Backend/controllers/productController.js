@@ -151,6 +151,15 @@ const createProduct = asyncHandler(async (req, res) => {
     updatedBy: req.user._id,
   });
 
+  req.activity = {
+    action: "product.created",
+    entity: "product",
+    entityId: product._id,
+    entityName: product.name,
+    actionType: "create",
+    description: `${req.user.name} created "${product.name}"`,
+  };
+
   res.status(201).json({ success: true, data: productSummary(product) });
 });
 
@@ -179,10 +188,17 @@ const updateProduct = asyncHandler(async (req, res) => {
     "costPrice",
     "images",
   ];
+
+  const changes = [];
   for (const key of allowed) {
     if (req.body[key] !== undefined) {
-      if (key === "tags") product[key] = parseTags(req.body[key]);
-      else if (key === "images") {
+      const oldValue = product[key];
+      if (key === "tags") {
+        product[key] = parseTags(req.body[key]);
+        if (JSON.stringify(oldValue) !== JSON.stringify(product[key])) {
+          changes.push({ field: "tags", from: oldValue, to: product[key] });
+        }
+      } else if (key === "images") {
         // Remove any images that were dropped so they don't accumulate in
         // Cloudinary as orphaned assets. New images that overlap are skipped.
         const oldImages = product.images ?? [];
@@ -198,14 +214,45 @@ const updateProduct = asyncHandler(async (req, res) => {
           );
         }
         product[key] = newImages;
-      } else if (["isActive", "isFeatured", "notifyOnOutOfStock"].includes(key))
-        product[key] = parseBool(req.body[key]);
-      else product[key] = req.body[key];
+        if (JSON.stringify(oldImages) !== JSON.stringify(newImages)) {
+          changes.push({ field: "images", from: oldImages, to: newImages });
+        }
+      } else if (["isActive", "isFeatured", "notifyOnOutOfStock"].includes(key)) {
+        const parsed = parseBool(req.body[key]);
+        if (oldValue !== parsed) {
+          product[key] = parsed;
+          changes.push({ field: key, from: oldValue, to: parsed });
+        }
+      } else {
+        product[key] = req.body[key];
+        if (oldValue !== product[key]) {
+          changes.push({ field: key, from: oldValue, to: product[key] });
+        }
+      }
     }
   }
 
   product.updatedBy = req.user._id;
   await product.save();
+
+  if (changes.length > 0) {
+    const changedFields = changes
+      .map((c) => {
+        if (c.field === "price") return `price, Stock`;
+        return c.field.charAt(0).toUpperCase() + c.field.slice(1).replace(/([A-Z])/g, " $1");
+      })
+      .join(", ");
+    req.activity = {
+      action: "product.updated",
+      entity: "product",
+      entityId: product._id,
+      entityName: product.name,
+      actionType: "update",
+      changes,
+      description: `${req.user.name} updated the ${changedFields} of "${product.name}"`,
+    };
+  }
+
   res.json({ success: true, data: productSummary(product) });
 });
 
@@ -274,12 +321,32 @@ const deleteProduct = asyncHandler(async (req, res) => {
       Review.deleteMany({ product: product._id }),
       Inventory.deleteMany({ product: product._id }),
     ]);
+
+    req.activity = {
+      action: "product.deleted",
+      entity: "product",
+      entityId: product._id,
+      entityName: product.name,
+      actionType: "delete",
+      description: `${req.user.name} permanently deleted "${product.name}"`,
+    };
+
     res.json({ success: true, message: "Product permanently deleted" });
     return;
   }
 
   product.isActive = false;
   await product.save();
+
+  req.activity = {
+    action: "product.archived",
+    entity: "product",
+    entityId: product._id,
+    entityName: product.name,
+    actionType: "status_toggle",
+    description: `${req.user.name} archived "${product.name}"`,
+  };
+
   res.json({ success: true, message: "Product archived" });
 });
 

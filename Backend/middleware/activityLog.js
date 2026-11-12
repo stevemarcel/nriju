@@ -8,18 +8,24 @@ const activityLog = asyncHandler(async (req, res, next) => {
   res.send = function (body) {
     // Only log successful responses
     if (res.statusCode >= 200 && res.statusCode < 400 && req.user) {
-      const action = req.activity?.action || `${req.method.toLowerCase()}`;
-      const entity = req.activity?.entity || req.activity?.entityName || inferEntity(req);
-      const entityId = req.activity?.entityId || req.activity?.entity || req.params?.id;
+      const activity = req.activity || {};
+      const entityName = activity.entityName || inferEntity(req);
 
       ActivityLog.create({
         user: req.user._id,
-        action,
-        entity,
-        entityId,
-        description: req.activity?.description || `${req.user.name} ${action} on ${entity}`,
+        action: activity.action || `${req.method.toLowerCase()}`,
+        entity: activity.entity || entityName,
+        entityId: activity.entityId || activity.entity || req.params?.id,
+        entityName: activity.entityName,
+        description:
+          activity.description ||
+          `${req.user.name} ${activity.action || req.method.toLowerCase()} on ${entityName}${activity.entityId ? `, id: ${activity.entityId}` : ""}`,
         ip: req.ip,
         userAgent: req.get("User-Agent") || "",
+        targetUser: activity.targetUser,
+        targetUserRole: activity.targetUserRole,
+        changes: activity.changes,
+        actionType: activity.actionType,
       }).catch(() => {}); // never break the response
     }
     return originalSend.call(this, body);

@@ -107,10 +107,49 @@ const updateUser = asyncHandler(async (req, res) => {
   }
 
   const { role, isActive } = req.body;
-  if (role) user.role = role;
-  if (isActive !== undefined) user.isActive = isActive;
+  const changes = [];
+  let actionDescription = "";
+  let actionType = null;
+
+  if (role) {
+    user.role = role;
+    const roleNames = { admin: "administrator", customer: "customer", superAdmin: "superAdmin" };
+    changes.push({
+      field: "role",
+      from: roleNames[user.role] || user.role,
+      to: roleNames[role] || role,
+    });
+    actionType = "role_change";
+    actionDescription = `${req.user.name} ${user.role === "admin" || user.role === "superAdmin" ? "removed administrator access from" : "granted administrator access to"} ${user.name}`;
+  }
+
+  if (isActive !== undefined) {
+    user.isActive = isActive;
+    changes.push({
+      field: "isActive",
+      from: user.isActive ? "Active" : "Inactive",
+      to: isActive ? "Active" : "Inactive",
+    });
+    actionType = actionType || "status_toggle";
+    actionDescription = `${req.user.name} ${isActive ? "reactivated" : "deactivated"} ${user.name}'s account`;
+  }
 
   await user.save();
+
+  if (changes.length > 0) {
+    req.activity = {
+      action: `user.${actionType}`,
+      entity: "user",
+      entityId: user._id,
+      entityName: user.name,
+      targetUser: user.name,
+      targetUserRole: user.role,
+      changes,
+      actionType,
+      description: actionDescription,
+    };
+  }
+
   res.json({ success: true, data: user });
 });
 
