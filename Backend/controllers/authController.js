@@ -174,6 +174,15 @@ const changePassword = asyncHandler(async (req, res) => {
   user.password = newPassword;
   await user.save();
 
+  req.activity = {
+    action: "password.changed",
+    entity: "user",
+    entityId: user._id,
+    entityName: user.name,
+    actionType: "update",
+    description: `${user.name} changed their password`,
+  };
+
   res.json({ success: true, message: "Password changed" });
 });
 
@@ -268,14 +277,28 @@ const updateMe = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 
-  if (name !== undefined) user.name = name;
-  if (email !== undefined) user.email = email;
-  if (phone !== undefined) user.phone = phone;
+  const changes = [];
+  const fields = { name, email, phone };
+  Object.keys(fields).forEach((key) => {
+    if (fields[key] !== undefined && user[key] !== fields[key]) {
+      changes.push({
+        field: key,
+        from: user[key] || "—",
+        to: fields[key],
+      });
+      user[key] = fields[key];
+    }
+  });
 
   const previousAvatarPublicId = user.avatarPublicId;
   let newlyUploadedAvatar = null;
 
   if (req.file) {
+    changes.push({
+      field: "avatar",
+      from: user.avatar ? "current photo" : "none",
+      to: "new photo",
+    });
     // Upload first; do not destroy the user's current image before the new one
     // has uploaded and the database has accepted the replacement.
     newlyUploadedAvatar = await uploadAvatarToCloudinary(req.file.buffer);
@@ -299,6 +322,19 @@ const updateMe = asyncHandler(async (req, res) => {
       }
     }
     throw error;
+  }
+
+  if (changes.length > 0) {
+    const fieldNames = changes.map((c) => c.field).join(", ");
+    req.activity = {
+      action: "profile.updated",
+      entity: "user",
+      entityId: user._id,
+      entityName: user.name,
+      actionType: "update",
+      changes,
+      description: `${user.name} updated their ${fieldNames}`,
+    };
   }
 
   // Only remove the previous asset after the user's new avatar is safely saved.

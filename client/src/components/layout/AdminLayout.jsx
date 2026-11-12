@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   BarChart3,
+  Clock,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -27,6 +28,7 @@ const nav = [
   { to: "/admin/users", label: "Staff & Users", icon: UserCog },
   { to: "/admin/reviews", label: "Reviews", icon: Star },
   { to: "/admin/coupons", label: "Coupons", icon: Ticket },
+  { to: "/admin/activities", label: "Activities", icon: Clock },
   // { to: "/admin/inventory", label: "Inventory", icon: BarChart3 },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ];

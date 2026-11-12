@@ -111,27 +111,29 @@ const updateUser = asyncHandler(async (req, res) => {
   let actionDescription = "";
   let actionType = null;
 
-  if (role) {
-    user.role = role;
-    const roleNames = { admin: "administrator", customer: "customer", superAdmin: "superAdmin" };
+  if (role && user.role !== role) {
+    const roleNames = { admin: "Admin", customer: "Customer", superAdmin: "Super Admin" };
     changes.push({
       field: "role",
       from: roleNames[user.role] || user.role,
       to: roleNames[role] || role,
     });
+    user.role = role;
     actionType = "role_change";
-    actionDescription = `${req.user.name} ${user.role === "admin" || user.role === "superAdmin" ? "removed administrator access from" : "granted administrator access to"} ${user.name}`;
+    actionDescription = `${req.user.name} ${role === "admin" || role === "superAdmin" ? "granted administrator access to" : "removed administrator access from"} ${user.name}`;
   }
 
-  if (isActive !== undefined) {
-    user.isActive = isActive;
+  if (isActive !== undefined && user.isActive !== isActive) {
     changes.push({
-      field: "isActive",
+      field: "status",
       from: user.isActive ? "Active" : "Inactive",
       to: isActive ? "Active" : "Inactive",
     });
+    user.isActive = isActive;
     actionType = actionType || "status_toggle";
-    actionDescription = `${req.user.name} ${isActive ? "reactivated" : "deactivated"} ${user.name}'s account`;
+    actionDescription = actionDescription
+      ? `${actionDescription} and ${isActive ? "reactivated" : "deactivated"} their account`
+      : `${req.user.name} ${isActive ? "reactivated" : "deactivated"} ${user.name}'s account`;
   }
 
   await user.save();

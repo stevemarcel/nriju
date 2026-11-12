@@ -149,6 +149,18 @@ const updateCoupon = asyncHandler(async (req, res) => {
       usageLimit: "usage limit",
       isActive: "status",
     };
+
+    // Format values for human-readable display
+    changes.forEach((c) => {
+      if (c.field === "value" || c.field === "minOrder") {
+        c.from = `₦${Math.round(c.from / 100).toLocaleString()}`;
+        c.to = `₦${Math.round(c.to / 100).toLocaleString()}`;
+      } else if (c.field === "expiryDate") {
+        c.from = c.from ? new Date(c.from).toLocaleDateString() : "—";
+        c.to = c.to ? new Date(c.to).toLocaleDateString() : "—";
+      }
+    });
+
     const fieldNames = changes.map((c) => fieldLabels[c.field] || c.field).join(", ");
     req.activity = {
       action: "coupon.updated",

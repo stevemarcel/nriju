@@ -48,6 +48,16 @@ const submitReview = asyncHandler(async (req, res) => {
     status: "pending",
   });
 
+  req.activity = {
+    action: "review.created",
+    entity: "review",
+    entityId: review._id,
+    entityName: `${title} on ${product?.name || productId}`,
+    actionType: "create",
+    changes: [{ field: "rating", from: null, to: rating }],
+    description: `${req.user.name} reviewed "${product?.name}" with ${rating} star${rating > 1 ? "s" : ""}`,
+  };
+
   res.status(201).json({
     success: true,
     message: "Review submitted and awaiting approval",
@@ -103,6 +113,21 @@ const moderateReview = asyncHandler(async (req, res) => {
   if (moderationNote) review.moderationNote = moderationNote;
 
   await review.save();
+
+  const oldStatus = req.body.oldStatus || review.prev?.status || "unknown";
+
+  req.activity = {
+    action: "review.moderated",
+    entity: "review",
+    entityId: review._id,
+    entityName: review.title || `Review by ${review.user?.name || "Unknown"}`,
+    actionType: status === "approved" ? "status_toggle" : "update",
+    changes: [
+      { field: "status", from: oldStatus, to: status },
+      moderationNote ? { field: "note", from: "—", to: moderationNote } : null,
+    ].filter(Boolean),
+    description: `${req.user.name} ${status === "approved" ? "approved" : "rejected"} review of "${review.title || "unnamed review"}"`,
+  };
 
   // If approved, update the product's average rating
   if (status === "approved") {

@@ -121,6 +121,10 @@ const createOrder = asyncHandler(async (req, res) => {
       entityName: `Order #${orderNum}`,
       actionType: "create",
       description: `${req.user.name} placed order #${orderNum}`,
+      metadata: {
+        totalKobo: totalKobo,
+        itemCount: items.length,
+      },
     };
 
     res.status(201).json({

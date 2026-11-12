@@ -167,7 +167,7 @@ const createProduct = asyncHandler(async (req, res) => {
 // @ROUTE       PUT /api/v1/products/:id
 // @ACCESS      Admin
 const updateProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id);
+  const product = await Product.findById(req.params.id).populate("category", "name slug");
   if (!product) {
     res.status(404);
     throw new Error("Product not found");
@@ -193,14 +193,14 @@ const updateProduct = asyncHandler(async (req, res) => {
   for (const key of allowed) {
     if (req.body[key] !== undefined) {
       const oldValue = product[key];
+
       if (key === "tags") {
-        product[key] = parseTags(req.body[key]);
-        if (JSON.stringify(oldValue) !== JSON.stringify(product[key])) {
-          changes.push({ field: "tags", from: oldValue, to: product[key] });
+        const parsedTags = parseTags(req.body[key]);
+        if (JSON.stringify(oldValue) !== JSON.stringify(parsedTags)) {
+          changes.push({ field: "tags", from: oldValue, to: parsedTags });
+          product[key] = parsedTags;
         }
       } else if (key === "images") {
-        // Remove any images that were dropped so they don't accumulate in
-        // Cloudinary as orphaned assets. New images that overlap are skipped.
         const oldImages = product.images ?? [];
         const newImages = req.body[key];
         const removed = oldImages.filter((url) => !newImages.includes(url));
@@ -213,20 +213,29 @@ const updateProduct = asyncHandler(async (req, res) => {
             }),
           );
         }
-        product[key] = newImages;
         if (JSON.stringify(oldImages) !== JSON.stringify(newImages)) {
           changes.push({ field: "images", from: oldImages, to: newImages });
+          product[key] = newImages;
         }
       } else if (["isActive", "isFeatured", "notifyOnOutOfStock"].includes(key)) {
         const parsed = parseBool(req.body[key]);
         if (oldValue !== parsed) {
-          product[key] = parsed;
           changes.push({ field: key, from: oldValue, to: parsed });
+          product[key] = parsed;
+        }
+      } else if (key === "category") {
+        const oldCatId = product.category?._id
+          ? String(product.category._id)
+          : String(product.category || "");
+        const newCatId = String(req.body[key] || "");
+        if (oldCatId !== newCatId) {
+          changes.push({ field: "category", from: oldCatId, to: newCatId });
+          product[key] = newCatId;
         }
       } else {
-        product[key] = req.body[key];
-        if (oldValue !== product[key]) {
-          changes.push({ field: key, from: oldValue, to: product[key] });
+        if (oldValue !== req.body[key]) {
+          changes.push({ field: key, from: oldValue, to: req.body[key] });
+          product[key] = req.body[key];
         }
       }
     }
@@ -236,20 +245,54 @@ const updateProduct = asyncHandler(async (req, res) => {
   await product.save();
 
   if (changes.length > 0) {
-    const changedFields = changes
-      .map((c) => {
-        if (c.field === "price") return `price, Stock`;
-        return c.field.charAt(0).toUpperCase() + c.field.slice(1).replace(/([A-Z])/g, " $1");
-      })
-      .join(", ");
+    // Populate category names if category changed
+    let oldCategoryName = "—";
+    let newCategoryName = "—";
+    const categoryChange = changes.find((c) => c.field === "category");
+    if (categoryChange) {
+      if (product.category && typeof product.category === "object" && product.category.name) {
+        oldCategoryName = product.category.name;
+      }
+      if (categoryChange.to) {
+        const newCatObj = await Category.findById(categoryChange.to).select("name");
+        if (newCatObj) newCategoryName = newCatObj.name;
+      }
+    }
+
+    const changeLabels = [];
+    const detailChanges = changes.map((c) => {
+      let label = c.field;
+      let fromVal = c.from;
+      let toVal = c.to;
+
+      if (c.field === "price") {
+        label = "price";
+        fromVal = `₦${(Number(c.from || 0) / 100).toLocaleString()}`;
+        toVal = `₦${(Number(c.to || 0) / 100).toLocaleString()}`;
+      } else if (c.field === "compareAtPrice" || c.field === "costPrice") {
+        label = c.field;
+        fromVal = c.from ? `₦${(Number(c.from) / 100).toLocaleString()}` : "—";
+        toVal = c.to ? `₦${(Number(c.to) / 100).toLocaleString()}` : "—";
+      } else if (c.field === "category") {
+        label = "category";
+        fromVal = oldCategoryName;
+        toVal = newCategoryName;
+      } else {
+        label = c.field;
+      }
+
+      changeLabels.push(label);
+      return { field: c.field, from: fromVal, to: toVal };
+    });
+
     req.activity = {
       action: "product.updated",
       entity: "product",
       entityId: product._id,
       entityName: product.name,
       actionType: "update",
-      changes,
-      description: `${req.user.name} updated the ${changedFields} of "${product.name}"`,
+      changes: detailChanges,
+      description: `${req.user.name} updated the ${changeLabels.join(", ")} of "${product.name}"`,
     };
   }
 
