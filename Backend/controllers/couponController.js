@@ -94,6 +94,15 @@ const createCoupon = asyncHandler(async (req, res) => {
     isActive,
   });
 
+  req.activity = {
+    action: "coupon.created",
+    entity: "coupon",
+    entityId: coupon._id,
+    entityName: coupon.code,
+    actionType: "create",
+    description: `${req.user.name} created coupon "${coupon.code}"`,
+  };
+
   res.status(201).json({ success: true, data: coupon });
 });
 
@@ -118,11 +127,40 @@ const updateCoupon = asyncHandler(async (req, res) => {
     "applicableCategories",
     "isActive",
   ];
+
+  const changes = [];
   for (const key of allowed) {
-    if (req.body[key] !== undefined) coupon[key] = req.body[key];
+    if (req.body[key] !== undefined) {
+      const oldValue = coupon[key];
+      coupon[key] = req.body[key];
+      if (JSON.stringify(oldValue) !== JSON.stringify(coupon[key])) {
+        changes.push({ field: key, from: oldValue, to: coupon[key] });
+      }
+    }
   }
 
   await coupon.save();
+
+  if (changes.length > 0) {
+    const fieldLabels = {
+      value: "discount",
+      minOrder: "minimum order",
+      expiryDate: "expiry date",
+      usageLimit: "usage limit",
+      isActive: "status",
+    };
+    const fieldNames = changes.map((c) => fieldLabels[c.field] || c.field).join(", ");
+    req.activity = {
+      action: "coupon.updated",
+      entity: "coupon",
+      entityId: coupon._id,
+      entityName: coupon.code,
+      actionType: "update",
+      changes,
+      description: `${req.user.name} updated the ${fieldNames} of ${coupon.code}`,
+    };
+  }
+
   res.json({ success: true, data: coupon });
 });
 
@@ -138,6 +176,16 @@ const deleteCoupon = asyncHandler(async (req, res) => {
   }
 
   await coupon.deleteOne();
+
+  req.activity = {
+    action: "coupon.deleted",
+    entity: "coupon",
+    entityId: coupon._id,
+    entityName: coupon.code,
+    actionType: "delete",
+    description: `${req.user.name} deleted coupon "${coupon.code}"`,
+  };
+
   res.json({ success: true, message: "Coupon deleted" });
 });
 

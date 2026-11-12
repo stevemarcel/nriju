@@ -112,6 +112,17 @@ const createOrder = asyncHandler(async (req, res) => {
 
     await session.commitTransaction();
 
+    const orderNum = order[0].orderNumber;
+
+    req.activity = {
+      action: "order.created",
+      entity: "order",
+      entityId: order[0]._id,
+      entityName: `Order #${orderNum}`,
+      actionType: "create",
+      description: `${req.user.name} placed order #${orderNum}`,
+    };
+
     res.status(201).json({
       success: true,
       message: "Order created",
@@ -184,9 +195,33 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     throw new Error("Order not found");
   }
 
+  const changes = [];
+  if (order.status !== status) {
+    changes.push({ field: "status", from: order.status, to: status });
+  }
+  if (trackingCode && order.trackingCode !== trackingCode) {
+    changes.push({ field: "trackingCode", from: order.trackingCode, to: trackingCode });
+  }
+
   order.status = status;
   if (trackingCode) order.trackingCode = trackingCode;
   await order.save();
+
+  if (changes.length > 0) {
+    const orderNum = order.orderNumber;
+    const statusDesc = changes.find((c) => c.field === "status");
+    req.activity = {
+      action: "order.updated",
+      entity: "order",
+      entityId: order._id,
+      entityName: `Order #${orderNum}`,
+      actionType: "update",
+      changes,
+      description: statusDesc
+        ? `${req.user.name} updated the status of Order #${orderNum} to '${status}'`
+        : `${req.user.name} updated tracking code for Order #${orderNum}`,
+    };
+  }
 
   res.json({ success: true, data: order });
 });
