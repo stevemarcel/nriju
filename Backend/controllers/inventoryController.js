@@ -137,15 +137,43 @@ const adjustStock = asyncHandler(async (req, res) => {
   const descriptions = {
     add: `${req.user.name} added ${parsedQty}${product.unit} of ${product.name}`,
     remove: `${req.user.name} removed ${parsedQty}${product.unit} of ${product.name}`,
-    adjust: `${req.user.name} adjusted ${product.name} stock from ${prev} to ${product.stock}${product.unit}`,
+    adjust: `${req.user.name} adjusted ${product.name} stock from ${prev}${product.unit} to ${product.stock}${product.unit}`,
     damage: `${req.user.name} damaged ${parsedQty}${product.unit} of ${product.name}${reason ? ` (${reason})` : ""}`,
+  };
+
+  const fieldLabels = {
+    add: "Stock",
+    remove: "Stock",
+    adjust: "Stock level",
+    damage: "Stock (damaged)",
   };
 
   req.activity = {
     action: "inventory.stock.updated",
     entity: "product",
     entityId: product._id,
+    entityName: product.name,
+    actionType: "update",
+    changes: [
+      {
+        field: "stock",
+        from: `${prev}${product.unit}`,
+        to: `${product.stock}${product.unit}`,
+      },
+    ],
     description: descriptions[action] || descriptions.add,
+    metadata: {
+      quantityChange:
+        action === "add"
+          ? parsedQty
+          : action === "remove"
+            ? -parsedQty
+            : action === "damage"
+              ? -parsedQty
+              : 0,
+      reason,
+      action,
+    },
   };
 
   res.json({
