@@ -1,12 +1,18 @@
 import asyncHandler from "express-async-handler";
 import ActivityLog from "../models/ActivityLog.js";
+import { getActivityActorLabel } from "../utils/activityUtils.js";
 
-// Auto-logs user actions. Fire-and-forget — never blocks the request.
-// `req.activity` can be set by controllers to provide richer context.
+// Captures successful mutations after authentication. Controllers can set
+// req.activity for a detailed business description and structured changes.
+// Logging is fire-and-forget and must never block the original response.
 const activityLog = asyncHandler(async (req, res, next) => {
   const originalSend = res.send;
+
   res.send = function (body) {
-    // Only log mutations with authenticated users
+    if (req.skipActivityLog) {
+      return originalSend.call(this, body);
+    }
+
     const method = req.method.toLowerCase();
     const isMutation = ["post", "put", "patch", "delete"].includes(method);
     const hasCustomActivity = req.activity && Object.keys(req.activity).length > 0;
@@ -15,7 +21,6 @@ const activityLog = asyncHandler(async (req, res, next) => {
       return originalSend.call(this, body);
     }
 
-    // Skip if no custom activity AND not an admin resource route
     if (!hasCustomActivity) {
       const isAdminResource = [
         "/api/v1/admin/users",
@@ -24,30 +29,39 @@ const activityLog = asyncHandler(async (req, res, next) => {
         "/api/v1/coupons",
         "/api/v1/reviews",
         "/api/v1/inventory",
-      ].some((p) => req.path.startsWith(p));
-      if (!isAdminResource) return originalSend.call(this, body);
+      ].some((prefix) => req.path.startsWith(prefix));
+
+      if (!isAdminResource) {
+        return originalSend.call(this, body);
+      }
     }
 
     const activity = req.activity || {};
-    const entityName = activity.entityName || inferEntity(req);
+    const entity = activity.entity || inferEntity(req);
+    const entityName = activity.entityName || entity;
 
     ActivityLog.create({
       user: req.user._id,
-      action: activity.action || `${method}`,
-      entity: activity.entity || entityName,
+      action: activity.action || method,
+      entity,
       entityId: activity.entityId || req.params?.id,
-      entityName: activity.entityName,
-      description: activity.description || inferDescription(req, entityName),
+      entityName,
+      description: activity.description || inferDescription(req, entity),
       ip: req.ip,
       userAgent: req.get("User-Agent") || "",
       targetUser: activity.targetUser,
       targetUserRole: activity.targetUserRole,
       changes: activity.changes,
       actionType: activity.actionType,
-    }).catch(() => {}); // never break the response
+      actorRole: activity.actorRole || req.user.role,
+    }).catch((error) => {
+      // Do not fail the business operation because an audit write failed.
+      console.error("Activity log write failed:", error.message);
+    });
 
     return originalSend.call(this, body);
   };
+
   next();
 });
 
@@ -64,22 +78,21 @@ const inferEntity = (req) => {
   return "system";
 };
 
-const inferDescription = (req, entityName) => {
-  const user = req.user.name || "Unknown";
+const inferDescription = (req, entity) => {
+  const actor = getActivityActorLabel(req);
   const entityId = req.params?.id || "unknown";
   const method = req.method.toLowerCase();
 
   switch (method) {
     case "post":
-      return `${user} created a new ${entityName}`;
+      return `${actor} created a new ${entity}.`;
     case "put":
-      return `${user} updated ${entityName} ${entityId}`;
     case "patch":
-      return `${user} patched ${entityName} ${entityId}`;
+      return `${actor} updated ${entity} ${entityId}.`;
     case "delete":
-      return `${user} deleted ${entityName} ${entityId}`;
+      return `${actor} deleted ${entity} ${entityId}.`;
     default:
-      return `${user} performed ${method} on ${entityName}`;
+      return `${actor} performed ${method} on ${entity}.`;
   }
 };
 

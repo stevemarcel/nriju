@@ -11,24 +11,25 @@ import {
   getProductStats,
 } from "../controllers/productController.js";
 import { auth, admin } from "../middleware/auth.js";
-import { uploadProductImages, uploadProductImageFiles } from "../middleware/upload.js";
+import { uploadProductImageFiles } from "../middleware/upload.js";
 
 const router = Router();
 
+// Public storefront routes.
 router.get("/", getProducts);
 router.get("/featured", getFeatured);
-// NOTE: /all must sit above /:slug — otherwise Express treats "all" as a slug.
-router.use(auth);
-router.use(admin);
-router.get("/all", getAllProducts);
-router.get("/stats", getProductStats);
-router.get("/:slug", getProductBySlug);
-router.post("/", createProduct);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
 
-// Standalone image upload for the product form — uploads files and returns
-// their Cloudinary URLs without creating a product record.
+// Static admin routes must be registered before /:slug.
+router.get("/all", auth, admin, getAllProducts);
+router.get("/stats", auth, admin, getProductStats);
+
+// Public product detail. Keep this outside the admin middleware.
+router.get("/:slug", getProductBySlug);
+
+// Admin product mutations and image staging.
 router.post("/images", auth, admin, uploadProductImageFiles, uploadProductImagesController);
+router.post("/", auth, admin, createProduct);
+router.put("/:id", auth, admin, updateProduct);
+router.delete("/:id", auth, admin, deleteProduct);
 
 export default router;

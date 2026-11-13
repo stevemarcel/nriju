@@ -10,9 +10,10 @@ import {
   deleteFromCloudinary,
   downloadAvatarFromCloudinary,
 } from "../utils/cloudinaryUtils.js";
+import { buildAddressChanges, setUserActivity } from "../utils/userActivity.js";
+import { skipActivityLog } from "../utils/activityUtils.js";
 
 const USER_ROLES = ["customer", "admin", "superAdmin"];
-
 const USER_UPDATE_FIELDS = [
   "name",
   "email",
@@ -36,17 +37,6 @@ const USER_FIELD_LABELS = {
   role: "Role",
   isActive: "Account status",
   isVerified: "Email verification",
-};
-
-const ADDRESS_FIELD_LABELS = {
-  label: "Address type",
-  name: "Recipient name",
-  phone: "Recipient phone",
-  line1: "Street address",
-  line2: "Address line 2",
-  city: "City",
-  state: "State",
-  isDefault: "Default address",
 };
 
 const ADDRESS_FIELDS = [
@@ -77,18 +67,12 @@ const getPagination = (req, res, defaultLimit = 20) => {
     throw new Error("Limit must be an integer between 1 and 100.");
   }
 
-  return {
-    page,
-    limit,
-    skip: (page - 1) * limit,
-  };
+  return { page, limit, skip: (page - 1) * limit };
 };
 
 const getPublicUser = (user) => {
   const result = user.toObject ? user.toObject() : { ...user };
-
   delete result.password;
-
   return result;
 };
 
@@ -97,106 +81,6 @@ const assertCanManageUser = (req, res, user) => {
     res.status(403);
     throw new Error("You do not have permission to modify a Super Admin account.");
   }
-};
-
-const normalizeAddress = (address) => {
-  const value = typeof address?.toObject === "function" ? address.toObject() : address;
-
-  return {
-    _id: value?._id ? String(value._id) : "",
-    label: value?.label || "home",
-    name: value?.name || "",
-    phone: value?.phone || "",
-    line1: value?.line1 || "",
-    line2: value?.line2 || "",
-    city: value?.city || "",
-    state: value?.state || "",
-    isDefault: Boolean(value?.isDefault),
-  };
-};
-
-const addressSummary = (address) => {
-  const parts = [address.name, address.line1, address.line2, address.city, address.state].filter(
-    Boolean,
-  );
-
-  return parts.join(", ") || `${address.label || "Shipping"} address`;
-};
-
-const addressIdentity = (address, index) => address._id || `address-without-id-${index}`;
-
-/**
- * Returns granular address changes rather than only recording
- * the array length.
- *
- * The ActivityLog schema stores from/to as Mixed, so these
- * field-level values require no schema migration.
- */
-const buildAddressChanges = (previousAddresses = [], nextAddresses = []) => {
-  const previous = previousAddresses.map(normalizeAddress);
-  const next = nextAddresses.map(normalizeAddress);
-
-  const previousById = new Map(
-    previous.map((address, index) => [addressIdentity(address, index), address]),
-  );
-
-  const nextById = new Map(
-    next.map((address, index) => [addressIdentity(address, index), address]),
-  );
-
-  const changes = [];
-
-  // Removed addresses.
-  for (const [id, oldAddress] of previousById) {
-    if (!nextById.has(id)) {
-      changes.push({
-        field: `Shipping address removed (${oldAddress.label})`,
-        from: addressSummary(oldAddress),
-        to: "Removed",
-      });
-    }
-  }
-
-  // Added and modified addresses.
-  for (const [id, newAddress] of nextById) {
-    const oldAddress = previousById.get(id);
-
-    if (!oldAddress) {
-      changes.push({
-        field: `Shipping address added (${newAddress.label})`,
-        from: "—",
-        to: addressSummary(newAddress),
-      });
-
-      continue;
-    }
-
-    for (const field of Object.keys(ADDRESS_FIELD_LABELS)) {
-      if (oldAddress[field] === newAddress[field]) continue;
-
-      const oldValue =
-        field === "isDefault"
-          ? oldAddress[field]
-            ? "Default"
-            : "Not default"
-          : String(oldAddress[field] || "—");
-
-      const newValue =
-        field === "isDefault"
-          ? newAddress[field]
-            ? "Default"
-            : "Not default"
-          : String(newAddress[field] || "—");
-
-      changes.push({
-        field: `${ADDRESS_FIELD_LABELS[field]} (${newAddress.label || oldAddress.label} address)`,
-        from: oldValue,
-        to: newValue,
-      });
-    }
-  }
-
-  return changes;
 };
 
 const sanitizeAddresses = (addresses, res) => {
@@ -237,193 +121,6 @@ const sanitizeAddresses = (addresses, res) => {
   return sanitized;
 };
 
-const ACTOR_ROLE_LABELS = {
-  admin: "Admin",
-  superAdmin: "Super Admin",
-};
-
-const getActivityActorLabel = (req) => {
-  const name = req.user?.name?.trim() || "An administrator";
-  const role = ACTOR_ROLE_LABELS[req.user?.role];
-
-  if (!role) return name;
-
-  // Avoid duplicating the role if the display name already includes it.
-  return name.toLowerCase().endsWith(role.toLowerCase()) ? name : `${name} ${role}`;
-};
-
-const getAddressTypeLabel = (value) => {
-  const labels = {
-    home: "home",
-    work: "work",
-    other: "additional",
-  };
-
-  return labels[value?.toLowerCase()] || "shipping";
-};
-
-const formatAddressForActivity = (value, targetName) => {
-  const address = String(value || "").trim();
-
-  if (!address) return "";
-
-  // Avoid repeating the recipient's name when it matches the target user.
-  const recipientPrefix = `${targetName},`;
-
-  if (address.toLowerCase().startsWith(recipientPrefix.toLowerCase())) {
-    return address.slice(recipientPrefix.length).trim();
-  }
-
-  return address;
-};
-
-const quoteActivityValue = (value) => `"${String(value ?? "—")}"`;
-
-const describeUserChange = (change, targetName) => {
-  const { field, from, to } = change;
-
-  // ── Role changes ──────────────────────────────────────────
-
-  if (field === "Role") {
-    if (from === "Admin" && to === "Customer") {
-      return `removed administrator access from ${targetName}`;
-    }
-
-    if (from === "Customer" && to === "Admin") {
-      return `granted administrator access to ${targetName}`;
-    }
-
-    if (to === "Super Admin") {
-      return `granted Super Admin privileges to ${targetName}`;
-    }
-
-    if (from === "Super Admin" && to !== "Super Admin") {
-      return to === "Customer"
-        ? `revoked Super Admin privileges from ${targetName} and changed their role to Customer`
-        : `revoked Super Admin privileges from ${targetName}, reducing their role to Admin`;
-    }
-
-    return `changed ${targetName}'s role from ${from} to ${to}`;
-  }
-
-  // ── Account status ────────────────────────────────────────
-
-  if (field === "Account status") {
-    return to === "Inactive"
-      ? `deactivated ${targetName}'s account`
-      : `reactivated ${targetName}'s account`;
-  }
-
-  // ── Email verification ────────────────────────────────────
-
-  if (field === "Email verification") {
-    return to === "Verified"
-      ? `marked ${targetName}'s email address as verified`
-      : `revoked email verification for ${targetName}`;
-  }
-
-  // ── Personal information ──────────────────────────────────
-
-  const profileFields = {
-    Name: "name",
-    Email: "email address",
-    Phone: "phone number",
-  };
-
-  if (profileFields[field]) {
-    const label = profileFields[field];
-
-    return `updated ${targetName}'s ${label} from ${quoteActivityValue(from)} to ${quoteActivityValue(to)}`;
-  }
-
-  // ── Shipping address additions ───────────────────────────
-
-  const addedAddress = field.match(/^Shipping address added \((home|work|other)\)$/i);
-
-  if (addedAddress) {
-    const type = getAddressTypeLabel(addedAddress[1]);
-    const article = type === "additional" ? "an" : "a";
-
-    const details = formatAddressForActivity(to, targetName);
-
-    return `added ${article} ${type} shipping address for ${targetName}${
-      details ? `: ${details}` : ""
-    }`;
-  }
-
-  // ── Shipping address removals ─────────────────────────────
-
-  const removedAddress = field.match(/^Shipping address removed \((home|work|other)\)$/i);
-
-  if (removedAddress) {
-    const type = getAddressTypeLabel(removedAddress[1]);
-    const details = formatAddressForActivity(from, targetName);
-
-    return `removed the ${type} shipping address for ${targetName}${details ? `: ${details}` : ""}`;
-  }
-
-  // ── Shipping address modifications ────────────────────────
-
-  const addressField = field.match(/^(.+?) \((home|work|other) address\)$/i);
-
-  if (addressField) {
-    const fieldLabel = addressField[1];
-    const type = getAddressTypeLabel(addressField[2]);
-
-    if (fieldLabel === "Default address") {
-      return to === "Default"
-        ? `made the ${type} shipping address the default address for ${targetName}`
-        : `removed the default designation from ${targetName}'s ${type} shipping address`;
-    }
-
-    const addressFieldLabels = {
-      "Recipient name": "recipient name",
-      "Recipient phone": "recipient phone number",
-      "Street address": "street address",
-      "Address line 2": "address line 2",
-      City: "city",
-      State: "state",
-    };
-
-    const readableField = addressFieldLabels[fieldLabel] || fieldLabel.toLowerCase();
-
-    return `changed the ${readableField} on ${targetName}'s ${type} shipping address from ${quoteActivityValue(from)} to ${quoteActivityValue(to)}`;
-  }
-
-  // ── Avatar changes ────────────────────────────────────────
-
-  if (field === "Profile photo" || field === "Avatar") {
-    return to === "Removed"
-      ? `removed the profile photo for ${targetName}`
-      : `updated the profile photo for ${targetName}`;
-  }
-
-  // ── Fallback for future user fields ───────────────────────
-
-  return `updated ${targetName}'s ${field.toLowerCase()} from ${quoteActivityValue(from)} to ${quoteActivityValue(to)}`;
-};
-
-const setUserActivity = ({ req, user, actionType, changes, action }) => {
-  if (!changes?.length) return;
-
-  const actor = getActivityActorLabel(req);
-  const targetName = user.name || "this user";
-
-  const descriptions = changes.map((change) => describeUserChange(change, targetName));
-
-  req.activity = {
-    action: action || `user.${actionType}`,
-    entity: "user",
-    entityId: user._id,
-    entityName: user.name,
-    targetUser: user.name,
-    targetUserRole: user.role,
-    changes,
-    actionType,
-    description: `${actor} ${descriptions.join("; ")}.`,
-  };
-};
-
 // @DESCRIPTION Get high-level stats for the admin dashboard
 // @ROUTE       GET /api/v1/admin/stats
 // @ACCESS      Admin
@@ -436,19 +133,8 @@ const getStats = asyncHandler(async (_req, res) => {
       Review.countDocuments({ status: "pending" }),
       Order.find().sort("-createdAt").limit(5).populate("user", "name email"),
       Order.aggregate([
-        {
-          $match: {
-            status: {
-              $nin: ["pending", "cancelled", "refunded"],
-            },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            total: { $sum: "$total" },
-          },
-        },
+        { $match: { status: { $nin: ["pending", "cancelled", "refunded"] } } },
+        { $group: { _id: null, total: { $sum: "$total" } } },
       ]),
     ]);
 
@@ -461,7 +147,7 @@ const getStats = asyncHandler(async (_req, res) => {
         customers: totalUsers,
         pendingReviews,
       },
-      revenue: revenueAgg[0]?.total ?? 0,
+      revenue: revenueAgg[0]?.total ?? 0, // integer kobo
       recentOrders,
     },
   });
@@ -472,13 +158,11 @@ const getStats = asyncHandler(async (_req, res) => {
 // @ACCESS      Admin
 const getUsers = asyncHandler(async (req, res) => {
   const { role, roles, isActive, search } = req.query;
-
   const { page, limit, skip } = getPagination(req, res, 20);
-
   const query = {};
 
-  // Multiple roles: ?roles=admin,superAdmin
-  // Legacy single role: ?role=admin
+  // Supports multiple roles (?roles=admin,superAdmin) and the legacy
+  // single-role parameter (?role=admin).
   let selectedRoles = [];
 
   if (roles !== undefined) {
@@ -486,7 +170,6 @@ const getUsers = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("The roles filter must be a comma-separated string.");
     }
-
     selectedRoles = roles
       .split(",")
       .map((value) => value.trim())
@@ -496,34 +179,27 @@ const getUsers = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("The role filter must be a string.");
     }
-
     selectedRoles = [role];
   }
 
   const invalidRoles = selectedRoles.filter((value) => !USER_ROLES.includes(value));
-
   if (invalidRoles.length) {
     res.status(400);
     throw new Error(`Invalid role filter: ${invalidRoles.join(", ")}.`);
   }
 
   if (selectedRoles.length) {
-    query.role = {
-      $in: [...new Set(selectedRoles)],
-    };
+    query.role = { $in: [...new Set(selectedRoles)] };
   }
 
-  // Account status filtering.
   if (isActive !== undefined) {
     if (isActive !== "true" && isActive !== "false") {
       res.status(400);
       throw new Error("isActive must be either true or false.");
     }
-
     query.isActive = isActive === "true";
   }
 
-  // Search by name or email.
   if (search !== undefined) {
     if (typeof search !== "string") {
       res.status(400);
@@ -531,32 +207,25 @@ const getUsers = asyncHandler(async (req, res) => {
     }
 
     const trimmedSearch = search.trim();
-
     if (trimmedSearch) {
       const safeSearch = new RegExp(escapeRegex(trimmedSearch), "i");
-
       query.$or = [{ name: safeSearch }, { email: safeSearch }];
     }
   }
 
   const [users, total] = await Promise.all([
     User.find(query).select("-password").sort("-createdAt").skip(skip).limit(limit),
-
     User.countDocuments(query),
   ]);
 
   res.json({
     success: true,
     data: users,
-    meta: {
-      page,
-      limit,
-      total,
-    },
+    meta: { page, limit, total },
   });
 });
 
-// @DESCRIPTION Get a single user by id with full profile data
+// @DESCRIPTION Get a single user by id with full profile data (admin)
 // @ROUTE       GET /api/v1/admin/users/:id
 // @ACCESS      Admin
 const getUser = asyncHandler(async (req, res) => {
@@ -572,14 +241,10 @@ const getUser = asyncHandler(async (req, res) => {
     throw new Error("User not found.");
   }
 
-  res.json({
-    success: true,
-    data: getPublicUser(user),
-  });
+  res.json({ success: true, data: getPublicUser(user) });
 });
 
-// @DESCRIPTION Update user profile, role, account status,
-// verification and addresses
+// @DESCRIPTION Update user profile, role, account status, verification and addresses
 // @ROUTE       PATCH /api/v1/admin/users/:id
 // @ACCESS      Admin
 const updateUser = asyncHandler(async (req, res) => {
@@ -598,14 +263,10 @@ const updateUser = asyncHandler(async (req, res) => {
   assertCanManageUser(req, res, user);
 
   const updates = {};
-
   for (const field of USER_UPDATE_FIELDS) {
-    if (req.body[field] !== undefined) {
-      updates[field] = req.body[field];
-    }
+    if (req.body[field] !== undefined) updates[field] = req.body[field];
   }
 
-  // Validate role changes.
   if (updates.role !== undefined) {
     if (!USER_ROLES.includes(updates.role)) {
       res.status(400);
@@ -618,7 +279,6 @@ const updateUser = asyncHandler(async (req, res) => {
     }
   }
 
-  // Validate boolean fields.
   for (const field of ["isActive", "isVerified"]) {
     if (updates[field] !== undefined && typeof updates[field] !== "boolean") {
       res.status(400);
@@ -630,23 +290,18 @@ const updateUser = asyncHandler(async (req, res) => {
     updates.addresses = sanitizeAddresses(updates.addresses, res);
   }
 
-  const previous = user.toObject({
-    depopulate: true,
-  });
+  const previous = user.toObject({ depopulate: true });
 
-  // Assign first so Mongoose casts address subdocuments
-  // and creates their _ids.
+  // Assign first so Mongoose casts address subdocuments and creates their _ids.
   Object.assign(user, updates);
 
   const changes = [];
 
-  // Track profile field changes.
   for (const field of ["name", "email", "phone", "role", "isActive", "isVerified"]) {
     if (updates[field] === undefined) continue;
 
     const before = previous[field] ?? null;
     const after = user[field] ?? null;
-
     if (String(before) === String(after)) continue;
 
     let from = before;
@@ -666,18 +321,14 @@ const updateUser = asyncHandler(async (req, res) => {
       to = String(after ?? "—");
     }
 
-    changes.push({
-      field: USER_FIELD_LABELS[field],
-      from,
-      to,
-    });
+    changes.push({ field: USER_FIELD_LABELS[field], from, to });
   }
 
-  // Track individual address changes.
   if (updates.addresses !== undefined) {
     changes.push(...buildAddressChanges(previous.addresses || [], user.addresses || []));
   }
 
+  // Save even when unchanged so schema validation and existing save hooks remain consistent.
   await user.save();
 
   if (changes.length) {
@@ -689,21 +340,15 @@ const updateUser = asyncHandler(async (req, res) => {
       actionType = "status_toggle";
     }
 
-    setUserActivity({
-      req,
-      user,
-      actionType,
-      changes,
-    });
+    setUserActivity({ req, user, actionType, changes });
+  } else {
+    skipActivityLog(req);
   }
 
-  res.json({
-    success: true,
-    data: getPublicUser(user),
-  });
+  res.json({ success: true, data: getPublicUser(user) });
 });
 
-// @DESCRIPTION Return target user's avatar source bytes
+// @DESCRIPTION Return the target user's avatar source bytes through this API origin
 // @ROUTE       GET /api/v1/admin/users/:id/avatar/source
 // @ACCESS      Admin
 const getUserAvatarSource = asyncHandler(async (req, res) => {
@@ -737,13 +382,12 @@ const getUserAvatarSource = asyncHandler(async (req, res) => {
     return res.status(200).send(buffer);
   } catch (error) {
     console.error("Could not load avatar for cropping:", error.message);
-
     res.status(502);
     throw new Error("Could not load the current profile photo. Please try again.");
   }
 });
 
-// @DESCRIPTION Upload or replace a user's profile picture
+// @DESCRIPTION Upload (or replace) a user's profile picture
 // @ROUTE       POST /api/v1/admin/users/:id/avatar
 // @ACCESS      Admin
 const uploadUserAvatar = asyncHandler(async (req, res) => {
@@ -771,10 +415,8 @@ const uploadUserAvatar = asyncHandler(async (req, res) => {
 
   try {
     uploadedAvatar = await uploadAvatarToCloudinary(req.file.buffer);
-
     user.avatar = uploadedAvatar.url;
     user.avatarPublicId = uploadedAvatar.publicId;
-
     await user.save();
   } catch (error) {
     if (uploadedAvatar?.publicId) {
@@ -784,12 +426,11 @@ const uploadUserAvatar = asyncHandler(async (req, res) => {
         console.error("Could not clean up avatar after failed save:", cleanupError.message);
       }
     }
-
     throw error;
   }
 
-  // Clean up the previous image after the new image
-  // has been successfully saved.
+  // The user now points to the new image. Failure to remove the previous
+  // Cloudinary asset should not roll back a successful profile update.
   if (previousPublicId && previousPublicId !== uploadedAvatar.publicId) {
     try {
       await deleteFromCloudinary(previousPublicId);
@@ -812,10 +453,7 @@ const uploadUserAvatar = asyncHandler(async (req, res) => {
     ],
   });
 
-  res.json({
-    success: true,
-    data: getPublicUser(user),
-  });
+  res.json({ success: true, data: getPublicUser(user) });
 });
 
 // @DESCRIPTION Delete a user's profile picture
@@ -839,22 +477,18 @@ const deleteUserAvatar = asyncHandler(async (req, res) => {
   const previousPublicId = user.avatarPublicId;
 
   if (!previousPublicId && !user.avatar) {
-    return res.json({
-      success: true,
-      data: getPublicUser(user),
-    });
+    skipActivityLog(req);
+    return res.json({ success: true, data: getPublicUser(user) });
   }
 
-  // Clear the database reference first.
-  // If the database write fails, the Cloudinary asset
-  // remains available.
+  // Clear the database reference first. If the database write fails, the
+  // existing Cloudinary asset remains available and the profile is unchanged.
   user.avatar = "";
   user.avatarPublicId = "";
-
   await user.save();
 
-  // A Cloudinary cleanup failure can leave an orphaned
-  // asset but won't leave the user pointing to a deleted image.
+  // A Cloudinary cleanup failure can leave an orphaned asset, but it will not
+  // leave the user's profile pointing at a deleted image.
   if (previousPublicId) {
     try {
       await deleteFromCloudinary(previousPublicId);
@@ -868,29 +502,18 @@ const deleteUserAvatar = asyncHandler(async (req, res) => {
     user,
     actionType: "delete",
     action: "user.avatar_deleted",
-    changes: [
-      {
-        field: "Profile photo",
-        from: "Existing photo",
-        to: "Removed",
-      },
-    ],
+    changes: [{ field: "Profile photo", from: "Existing photo", to: "Removed" }],
   });
 
-  res.json({
-    success: true,
-    data: getPublicUser(user),
-  });
+  res.json({ success: true, data: getPublicUser(user) });
 });
 
-// @DESCRIPTION Get full system activity logs
+// @DESCRIPTION Get full system activity logs (admin)
 // @ROUTE       GET /api/v1/admin/activity-logs
 // @ACCESS      Admin
 const getActivityLogs = asyncHandler(async (req, res) => {
   const { user, entity, action } = req.query;
-
   const { page, limit, skip } = getPagination(req, res, 50);
-
   const query = {};
 
   if (user !== undefined && user !== "") {
@@ -898,7 +521,6 @@ const getActivityLogs = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("Invalid activity-log user ID.");
     }
-
     query.user = user;
   }
 
@@ -907,7 +529,6 @@ const getActivityLogs = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("Entity filter must be a string.");
     }
-
     query.entity = entity;
   }
 
@@ -916,7 +537,6 @@ const getActivityLogs = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("Action filter must be a string.");
     }
-
     query.action = action;
   }
 
@@ -926,18 +546,13 @@ const getActivityLogs = asyncHandler(async (req, res) => {
       .skip(skip)
       .limit(limit)
       .populate("user", "name email role"),
-
     ActivityLog.countDocuments(query),
   ]);
 
   res.json({
     success: true,
     data: logs,
-    meta: {
-      page,
-      limit,
-      total,
-    },
+    meta: { page, limit, total },
   });
 });
 
