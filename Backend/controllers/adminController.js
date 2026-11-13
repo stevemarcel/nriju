@@ -4,6 +4,11 @@ import Product from "../models/Product.js";
 import User from "../models/User.js";
 import Review from "../models/Review.js";
 import ActivityLog from "../models/ActivityLog.js";
+import {
+  uploadAvatarToCloudinary,
+  deleteFromCloudinary,
+  downloadAvatarFromCloudinary,
+} from "../utils/cloudinaryUtils.js";
 
 // @DESCRIPTION Get high-level stats for the admin dashboard
 // @ROUTE       GET /api/v1/admin/stats
@@ -212,6 +217,139 @@ const updateUser = asyncHandler(async (req, res) => {
   res.json({ success: true, data: user });
 });
 
+// @DESCRIPTION Return the target user's avatar source bytes through this API origin
+// @ROUTE       GET /api/v1/admin/users/:id/avatar/source
+// @ACCESS      Admin
+const getUserAvatarSource = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).select("avatarPublicId");
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  if (!user.avatarPublicId) {
+    res.status(404);
+    throw new Error("No profile picture has been saved.");
+  }
+
+  try {
+    const { buffer, contentType } = await downloadAvatarFromCloudinary(user.avatarPublicId);
+    res.set({
+      "Content-Type": contentType,
+      "Content-Length": String(buffer.length),
+      "Cache-Control": "private, no-store, max-age=0",
+      "X-Content-Type-Options": "nosniff",
+    });
+    return res.status(200).send(buffer);
+  } catch (error) {
+    console.error("Could not load avatar for cropping:", error.message);
+    res.status(502);
+    throw new Error("Could not load the current profile photo. Please try again.");
+  }
+});
+
+// @DESCRIPTION Upload (or replace) a user's profile picture
+// @ROUTE       POST /api/v1/admin/users/:id/avatar
+// @ACCESS      Admin
+const uploadUserAvatar = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  if (user.role === "superAdmin" && req.user.role !== "superAdmin") {
+    res.status(403);
+    throw new Error("Cannot edit a superAdmin account");
+  }
+
+  const previousPublicId = user.avatarPublicId;
+  let newlyUploaded = null;
+
+  if (req.file) {
+    newlyUploaded = await uploadAvatarToCloudinary(req.file.buffer);
+    user.avatar = newlyUploaded.url;
+    user.avatarPublicId = newlyUploaded.publicId;
+  }
+
+  try {
+    await user.save();
+  } catch (error) {
+    if (newlyUploaded?.publicId) {
+      try {
+        await deleteFromCloudinary(newlyUploaded.publicId);
+      } catch (cleanupError) {
+        console.error("Could not clean up avatar after failed save:", cleanupError.message);
+      }
+    }
+    throw error;
+  }
+
+  if (newlyUploaded?.publicId && previousPublicId && previousPublicId !== newlyUploaded.publicId) {
+    try {
+      await deleteFromCloudinary(previousPublicId);
+    } catch (cleanupError) {
+      console.error("Could not delete previous avatar:", cleanupError.message);
+    }
+  }
+
+  req.activity = {
+    action: "user.avatar_updated",
+    entity: "user",
+    entityId: user._id,
+    entityName: user.name,
+    actionType: "update",
+    changes: [
+      { field: "avatar", from: previousPublicId ? "current photo" : "none", to: "new photo" },
+    ],
+    description: req.user.name + " updated " + user.name + "'s profile photo",
+  };
+
+  res.json({ success: true, data: user });
+});
+
+// @DESCRIPTION Delete a user's profile picture
+// @ROUTE       DELETE /api/v1/admin/users/:id/avatar
+// @ACCESS      Admin
+const deleteUserAvatar = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+  if (user.role === "superAdmin" && req.user.role !== "superAdmin") {
+    res.status(403);
+    throw new Error("Cannot edit a superAdmin account");
+  }
+
+  const previousPublicId = user.avatarPublicId;
+
+  if (previousPublicId) {
+    try {
+      await deleteFromCloudinary(previousPublicId);
+    } catch (error) {
+      console.error("Could not delete avatar from Cloudinary:", error.message);
+      res.status(502);
+      throw new Error(
+        "Could not delete the profile photo from storage. Your profile was not changed.",
+      );
+    }
+  }
+
+  user.avatar = "";
+  user.avatarPublicId = "";
+  await user.save();
+
+  req.activity = {
+    action: "user.avatar_deleted",
+    entity: "user",
+    entityId: user._id,
+    entityName: user.name,
+    actionType: "delete",
+    description: req.user.name + " removed " + user.name + "'s profile photo",
+  };
+
+  res.json({ success: true, data: user });
+});
+
 // @DESCRIPTION Get full system activity logs (admin)
 // @ROUTE       GET /api/v1/admin/activity-logs
 // @ACCESS      Admin
@@ -238,4 +376,13 @@ const getActivityLogs = asyncHandler(async (req, res) => {
   });
 });
 
-export { getStats, getUsers, getUser, updateUser, getActivityLogs };
+export {
+  getStats,
+  getUsers,
+  getUser,
+  getUserAvatarSource,
+  uploadUserAvatar,
+  deleteUserAvatar,
+  updateUser,
+  getActivityLogs,
+};

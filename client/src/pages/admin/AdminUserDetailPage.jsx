@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
 import {
@@ -9,14 +10,17 @@ import {
   formatDate,
 } from "../../components/admin/AdminPrimitives";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import Dropdown from "../../components/ui/Dropdown";
 import CropAvatar from "../../components/ui/CropAvatar";
 import { toast } from "sonner";
 import {
   ArrowLeft,
   Building2,
+  Check,
   CheckCircle,
   Edit3,
   Home,
+  Loader2,
   Lock,
   Mail,
   MapPin,
@@ -63,6 +67,12 @@ const ADDRESS_LABELS = {
   other: { label: "Other", Icon: MapPin },
 };
 
+const ROLE_OPTIONS = [
+  { value: "customer", label: "Customer", icon: User },
+  { value: "admin", label: "Admin", icon: Shield },
+  { value: "superAdmin", label: "Super Admin", icon: ShieldCheck },
+];
+
 const EMPTY_ADDRESS = {
   label: "home",
   name: "",
@@ -100,7 +110,7 @@ const AdminUserDetailPage = () => {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
-  const [avatarDeleting, setAvatarDeleting] = false;
+  const [avatarDeleting, setAvatarDeleting] = useState(false);
   const [avatarError, setAvatarError] = useState("");
   const [addressIndex, setAddressIndex] = useState(null); // null = new address
   const [confirmTarget, setConfirmTarget] = useState(null); // address delete
@@ -225,7 +235,7 @@ const AdminUserDetailPage = () => {
 
   // ── Avatar ──────────────────────────────────────────────────
   const handleAvatarSourceLoad = async () =>
-    (await api.get("/auth/me/avatar/source", { responseType: "blob" })).data;
+    (await api.get(`/admin/users/${id}/avatar/source`, { responseType: "blob" })).data;
 
   const handleAvatarUpload = async (file) => {
     setAvatarUploading(true);
@@ -327,12 +337,12 @@ const AdminUserDetailPage = () => {
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 ease-in-out ${
           checked ? "bg-emerald-500" : "bg-slate-300"
         }`}
       >
         <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+          className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ease-in-out ${
             checked ? "translate-x-6" : "translate-x-1"
           }`}
         >
@@ -442,7 +452,7 @@ const AdminUserDetailPage = () => {
   return (
     <div className="p-6 space-y-6">
       {/* ── Header ──────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-start gap-3">
         <button
           onClick={() => navigate("/admin/users")}
           className="p-2 rounded-lg hover:bg-background-soft transition-colors"
@@ -451,7 +461,16 @@ const AdminUserDetailPage = () => {
           <ArrowLeft className="w-5 h-5 text-text-muted" />
         </button>
         <div>
-          <AdminPageHeader title="User Profile" subtitle={user.email} />
+          <AdminPageHeader
+            title={user.name}
+            subtitle={
+              <span className="flex items-center gap-2 flex-wrap">
+                <StatusPill status={user.role} map={ROLE_MAP} />
+                <span className="text-text-muted">·</span>
+                <StatusPill status={String(user.isActive)} map={ACTIVE_STATUS_MAP} dot />
+              </span>
+            }
+          />
         </div>
       </div>
 
@@ -495,17 +514,50 @@ const AdminUserDetailPage = () => {
 
               <div>
                 <label className="block text-sm font-medium text-text mb-1.5">Role</label>
-                <select
-                  name="role"
-                  value={form.role}
-                  onChange={(e) => handleSelect("role", e.target.value)}
-                  disabled={user.role === "superAdmin"}
-                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <option value="customer">Customer</option>
-                  <option value="admin">Admin</option>
-                  <option value="superAdmin">Super Admin</option>
-                </select>
+                {user.role === "superAdmin" ? (
+                  <div className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm text-text-muted flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-amber-500" />
+                    {ROLE_MAP[user.role]?.label || user.role}
+                  </div>
+                ) : (
+                  <Dropdown
+                    trigger={
+                      <span className="flex items-center gap-2 w-full">
+                        {(() => {
+                          const Icon =
+                            ROLE_OPTIONS.find((s) => s.value === form.role)?.icon || User;
+                          return <Icon className="w-4 h-4 text-text-muted" />;
+                        })()}
+                        <span className="flex-1 text-left">
+                          {ROLE_OPTIONS.find((s) => s.value === form.role)?.label || "Role"}
+                        </span>
+                      </span>
+                    }
+                    color="muted"
+                    noBorder
+                    fullWidth
+                    menuClassName="w-full"
+                  >
+                    {ROLE_OPTIONS.map((s) => {
+                      const Icon = s.icon;
+                      return (
+                        <button
+                          key={s.value}
+                          onClick={() => handleSelect("role", s.value)}
+                          className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-background transition-colors ${
+                            form.role === s.value
+                              ? "text-primary font-semibold bg-primary/5"
+                              : "text-text"
+                          }`}
+                        >
+                          <Icon className="w-4 h-4 text-text-muted" />
+                          <span className="flex-1">{s.label}</span>
+                          {form.role === s.value && <Check className="w-3.5 h-3.5" />}
+                        </button>
+                      );
+                    })}
+                  </Dropdown>
+                )}
                 {user.role === "superAdmin" && (
                   <p className="text-xs text-text-muted mt-1">
                     Protected — only another super admin can change this.
