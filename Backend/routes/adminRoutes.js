@@ -1,5 +1,11 @@
 import { Router } from "express";
-import { getStats, getUsers, updateUser, getActivityLogs } from "../controllers/adminController.js";
+import {
+  getStats,
+  getUsers,
+  getUser,
+  updateUser,
+  getActivityLogs,
+} from "../controllers/adminController.js";
 import { auth, admin, superAdmin } from "../middleware/auth.js";
 
 const router = Router();
@@ -8,6 +14,7 @@ const router = Router();
 router.use(auth);
 router.get("/stats", admin, getStats);
 router.get("/users", admin, getUsers);
+router.get("/users/:id", admin, getUser);
 router.patch("/users/:id", admin, updateUser);
 router.get("/activity-logs", admin, getActivityLogs);
 

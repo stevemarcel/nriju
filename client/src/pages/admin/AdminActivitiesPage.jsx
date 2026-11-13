@@ -24,15 +24,19 @@ import {
   Ticket,
   Check,
   X,
+  CirclePlus,
+  Pencil,
+  Trash2,
+  RefreshCw,
 } from "lucide-react";
 
 const ACTION_TYPE_OPTIONS = [
   { value: "", label: "All actions", icon: Clock, color: "text-text-muted" },
-  { value: "create", label: "Created", icon: null, color: "text-emerald-600" },
-  { value: "update", label: "Updated", icon: null, color: "text-amber-600" },
-  { value: "delete", label: "Deleted", icon: null, color: "text-rose-600" },
-  { value: "role_change", label: "Role Change", icon: null, color: "text-blue-600" },
-  { value: "status_toggle", label: "Status Toggle", icon: null, color: "text-violet-600" },
+  { value: "create", label: "Created", icon: CirclePlus, color: "text-emerald-600" },
+  { value: "update", label: "Updated", icon: Pencil, color: "text-amber-600" },
+  { value: "delete", label: "Deleted", icon: Trash2, color: "text-rose-600" },
+  { value: "role_change", label: "Role Change", icon: ShieldCheck, color: "text-blue-600" },
+  { value: "status_toggle", label: "Status Change", icon: RefreshCw, color: "text-violet-600" },
 ];
 
 const ENTITY_TYPE_OPTIONS = [
@@ -45,9 +49,9 @@ const ENTITY_TYPE_OPTIONS = [
 ];
 
 const ROLE_ICON_MAP = {
-  superAdmin: <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />,
-  admin: <Shield className="w-3.5 h-3.5 text-blue-500" />,
-  customer: <User className="w-3.5 h-3.5 text-text-muted" />,
+  superAdmin: <ShieldCheck className="w-4 h-4 text-amber-400" />,
+  admin: <Shield className="w-4 h-4 text-blue-500" />,
+  customer: <User className="w-4 h-4 text-text-muted" />,
 };
 
 const ACTION_TYPE_MAP = {
@@ -56,7 +60,7 @@ const ACTION_TYPE_MAP = {
   delete: { label: "Deleted", cls: "bg-rose-100 text-rose-700", dotColor: "bg-rose-500" },
   role_change: { label: "Role Change", cls: "bg-blue-100 text-blue-700", dotColor: "bg-blue-500" },
   status_toggle: {
-    label: "Status Toggle",
+    label: "Status Change",
     cls: "bg-violet-100 text-violet-700",
     dotColor: "bg-violet-500",
   },
@@ -215,7 +219,7 @@ const AdminActivitiesPage = () => {
                 <tr className="bg-primary/95 text-on-accent text-xs uppercase tracking-wider font-semibold border-b-2 border-primary">
                   <th className="text-left py-4 px-4">Date</th>
                   <th className="text-left py-4 px-4">Performed By</th>
-                  <th className="text-center py-4 px-4">Action</th>
+                  <th className="text-left py-4 px-4">Action</th>
                   <th className="text-left py-4 px-4">Description</th>
                   <th className="text-center py-4 px-4">View</th>
                 </tr>
@@ -230,21 +234,26 @@ const AdminActivitiesPage = () => {
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="shrink-0">
-                          {ROLE_ICON_MAP[a.user?.role] || (
-                            <User className="w-4 h-4 text-text-muted" />
-                          )}
-                        </div>
+                      <div className="flex flex-col items-start leading-tight">
                         <span className="font-medium text-text">{a.user?.name || "Unknown"}</span>
+
                         {a.user?.role && (
-                          <span className="text-xs px-1.5 py-0.5 rounded bg-background-soft text-text-muted capitalize">
-                            {a.user.role.replace(/([A-Z])/g, " $1").trim()}
-                          </span>
+                          <div className="flex items-center gap-1 mt-0.5">
+                            <div className="w-3 h-3 flex items-center">
+                              {ROLE_ICON_MAP[a.user?.role] || <User className=" text-text-muted" />}
+                            </div>
+
+                            <span className="text-xs text-text-muted capitalize w-fit">
+                              {a.user.role
+                                .replace(/([A-Z])/g, " $1")
+                                .trim()
+                                .replace(/^\w/, (c) => c.toUpperCase())}
+                            </span>
+                          </div>
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-3 px-4">
                       <StatusPill status={a.actionType || a.action} map={ACTION_TYPE_MAP} dot />
                     </td>
                     <td className="py-3 px-4 max-w-md">

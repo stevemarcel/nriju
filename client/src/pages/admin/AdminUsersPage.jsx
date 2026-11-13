@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../services/api";
 import {
@@ -19,9 +20,19 @@ import {
   UserCheck,
   UserX,
   ShieldCheck,
+  Eye,
   Check,
   Loader2,
 } from "lucide-react";
+
+const getInitials = (name) =>
+  (name || "")
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "?";
 
 const ROLE_OPTIONS = [
   { value: "", label: "All roles", roles: [], icon: Users, color: "text-text-muted" },
@@ -72,6 +83,7 @@ const ACTIVE_STATUS_MAP = {
 };
 
 const AdminUsersPage = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
@@ -277,16 +289,23 @@ const AdminUsersPage = () => {
                 {users.map((u) => (
                   <tr key={u._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4">
-                      <span className="font-medium text-text">{u.name}</span>
-                      {u.role === "superAdmin" && (
-                        <ShieldCheck
-                          className="w-3 h-3 text-amber-400 inline-block ml-1"
-                          title="Super admin"
-                        />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {u.avatar ? (
+                          <img
+                            src={u.avatar}
+                            alt={u.name}
+                            className="w-7 h-7 rounded-full object-cover shrink-0 ring-2 ring-background-soft"
+                          />
+                        ) : (
+                          <span className="w-7 h-7 rounded-full shrink-0 ring-2 ring-background-soft bg-primary/10 text-primary text-xs font-semibold flex items-center justify-center">
+                            {getInitials(u.name)}
+                          </span>
+                        )}
+                        <span className="font-medium text-text">{u.name}</span>
+                      </div>
                     </td>
                     <td className="py-3 px-4 text-text-muted">{u.email}</td>
-                    <td className="py-3 px-4 text-center">
+                    <td className="py-3 px-4">
                       {isProcessingAction(u._id, "role") ? (
                         <span className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-blue-600">
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -318,6 +337,13 @@ const AdminUsersPage = () => {
                     </td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex justify-center gap-1">
+                        <button
+                          onClick={() => navigate(`/admin/users/${u._id}`)}
+                          className="w-7 h-7 rounded bg-background-soft hover:bg-primary/10 text-text-muted hover:text-primary transition-colors"
+                          title="View full profile"
+                        >
+                          <Eye className="w-3.5 h-3.5 mx-auto" />
+                        </button>
                         <button
                           onClick={() => toggleRole(u)}
                           disabled={u.role === "superAdmin" || isProcessingAction(u._id, "role")}

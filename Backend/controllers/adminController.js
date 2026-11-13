@@ -72,6 +72,7 @@ const getUsers = asyncHandler(async (req, res) => {
   }
 
   const users = await User.find(query)
+    .select("-password")
     .sort("-createdAt")
     .skip((Number(page) - 1) * Number(limit))
     .limit(Number(limit));
@@ -87,6 +88,20 @@ const getUsers = asyncHandler(async (req, res) => {
       total,
     },
   });
+});
+
+// @DESCRIPTION Get a single user by id with full profile data (admin)
+// @ROUTE       GET /api/v1/admin/users/:id
+// @ACCESS      Admin
+const getUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id).select("-password");
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  res.json({ success: true, data: user });
 });
 
 // @DESCRIPTION Update a user role or status (admin)
@@ -106,41 +121,83 @@ const updateUser = asyncHandler(async (req, res) => {
     throw new Error("Cannot edit a superAdmin account");
   }
 
-  const { role, isActive } = req.body;
-  const changes = [];
-  let actionDescription = "";
-  let actionType = null;
-
-  if (role && user.role !== role) {
-    const roleNames = { admin: "Admin", customer: "Customer", superAdmin: "Super Admin" };
-    changes.push({
-      field: "role",
-      from: roleNames[user.role] || user.role,
-      to: roleNames[role] || role,
-    });
-    user.role = role;
-    actionType = "role_change";
-    actionDescription = `${req.user.name} ${role === "admin" || role === "superAdmin" ? "granted administrator access to" : "removed administrator access from"} ${user.name}`;
+  const allowedFields = [
+    "name",
+    "email",
+    "phone",
+    "role",
+    "isActive",
+    "isVerified",
+    "addresses",
+    "avatar",
+    "avatarPublicId",
+  ];
+  const updates = {};
+  for (const field of allowedFields) {
+    if (req.body[field] !== undefined) updates[field] = req.body[field];
   }
 
-  if (isActive !== undefined && user.isActive !== isActive) {
-    changes.push({
-      field: "status",
-      from: user.isActive ? "Active" : "Inactive",
-      to: isActive ? "Active" : "Inactive",
-    });
-    user.isActive = isActive;
-    actionType = actionType || "status_toggle";
-    actionDescription = actionDescription
-      ? `${actionDescription} and ${isActive ? "reactivated" : "deactivated"} their account`
-      : `${req.user.name} ${isActive ? "reactivated" : "deactivated"} ${user.name}'s account`;
-  }
-
+  const oldSnapshot = { ...user.toObject(), password: undefined };
+  Object.assign(user, updates);
   await user.save();
+
+  const changes = [];
+  const fieldLabels = {
+    name: "Name",
+    email: "Email",
+    phone: "Phone",
+    role: "Role",
+    isActive: "Status",
+    isVerified: "Verification",
+    addresses: "Addresses",
+    avatar: "Avatar",
+    avatarPublicId: "Avatar public ID",
+  };
+
+  for (const [field, value] of Object.entries(updates)) {
+    if (JSON.stringify(oldSnapshot[field]) !== JSON.stringify(value)) {
+      let fromLabel = oldSnapshot[field];
+      let toLabel = value;
+      if (field === "role") {
+        const roleNames = { admin: "Admin", customer: "Customer", superAdmin: "Super Admin" };
+        fromLabel = roleNames[fromLabel] || fromLabel || "—";
+        toLabel = roleNames[toLabel] || toLabel || "—";
+      } else if (field === "isActive") {
+        fromLabel = fromLabel ? "Active" : "Inactive";
+        toLabel = toLabel ? "Active" : "Inactive";
+      } else if (field === "isVerified") {
+        fromLabel = fromLabel ? "Verified" : "Unverified";
+        toLabel = toLabel ? "Verified" : "Unverified";
+      } else if (field === "addresses" && Array.isArray(value)) {
+        fromLabel = `${oldSnapshot[field]?.length ?? 0} address(es)`;
+        toLabel = `${value.length} address(es)`;
+      } else {
+        fromLabel = String(fromLabel ?? "—");
+        toLabel = String(toLabel ?? "—");
+      }
+      changes.push({
+        field: fieldLabels[field] || field,
+        from: fromLabel,
+        to: toLabel,
+      });
+    }
+  }
+
+  const actionType = changes.length
+    ? changes.some((c) => c.field === "Status")
+      ? "status_toggle"
+      : changes.some((c) => c.field === "Role")
+        ? "role_change"
+        : "update"
+    : null;
+
+  let actionDescription = changes
+    .map((c) => `${fieldLabels[c.field]} changed from ${c.from} to ${c.to}`)
+    .join(", ");
 
   if (changes.length > 0) {
     req.activity = {
-      action: `user.${actionType}`,
+      action: `user.${actionType || "update"}`,
       entity: "user",
       entityId: user._id,
       entityName: user.name,
@@ -181,4 +238,4 @@ const getActivityLogs = asyncHandler(async (req, res) => {
   });
 });
 
-export { getStats, getUsers, updateUser, getActivityLogs };
+export { getStats, getUsers, getUser, updateUser, getActivityLogs };
