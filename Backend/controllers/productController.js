@@ -5,9 +5,12 @@ import Category from "../models/Category.js";
 import Cart from "../models/Cart.js";
 import Review from "../models/Review.js";
 import Inventory from "../models/Inventory.js";
+import Order from "../models/Order.js";
+import InventoryMovement from "../models/InventoryMovement.js";
 import { productSummary } from "../utils/format.js";
 import { uploadProductToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryUtils.js";
 import { skipActivityLog } from "../utils/activityUtils.js";
+import { LOW_STOCK_THRESHOLD } from "../utils/inventoryConstants.js";
 import {
   recordProductCreated,
   recordProductUpdated,
@@ -31,6 +34,19 @@ const PRODUCT_UNITS = [
   "500g",
 ];
 const PRODUCT_REGIONS = ["Western", "Eastern", "South-South", "Northern", "Cross-regional"];
+
+const ADMIN_PRODUCT_SORT_OPTIONS = {
+  name_asc: { name: 1, _id: 1 },
+  name_desc: { name: -1, _id: 1 },
+  newest: { createdAt: -1, _id: -1 },
+  oldest: { createdAt: 1, _id: 1 },
+  recently_updated: { updatedAt: -1, _id: -1 },
+  price_asc: { price: 1, _id: 1 },
+  price_desc: { price: -1, _id: -1 },
+  stock_asc: { stock: 1, _id: 1 },
+  stock_desc: { stock: -1, _id: -1 },
+};
+
 const SORT_OPTIONS = {
   newest: "-createdAt -_id",
   price_asc: "price _id",
@@ -262,7 +278,7 @@ const buildAdminProductQuery = async (req, res) => {
       }
       query.isActive = true;
     } else if (stockFilter === "lowStock") {
-      query.stock = { $gt: 0, $lte: 5 };
+      query.stock = { $gt: 0, $lte: LOW_STOCK_THRESHOLD };
     } else if (stockFilter === "outOfStock") {
       query.stock = 0;
     }
@@ -512,7 +528,10 @@ const createProduct = asyncHandler(async (req, res) => {
       nullable: true,
       defaultValue: null,
     }),
-    costPrice: parseOptionalNonNegativeInteger(costPrice, "Cost price", 0),
+    costPrice: parseNonNegativeInteger(costPrice, "Cost price", {
+      nullable: true,
+      defaultValue: null,
+    }),
     unit,
     productType,
     category: categoryDocument._id,
@@ -575,7 +594,7 @@ const updateProduct = asyncHandler(async (req, res) => {
   for (const field of ["price", "compareAtPrice", "costPrice"]) {
     if (req.body[field] !== undefined) {
       updates[field] = parseNonNegativeInteger(req.body[field], field, {
-        nullable: field === "compareAtPrice",
+        nullable: field === "compareAtPrice" || field === "costPrice",
       });
     }
   }
@@ -707,11 +726,24 @@ const updateProduct = asyncHandler(async (req, res) => {
 const getAllProducts = asyncHandler(async (req, res) => {
   const { page, limit, skip } = getPagination(req, res, 20);
   const query = await buildAdminProductQuery(req, res);
+  const sort = req.query.sort || "name_asc";
 
-  const [products, total] = await Promise.all([
-    Product.find(query).sort("-createdAt -_id").skip(skip).limit(limit).populate("category"),
-    Product.countDocuments(query),
-  ]);
+  if (!Object.prototype.hasOwnProperty.call(ADMIN_PRODUCT_SORT_OPTIONS, sort)) {
+    res.status(400);
+    throw new Error("Invalid product sorting option.");
+  }
+
+  let productsQuery = Product.find(query)
+    .sort(ADMIN_PRODUCT_SORT_OPTIONS[sort])
+    .skip(skip)
+    .limit(limit)
+    .populate("category");
+
+  if (sort === "name_asc" || sort === "name_desc") {
+    productsQuery = productsQuery.collation({ locale: "en", strength: 2 });
+  }
+
+  const [products, total] = await Promise.all([productsQuery, Product.countDocuments(query)]);
 
   res.json({
     success: true,
@@ -730,32 +762,54 @@ const deleteProduct = asyncHandler(async (req, res) => {
   }
 
   const product = await Product.findById(req.params.id);
+
   if (!product) {
     res.status(404);
     throw new Error("Product not found.");
   }
 
   const permanentValue = req.query.permanent;
+
   if (permanentValue !== undefined && permanentValue !== "true" && permanentValue !== "false") {
     res.status(400);
     throw new Error("permanent must be true or false.");
   }
 
+  // ------------------------------------------------------------
+  // Permanent deletion
+  // ------------------------------------------------------------
   if (permanentValue === "true") {
+    // Preserve products that have inventory or order history.
+    // These records are important for stock reconciliation,
+    // valuation and historical reporting.
+    const [inventoryBatchCount, inventoryMovementCount, orderCount] = await Promise.all([
+      Inventory.countDocuments({ product: product._id }),
+      InventoryMovement.countDocuments({ product: product._id }),
+      Order.countDocuments({ "items.product": product._id }),
+    ]);
+
+    const hasHistory = inventoryBatchCount > 0 || inventoryMovementCount > 0 || orderCount > 0;
+
+    if (hasHistory) {
+      res.status(409);
+
+      throw new Error(
+        "This product cannot be permanently deleted because it has inventory or order history. Archive it instead.",
+      );
+    }
+
     const productSnapshot = {
       _id: product._id,
       name: product.name,
       images: [...(product.images || [])],
     };
 
-    // Delete the product document first. Cloudinary cleanup runs afterwards
-    // so a storage failure cannot leave a live product referencing missing files.
+    // No inventory or order history exists, so physical deletion is safe.
     await product.deleteOne();
 
     const cleanupResults = await Promise.allSettled([
       Cart.deleteMany({ product: product._id }),
       Review.deleteMany({ product: product._id }),
-      Inventory.deleteMany({ product: product._id }),
       cleanupCloudinaryImages(productSnapshot.images),
     ]);
 
@@ -773,8 +827,12 @@ const deleteProduct = asyncHandler(async (req, res) => {
     });
   }
 
+  // ------------------------------------------------------------
+  // Archive — default behaviour
+  // ------------------------------------------------------------
   if (!product.isActive) {
     skipActivityLog(req);
+
     return res.json({
       success: true,
       message: "Product is already archived.",
@@ -783,6 +841,7 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
   product.isActive = false;
   product.updatedBy = req.user._id;
+
   await product.save();
 
   recordProductUpdated(req, product, [
@@ -808,7 +867,7 @@ const getProductStats = asyncHandler(async (req, res) => {
   const [total, active, lowStock, outOfStock] = await Promise.all([
     Product.countDocuments(query),
     Product.countDocuments({ ...query, isActive: true }),
-    Product.countDocuments({ ...query, stock: { $gt: 0, $lte: 5 } }),
+    Product.countDocuments({ ...query, stock: { $gt: 0, $lte: LOW_STOCK_THRESHOLD } }),
     Product.countDocuments({ ...query, stock: 0 }),
   ]);
 

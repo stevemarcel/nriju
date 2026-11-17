@@ -1,0 +1,560 @@
+[
+  {
+    "name": "Boli & Pepped Stew - Fresh",
+    "isActive": true,
+    "stockDifference": 100,
+    "productId": "6acf8e9b96836143c9e7bdbd",
+    "productStock": 0,
+    "inventoryBatchStock": 100,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Akara - Fresh",
+    "isActive": true,
+    "stockDifference": 90,
+    "productId": "6acf8e9b96836143c9e7bdb6",
+    "productStock": 0,
+    "inventoryBatchStock": 90,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Egusi Soup - Fresh",
+    "isActive": true,
+    "stockDifference": 80,
+    "productId": "6acf8e9b96836143c9e7bd9f",
+    "productStock": 0,
+    "inventoryBatchStock": 80,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Suya (Beef) - Fresh",
+    "isActive": true,
+    "stockDifference": 80,
+    "productId": "6acf8e9b96836143c9e7bdce",
+    "productStock": 0,
+    "inventoryBatchStock": 80,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Amala Lafun - Packaged",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd99",
+    "productStock": 280,
+    "inventoryBatchStock": 280,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Banga Soup - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bda2",
+    "productStock": 60,
+    "inventoryBatchStock": 60,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Bitter Leaf Soup - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bda3",
+    "productStock": 60,
+    "inventoryBatchStock": 60,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Chin Chin",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdb4",
+    "productStock": 280,
+    "inventoryBatchStock": 280,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Coconut Oil",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdb2",
+    "productStock": 60,
+    "inventoryBatchStock": 60,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Curry Powder",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdae",
+    "productStock": 250,
+    "inventoryBatchStock": 250,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Dried Beef",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdc5",
+    "productStock": 120,
+    "inventoryBatchStock": 120,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Dried Goat Meat",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdc6",
+    "productStock": 110,
+    "inventoryBatchStock": 110,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Eba - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd97",
+    "productStock": 140,
+    "inventoryBatchStock": 140,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Edikang Ikong - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bda6",
+    "productStock": 50,
+    "inventoryBatchStock": 50,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Egusi Soup Mix",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bda0",
+    "productStock": 220,
+    "inventoryBatchStock": 220,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Ewedu Soup - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bda5",
+    "productStock": 65,
+    "inventoryBatchStock": 65,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Fresh Juice - Orange",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdc1",
+    "productStock": 140,
+    "inventoryBatchStock": 140,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Fresh Juice - Special Blend (Orange, Pineapple)",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdc2",
+    "productStock": 130,
+    "inventoryBatchStock": 130,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Frozen Beef",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdca",
+    "productStock": 85,
+    "inventoryBatchStock": 85,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Frozen Catfish",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdc8",
+    "productStock": 80,
+    "inventoryBatchStock": 80,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Frozen Chicken",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdcc",
+    "productStock": 95,
+    "inventoryBatchStock": 95,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Frozen Goat Meat",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdcb",
+    "productStock": 70,
+    "inventoryBatchStock": 70,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Frozen Mackerel",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdc9",
+    "productStock": 100,
+    "inventoryBatchStock": 100,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Frozen Tilapia",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdc7",
+    "productStock": 90,
+    "inventoryBatchStock": 90,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Fufu Powder - Packaged",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd98",
+    "productStock": 300,
+    "inventoryBatchStock": 300,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Fufu/Akpu - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd93",
+    "productStock": 150,
+    "inventoryBatchStock": 150,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Garri - Packaged",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd9c",
+    "productStock": 350,
+    "inventoryBatchStock": 350,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Gbegiri - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd9e",
+    "productStock": 70,
+    "inventoryBatchStock": 70,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Grilled Fish - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdcd",
+    "productStock": 60,
+    "inventoryBatchStock": 60,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Ground Crayfish",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bda8",
+    "productStock": 300,
+    "inventoryBatchStock": 300,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Ground Pepper (Ose)",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdab",
+    "productStock": 290,
+    "inventoryBatchStock": 290,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Iru (Locust Beans)",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bda9",
+    "productStock": 260,
+    "inventoryBatchStock": 260,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Kika (Dried Fish)",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdc4",
+    "productStock": 160,
+    "inventoryBatchStock": 160,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Kilishi",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdbb",
+    "productStock": 180,
+    "inventoryBatchStock": 180,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Kings Groundnut Oil",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdb1",
+    "productStock": 150,
+    "inventoryBatchStock": 150,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Knorr Cubes - Pack (50 x 8g)",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdac",
+    "productStock": 400,
+    "inventoryBatchStock": 400,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Kuli Kuli",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdba",
+    "productStock": 240,
+    "inventoryBatchStock": 240,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Kunu Drink",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdbf",
+    "productStock": 180,
+    "inventoryBatchStock": 180,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Meat Pie - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdb7",
+    "productStock": 80,
+    "inventoryBatchStock": 80,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Moi Moi - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdbc",
+    "productStock": 85,
+    "inventoryBatchStock": 85,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Obe Ata - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd9d",
+    "productStock": 90,
+    "inventoryBatchStock": 90,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Obe Ata Soup Mix",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bda7",
+    "productStock": 240,
+    "inventoryBatchStock": 240,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Ogbono Soup - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bda1",
+    "productStock": 75,
+    "inventoryBatchStock": 75,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Okra Soup - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bda4",
+    "productStock": 70,
+    "inventoryBatchStock": 70,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Palm Oil (Red)",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdb0",
+    "productStock": 180,
+    "inventoryBatchStock": 180,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Peppered Chicken - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdd0",
+    "productStock": 65,
+    "inventoryBatchStock": 65,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Peppered Meat - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdcf",
+    "productStock": 70,
+    "inventoryBatchStock": 70,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Plantain Chips",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdb9",
+    "productStock": 260,
+    "inventoryBatchStock": 260,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Pounded Yam - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd96",
+    "productStock": 100,
+    "inventoryBatchStock": 100,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Pounded Yam Powder - Packaged",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd9a",
+    "productStock": 200,
+    "inventoryBatchStock": 200,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Puff Puff - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdb5",
+    "productStock": 100,
+    "inventoryBatchStock": 100,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Salt (Iodized)",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdaf",
+    "productStock": 500,
+    "inventoryBatchStock": 500,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Semo - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd95",
+    "productStock": 130,
+    "inventoryBatchStock": 130,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Semolina - Packaged",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bd9b",
+    "productStock": 260,
+    "inventoryBatchStock": 260,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Shea Butter",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdb3",
+    "productStock": 90,
+    "inventoryBatchStock": 90,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Spring Rolls - Fresh",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdb8",
+    "productStock": 90,
+    "inventoryBatchStock": 90,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Stockfish (Dried)",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdc3",
+    "productStock": 150,
+    "inventoryBatchStock": 150,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Thyme Leaves",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdad",
+    "productStock": 250,
+    "inventoryBatchStock": 250,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Tiger Nut Drink",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdc0",
+    "productStock": 170,
+    "inventoryBatchStock": 170,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Yaji Suya Spice",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdaa",
+    "productStock": 280,
+    "inventoryBatchStock": 280,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Zobo Drink",
+    "isActive": true,
+    "stockDifference": 0,
+    "productId": "6acf8e9b96836143c9e7bdbe",
+    "productStock": 219,
+    "inventoryBatchStock": 219,
+    "activeBatchCount": 1
+  },
+  {
+    "name": "Amala - Fresh",
+    "isActive": true,
+    "stockDifference": -10,
+    "productId": "6acf8e9b96836143c9e7bd94",
+    "productStock": 130,
+    "inventoryBatchStock": 120,
+    "activeBatchCount": 1
+  }
+]

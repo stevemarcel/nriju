@@ -40,11 +40,24 @@ const PRODUCT_STATUS_MAP = {
   false: { label: "Archived", cls: "bg-rose-100 text-rose-700", dotColor: "bg-rose-500" },
 };
 
+const PRODUCT_SORT_OPTIONS = [
+  { value: "name_asc", label: "Name: A–Z" },
+  { value: "name_desc", label: "Name: Z–A" },
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "recently_updated", label: "Recently updated" },
+  { value: "price_asc", label: "Price: Low to high" },
+  { value: "price_desc", label: "Price: High to low" },
+  { value: "stock_asc", label: "Stock: Low to high" },
+  { value: "stock_desc", label: "Stock: High to low" },
+];
+
 const AdminProductsPage = () => {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("name_asc");
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState(null);
   const [stockModal, setStockModal] = useState(null);
@@ -110,9 +123,16 @@ const AdminProductsPage = () => {
   });
 
   const { data, isPending } = useQuery({
-    queryKey: ["admin", "products", page, search, statusFilter, categoryFilter],
+    queryKey: ["admin", "products", page, search, statusFilter, categoryFilter, sortBy],
     queryFn: async () => {
-      const res = await api.get(`/products/all?${buildParams({ page, limit: 10 }).toString()}`);
+      const res = await api.get(
+        `/products/all?${buildParams({
+          page,
+          limit: 10,
+          sort: sortBy,
+        }).toString()}`,
+      );
+
       return res.data;
     },
   });
@@ -371,9 +391,9 @@ const AdminProductsPage = () => {
         }
       />
       {/* Filter bar */}
-      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">
+      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(190px,1.4fr)_repeat(3,minmax(135px,1fr))] gap-3">
         {/* Search */}
-        <div className="relative flex-3 min-w-0">
+        <div className="relative min-w-0 sm:col-span-2 lg:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
           <input
             type="text"
@@ -387,108 +407,140 @@ const AdminProductsPage = () => {
           />
         </div>
 
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 flex-wrap flex-2">
-          {/* Status Filter */}
-          <div className="relative w-full md:w-0 md:flex-1">
-            <Dropdown
-              trigger={
-                <>
-                  {(() => {
-                    const { Icon, color } = statusLabels[statusFilter];
-                    return (
-                      <Icon className={`w-4 h-4 mr-2 ${color} text-white group-hover:text-white`} />
-                    );
-                  })()}
-                  <span className="flex-1 text-left whitespace-nowrap">
-                    {" "}
-                    {statusLabels[statusFilter].label}
-                  </span>
-                </>
-              }
-              color="primary"
-              fullWidth
-              menuClassName="sm:w-48"
-            >
-              {Object.entries(statusLabels).map(([value, { label, Icon, color }]) => (
-                <button
-                  key={value}
-                  onClick={() => {
-                    setStatusFilter(value);
-                    setPage(1);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                    statusFilter === value ? "text-primary font-semibold bg-primary/5" : "text-text"
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 ${color}`} />
-                  <span className="flex-1">{label}</span>
-                  {statusFilter === value && <Check className="w-3.5 h-3.5" />}
-                </button>
-              ))}
-            </Dropdown>
-          </div>
-
-          {/* Category Filter */}
-          <div className="relative w-full md:w-0 md:flex-1">
-            <Dropdown
-              trigger={
-                <>
-                  {(() => {
-                    const cat = categories.find((c) => c._id === categoryFilter);
-                    const { Icon, color } = cat
-                      ? getCategoryIcon(cat.name)
-                      : { Icon: FolderOpen, color: "text-text-muted" };
-                    return (
-                      <Icon className={`w-4 h-4 mr-2 ${color} text-white group-hover:text-white`} />
-                    );
-                  })()}
-                  <span className="flex-1 text-left whitespace-nowrap">
-                    {categoryFilter === "all"
-                      ? "All Categories"
-                      : categories.find((c) => c._id === categoryFilter)?.name || "All Categories"}
-                  </span>
-                </>
-              }
-              color="primary"
-              fullWidth
-              menuClassName="sm:w-52"
-            >
+        {/* Status Filter */}
+        <div className="relative w-full min-w-0">
+          <Dropdown
+            trigger={
+              <>
+                {(() => {
+                  const { Icon, color } = statusLabels[statusFilter];
+                  return (
+                    <Icon className={`w-4 h-4 mr-2 ${color} text-white group-hover:text-white`} />
+                  );
+                })()}
+                <span className="flex-1 text-left whitespace-nowrap">
+                  {" "}
+                  {statusLabels[statusFilter].label}
+                </span>
+              </>
+            }
+            color="primary"
+            fullWidth
+            menuClassName="sm:w-48"
+          >
+            {Object.entries(statusLabels).map(([value, { label, Icon, color }]) => (
               <button
+                key={value}
                 onClick={() => {
-                  setCategoryFilter("all");
+                  setStatusFilter(value);
                   setPage(1);
                 }}
                 className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                  categoryFilter === "all" ? "text-primary font-semibold bg-primary/5" : "text-text"
+                  statusFilter === value ? "text-primary font-semibold bg-primary/5" : "text-text"
                 }`}
               >
-                <FolderOpen className="w-4 h-4" />
-                <span className="flex-1">All Categories</span>
-                {categoryFilter === "all" && <Check className="w-3.5 h-3.5" />}
+                <Icon className={`w-4 h-4 ${color}`} />
+                <span className="flex-1">{label}</span>
+                {statusFilter === value && <Check className="w-3.5 h-3.5" />}
               </button>
-              {categories.map((c) => {
-                const { Icon, color } = getCategoryIcon(c.name);
-                return (
-                  <button
-                    key={c._id}
-                    onClick={() => {
-                      setCategoryFilter(c._id);
-                      setPage(1);
-                    }}
-                    className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                      categoryFilter === c._id
-                        ? "text-primary font-semibold bg-primary/5"
-                        : "text-text"
-                    }`}
-                  >
-                    <Icon className={`w-4 h-4 ${color}`} />
-                    <span className="flex-1">{c.name}</span>
-                    {categoryFilter === c._id && <Check className="w-3.5 h-3.5" />}
-                  </button>
-                );
-              })}
-            </Dropdown>
-          </div>
+            ))}
+          </Dropdown>
+        </div>
+
+        {/* Category Filter */}
+        <div className="relative w-full min-w-0">
+          <Dropdown
+            trigger={
+              <>
+                {(() => {
+                  const cat = categories.find((c) => c._id === categoryFilter);
+                  const { Icon, color } = cat
+                    ? getCategoryIcon(cat.name)
+                    : { Icon: FolderOpen, color: "text-text-muted" };
+                  return (
+                    <Icon className={`w-4 h-4 mr-2 ${color} text-white group-hover:text-white`} />
+                  );
+                })()}
+                <span className="flex-1 text-left whitespace-nowrap">
+                  {categoryFilter === "all"
+                    ? "All Categories"
+                    : categories.find((c) => c._id === categoryFilter)?.name || "All Categories"}
+                </span>
+              </>
+            }
+            color="primary"
+            fullWidth
+            menuClassName="sm:w-52"
+          >
+            <button
+              onClick={() => {
+                setCategoryFilter("all");
+                setPage(1);
+              }}
+              className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                categoryFilter === "all" ? "text-primary font-semibold bg-primary/5" : "text-text"
+              }`}
+            >
+              <FolderOpen className="w-4 h-4" />
+              <span className="flex-1">All Categories</span>
+              {categoryFilter === "all" && <Check className="w-3.5 h-3.5" />}
+            </button>
+            {categories.map((c) => {
+              const { Icon, color } = getCategoryIcon(c.name);
+              return (
+                <button
+                  key={c._id}
+                  onClick={() => {
+                    setCategoryFilter(c._id);
+                    setPage(1);
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                    categoryFilter === c._id
+                      ? "text-primary font-semibold bg-primary/5"
+                      : "text-text"
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 ${color}`} />
+                  <span className="flex-1">{c.name}</span>
+                  {categoryFilter === c._id && <Check className="w-3.5 h-3.5" />}
+                </button>
+              );
+            })}
+          </Dropdown>
+        </div>
+
+        {/* Sort Filter */}
+        <div className="relative w-full min-w-0">
+          <Dropdown
+            trigger={
+              <>
+                <ArrowDownUp className="w-4 h-4 mr-2 text-white" />
+                <span className="flex-1 text-left whitespace-nowrap">
+                  {PRODUCT_SORT_OPTIONS.find((option) => option.value === sortBy)?.label ||
+                    "Name: A–Z"}
+                </span>
+              </>
+            }
+            color="primary"
+            fullWidth
+            menuClassName="sm:w-52"
+          >
+            {PRODUCT_SORT_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  setSortBy(option.value);
+                  setPage(1);
+                }}
+                className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                  sortBy === option.value ? "text-primary font-semibold bg-primary/5" : "text-text"
+                }`}
+              >
+                <span className="flex-1">{option.label}</span>
+                {sortBy === option.value && <Check className="w-3.5 h-3.5" />}
+              </button>
+            ))}
+          </Dropdown>
         </div>
       </div>
 

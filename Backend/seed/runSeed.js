@@ -61,7 +61,7 @@ const runSeed = async () => {
     // Seed authored in naira → store integer kobo. create() so slug
     // hook + kobo validators run.
     // `stock` (opening qty) is applied here; Inventory batch is created
-    // next so Product.stock stays consistent with unexpired batches.
+    // next so Product.stock stays consistent with active batches.
     const seedRows = products.map(({ stock, categoryName, ...rest }) => ({
       ...rest,
       price: toKobo(rest.price),
@@ -80,9 +80,7 @@ const runSeed = async () => {
     console.log(`${createdProducts.length} products seeded.`.green);
 
     // ------------------------------------------------------------
-    // 4. Inventory batches — cooked: short expiry, packaged: long shelf
-    //    life. Quantity from seed stock. Then recompute Product.stock
-    //    from the active unexpired batches (no more `|| 10` fiction).
+    // 4. Inventory batches — create stock batches without expiry tracking.
     // ------------------------------------------------------------
     const inventoryDocs = createdProducts.map((product, i) => {
       const isCooked = product.productType === "cooked";
@@ -93,7 +91,6 @@ const runSeed = async () => {
         product: product._id,
         batch: isCooked ? `FRESH-${prefix}-${Date.now()}` : `WH-${prefix}-${Date.now()}`,
         quantity,
-        expiryDate: new Date(Date.now() + (isCooked ? 24 : 180 * 24) * 60 * 60 * 1000),
         receivedDate: new Date(),
         supplier: isCooked ? "Nriju Kitchen" : "Nriju Warehouse",
         location: isCooked ? "Fresh Prep" : "Aisle A",

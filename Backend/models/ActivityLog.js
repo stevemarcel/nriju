@@ -34,7 +34,7 @@ const activityLogSchema = new mongoose.Schema(
       enum: ["create", "update", "delete", "role_change", "status_toggle"],
     },
   },
-  { timestamps: { createdAt: true, updatedAt: false } },
+  { timestamps: { createdAt: true, updatedAt: false } }
 );
 
 // Automatically remove activity records after one year.

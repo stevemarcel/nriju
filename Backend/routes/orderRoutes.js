@@ -12,11 +12,12 @@ const router = Router();
 
 router.post("/", auth, createOrder);
 router.get("/", auth, getMyOrders);
-// NOTE: /all must sit above /:id — otherwise Express treats "all" as an order ID.
-router.use(auth);
-router.use(admin);
-router.get("/all", getAllOrders);
+
+// Static admin route before /:id.
+router.get("/all", auth, admin, getAllOrders);
+
+// Owners can view their orders; administrators can view any order.
 router.get("/:id", auth, getOrderById);
-router.patch("/:id/status", updateOrderStatus);
+router.patch("/:id/status", auth, admin, updateOrderStatus);
 
 export default router;

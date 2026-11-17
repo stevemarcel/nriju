@@ -14,12 +14,12 @@ export const productSummary = (product) => ({
   slug: product.slug,
   description: product.description,
   price: product.price,
+  costPrice: product.costPrice ?? null,
   compareAtPrice: product.compareAtPrice,
   unit: product.unit,
   productType: product.productType,
   stock: product.stock,
-  // Preserve the populated category object (name/slug) rather than
-  // collapsing it to its _id — the storefront renders category.name.
+  // Preserve the populated category object rather than collapsing it to its ID.
   category: product.category?._id ? product.category : product.category,
   region: product.region,
   images: product.images,

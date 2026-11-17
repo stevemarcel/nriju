@@ -18,7 +18,8 @@ const ADDRESS_FIELD_LABELS = {
 };
 
 const normalizeAddress = (address) => {
-  const value = typeof address?.toObject === "function" ? address.toObject() : address;
+  const value =
+    typeof address?.toObject === "function" ? address.toObject() : address;
 
   return {
     _id: value?._id ? String(value._id) : "",
@@ -38,17 +39,21 @@ const addressSummary = (address) =>
     .filter(Boolean)
     .join(", ") || `${address.label || "Shipping"} address`;
 
-const addressIdentity = (address, index) => address._id || `address-without-id-${index}`;
+const addressIdentity = (address, index) =>
+  address._id || `address-without-id-${index}`;
 
-export const buildAddressChanges = (previousAddresses = [], nextAddresses = []) => {
+export const buildAddressChanges = (
+  previousAddresses = [],
+  nextAddresses = []
+) => {
   const previous = previousAddresses.map(normalizeAddress);
   const next = nextAddresses.map(normalizeAddress);
 
   const previousById = new Map(
-    previous.map((address, index) => [addressIdentity(address, index), address]),
+    previous.map((address, index) => [addressIdentity(address, index), address])
   );
   const nextById = new Map(
-    next.map((address, index) => [addressIdentity(address, index), address]),
+    next.map((address, index) => [addressIdentity(address, index), address])
   );
 
   const changes = [];
@@ -80,15 +85,11 @@ export const buildAddressChanges = (previousAddresses = [], nextAddresses = []) 
 
       const from =
         field === "isDefault"
-          ? oldAddress[field]
-            ? "Default"
-            : "Not default"
+          ? oldAddress[field] ? "Default" : "Not default"
           : String(oldAddress[field] || "—");
       const to =
         field === "isDefault"
-          ? newAddress[field]
-            ? "Default"
-            : "Not default"
+          ? newAddress[field] ? "Default" : "Not default"
           : String(newAddress[field] || "—");
 
       changes.push({
@@ -206,11 +207,19 @@ const describeUserChange = (change, targetName) => {
   return `updated ${targetName}'s ${String(field).toLowerCase()} from ${quoted(from)} to ${quoted(to)}`;
 };
 
-export const setUserActivity = ({ req, user, actionType, changes, action }) => {
+export const setUserActivity = ({
+  req,
+  user,
+  actionType,
+  changes,
+  action,
+}) => {
   if (!changes?.length) return;
 
   const targetName = user.name || "this user";
-  const description = changes.map((change) => describeUserChange(change, targetName)).join("; ");
+  const description = changes
+    .map((change) => describeUserChange(change, targetName))
+    .join("; ");
 
   recordActivity(req, {
     action: action || `user.${actionType}`,

@@ -36,7 +36,7 @@ export const recordActivity = (
     changes = [],
     targetUser,
     targetUserRole,
-  },
+  }
 ) => {
   if (!req || !action || !entity || !description) return;
 

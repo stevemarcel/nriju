@@ -64,12 +64,8 @@ const productSchema = new mongoose.Schema(
       index: true,
     },
 
-    // Denormalized available quantity = sum of active, unexpired Inventory
-    // batches. Kept in sync through services/inventoryService.recomputeStock()
-    // (call it after any batch add/edit/void). Queryable + sortable, which a
-    // populate-only virtual is not — that's what the "in stock" filter needs.
-    // Authoritative on-the-ground counts (with expiry precision) still live on
-    // Inventory; this is the fast read the storefront uses.
+    // Denormalized available quantity = sum of active Inventory batches.
+    // Inventory is the source of truth; Product.stock is its read-optimized mirror.
     stock: {
       type: Number,
       default: 0,
@@ -77,8 +73,8 @@ const productSchema = new mongoose.Schema(
       index: true,
     },
 
-    // Cost price (integer kobo) — for margin/valuation reports
-    costPrice: { ...integerKobo(false), default: 0 },
+    // Cost price (integer kobo). null means the cost is unknown.
+    costPrice: { ...integerKobo(false), default: null },
 
     // ── cooked-item production fields ──────────────────────────
     prepLeadTime: { type: Number, default: 0 },

@@ -3,90 +3,170 @@ import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Coupon from "../models/Coupon.js";
-import Inventory from "../models/Inventory.js";
-import Payment from "../models/Payment.js";
-import { deductStockFIFO } from "../services/inventoryService.js";
+import {
+  computeAvailableStock,
+  deductStockFIFO,
+  restoreStockAllocations,
+} from "../services/inventoryService.js";
+import { recordActivity } from "../utils/activityUtils.js";
 
-// @DESCRIPTION Create a new order
+const ORDER_STATUSES = [
+  "pending",
+  "confirmed",
+  "preparing",
+  "ready_for_pickup",
+  "on_the_way",
+  "delivered",
+  "picked_up",
+  "cancelled",
+  "refunded",
+];
+const DELIVERY_METHODS = ["own", "thirdparty", "pickup"];
+const PAYMENT_METHODS = ["paystack", "card", "cash"];
+
+const fail = (message, status = 400) => {
+  const error = new Error(message);
+  error.status = status;
+  error.statusCode = status;
+  throw error;
+};
+
+const escapeRegex = (value) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const getPagination = (req, defaultLimit = 10) => {
+  const page = Number(req.query.page ?? 1);
+  const limit = Number(req.query.limit ?? defaultLimit);
+  if (!Number.isInteger(page) || page < 1) fail("Page must be a positive integer.");
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+    fail("Limit must be an integer between 1 and 100.");
+  }
+  return { page, limit, skip: (page - 1) * limit };
+};
+
+const runInTransaction = async (callback) => {
+  const session = await mongoose.startSession();
+  let result;
+  try {
+    await session.withTransaction(async () => {
+      result = await callback(session);
+    });
+    return result;
+  } finally {
+    await session.endSession();
+  }
+};
+
+const normalizeItems = (items) => {
+  if (!Array.isArray(items) || items.length === 0) {
+    fail("Cart is empty.");
+  }
+
+  const merged = new Map();
+  for (const item of items) {
+    const productId = String(item?.productId || item?.product || "");
+    if (!mongoose.isValidObjectId(productId)) fail("An order item has an invalid product.");
+
+    const quantity = Number(item.quantity);
+    if (!Number.isSafeInteger(quantity) || quantity < 1) {
+      fail("Order item quantities must be positive whole numbers.");
+    }
+
+    merged.set(productId, (merged.get(productId) || 0) + quantity);
+  }
+
+  return [...merged.entries()].map(([productId, quantity]) => ({ productId, quantity }));
+};
+
+const calculateCostOfGoodsSold = (allocations) => {
+  if (!allocations.length || allocations.some((allocation) => allocation.unitCost == null)) {
+    return null;
+  }
+  return allocations.reduce(
+    (total, allocation) => total + allocation.quantity * allocation.unitCost,
+    0
+  );
+};
+
+const populateOrder = (query) =>
+  query
+    .populate("items.product", "name images")
+    .populate("coupon", "code")
+    .populate("user", "name email avatar phone");
+
+// @DESCRIPTION Create a new authenticated order and reserve its stock FIFO.
 // @ROUTE       POST /api/v1/orders
 // @ACCESS      Authenticated
 const createOrder = asyncHandler(async (req, res) => {
-  const { items, shippingAddress, deliveryMethod, couponCode, paymentMethod } = req.body;
+  const normalizedItems = normalizeItems(req.body.items);
+  const { shippingAddress, deliveryMethod, couponCode, paymentMethod = "paystack" } = req.body;
 
-  if (!items || items.length === 0) {
-    res.status(400);
-    throw new Error("Cart is empty");
+  if (!shippingAddress || typeof shippingAddress !== "object") {
+    fail("A shipping address is required.");
+  }
+  if (!DELIVERY_METHODS.includes(deliveryMethod)) {
+    fail("Invalid delivery method.");
+  }
+  if (!PAYMENT_METHODS.includes(paymentMethod)) {
+    fail("Invalid payment method.");
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  const result = await runInTransaction(async (session) => {
+    const productIds = normalizedItems.map((item) => item.productId);
+    const products = await Product.find({ _id: { $in: productIds } }).session(session);
+    const productMap = new Map(products.map((product) => [String(product._id), product]));
 
-  try {
-    // Validate products and compute subtotal (prices are integer kobo)
     let subtotalKobo = 0;
     const orderItems = [];
 
-    for (const item of items) {
-      const product = await Product.findById(item.productId).session(session);
+    for (const item of normalizedItems) {
+      const product = productMap.get(item.productId);
       if (!product || !product.isActive) {
-        throw new Error(`Product ${item.productId} not found`);
+        fail("One or more products are unavailable.", 404);
       }
 
-      // Check stock via Inventory batches
-      const available = await Inventory.aggregate([
-        {
-          $match: {
-            product: product._id,
-            isActive: true,
-            expiryDate: { $gt: new Date() },
-          },
-        },
-        { $group: { _id: null, total: { $sum: "$quantity" } } },
-      ]).session(session);
-      const stock = available[0]?.total ?? 0;
-
-      if (stock < item.quantity) {
-        throw new Error(`${product.name} is out of stock`);
+      const available = await computeAvailableStock(product._id, session);
+      if (available < item.quantity) {
+        fail(`${product.name} has only ${available} available.`, 409);
       }
 
       subtotalKobo += product.price * item.quantity;
+      if (!Number.isSafeInteger(subtotalKobo)) fail("Order total is too large.");
+
       orderItems.push({
         product: product._id,
         name: product.name,
         price: product.price,
         quantity: item.quantity,
-        image: product.images[0] || "",
+        image: product.images?.[0] || "",
+        stockAllocations: [],
+        costOfGoodsSold: null,
       });
     }
 
-    // Apply coupon if provided
     let discountKobo = 0;
     let coupon = null;
     if (couponCode) {
-      coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true }).session(
-        session,
-      );
-      if (!coupon) {
-        throw new Error("Invalid coupon code");
-      }
-      if (coupon.expiryDate < new Date()) {
-        throw new Error("Coupon has expired");
+      coupon = await Coupon.findOne({
+        code: String(couponCode).trim().toUpperCase(),
+        isActive: true,
+      }).session(session);
+
+      if (!coupon) fail("Invalid coupon code.");
+      if (coupon.expiryDate && coupon.expiryDate < new Date()) {
+        fail("Coupon has expired.");
       }
       if (subtotalKobo < coupon.minOrder) {
-        throw new Error(
-          `Minimum order for this coupon is ₦${(coupon.minOrder / 100).toLocaleString()}`,
-        );
+        fail(`Minimum order for this coupon is ₦${(coupon.minOrder / 100).toLocaleString("en-NG")}.`);
       }
       discountKobo = coupon.discountKoboFor(subtotalKobo);
+      discountKobo = Math.max(0, Math.min(subtotalKobo, Number(discountKobo) || 0));
     }
 
-    // Delivery fee (kobo) — 0 for pickup
-    const deliveryFeeKobo = deliveryMethod === "pickup" ? 0 : 150000; // ₦1,500 default
-
+    const deliveryFeeKobo = deliveryMethod === "pickup" ? 0 : 150000;
     const totalKobo = subtotalKobo - discountKobo + deliveryFeeKobo;
 
-    // Create the order
-    const order = await Order.create(
+    const [order] = await Order.create(
       [
         {
           user: req.user._id,
@@ -102,165 +182,263 @@ const createOrder = asyncHandler(async (req, res) => {
           status: "pending",
         },
       ],
-      { session },
+      { session }
     );
 
-    // Deduct stock FIFO
-    for (const item of items) {
-      await deductStockFIFO(item.productId, item.quantity, session);
+    // Deduct stock from oldest received batches and persist the exact allocation
+    // on each order item for cancellation restoration and historical COGS.
+    for (const orderItem of order.items) {
+      const deduction = await deductStockFIFO(
+        orderItem.product,
+        orderItem.quantity,
+        session,
+        {
+          type: "sale",
+          referenceType: "order",
+          referenceId: order._id,
+          referenceLabel: order.orderNumber,
+          reason: `Stock reserved for order ${order.orderNumber}`,
+          performedBy: req.user._id,
+        }
+      );
+
+      orderItem.stockAllocations = deduction.allocations.map((allocation) => ({
+        batch: allocation.batch,
+        quantity: allocation.quantity,
+        unitCost: allocation.unitCost,
+      }));
+      orderItem.costOfGoodsSold = calculateCostOfGoodsSold(deduction.allocations);
     }
 
-    await session.commitTransaction();
+    await order.save({ session });
 
-    const orderNum = order[0].orderNumber;
+    return order;
+  });
 
-    req.activity = {
-      action: "order.created",
-      entity: "order",
-      entityId: order[0]._id,
-      entityName: `Order #${orderNum}`,
-      actionType: "create",
-      description: `${req.user.name} placed order #${orderNum}`,
-      metadata: {
-        totalKobo: totalKobo,
-        itemCount: items.length,
-      },
-    };
+  recordActivity(req, {
+    action: "order.created",
+    entity: "order",
+    entityId: result._id,
+    entityName: `Order #${result.orderNumber}`,
+    actionType: "create",
+    changes: [{ field: "Order total", from: "—", to: result.total }],
+    description: `placed order #${result.orderNumber} for ₦${(result.total / 100).toLocaleString("en-NG")}`,
+  });
 
-    res.status(201).json({
-      success: true,
-      message: "Order created",
-      data: order[0],
-    });
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
-    session.endSession();
-  }
+  res.status(201).json({
+    success: true,
+    message: "Order created.",
+    data: result,
+  });
 });
 
-// @DESCRIPTION Get user's order history
+// @DESCRIPTION Get the authenticated user's order history.
 // @ROUTE       GET /api/v1/orders
 // @ACCESS      Authenticated
 const getMyOrders = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 10, status } = req.query;
+  const { page, limit, skip } = getPagination(req, 10);
   const query = { user: req.user._id };
-  if (status) query.status = status;
 
-  const orders = await Order.find(query)
-    .sort("-createdAt")
-    .skip((Number(page) - 1) * Number(limit))
-    .limit(Number(limit))
-    .populate("items.product", "name images")
-    .populate("coupon", "code");
+  if (req.query.status) {
+    if (!ORDER_STATUSES.includes(req.query.status)) fail("Invalid order status.");
+    query.status = req.query.status;
+  }
 
-  const total = await Order.countDocuments(query);
+  const [orders, total] = await Promise.all([
+    populateOrder(
+      Order.find(query)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(skip)
+        .limit(limit)
+    ),
+    Order.countDocuments(query),
+  ]);
 
-  res.json({
-    success: true,
-    data: orders,
-    meta: { page: Number(page), limit: Number(limit), total },
-  });
+  res.json({ success: true, data: orders, meta: { page, limit, total } });
 });
 
-// @DESCRIPTION Get a single order by ID
+// @DESCRIPTION Get one order for its owner or an administrator.
 // @ROUTE       GET /api/v1/orders/:id
 // @ACCESS      Authenticated (owner or admin)
 const getOrderById = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id)
-    .populate("items.product", "name images")
-    .populate("coupon", "code")
-    .populate("user", "name email avatar phone");
+  if (!mongoose.isValidObjectId(req.params.id)) fail("Invalid order ID.");
 
-  if (!order) {
-    res.status(404);
-    throw new Error("Order not found");
-  }
+  const order = await populateOrder(Order.findById(req.params.id));
+  if (!order) fail("Order not found.", 404);
 
-  // Only owner or admin can view
-  if (!order.user._id.equals(req.user._id) && req.user.role === "customer") {
-    res.status(403);
-    throw new Error("Not authorized to view this order");
-  }
+  const isAdmin = ["admin", "superAdmin"].includes(req.user.role);
+  const isOwner = order.user && String(order.user._id) === String(req.user._id);
+  if (!isAdmin && !isOwner) fail("Not authorized to view this order.", 403);
 
   res.json({ success: true, data: order });
 });
 
-// @DESCRIPTION Update order status (admin)
+// @DESCRIPTION Update order status/tracking and restore reserved stock on cancellation.
 // @ROUTE       PATCH /api/v1/orders/:id/status
 // @ACCESS      Admin
 const updateOrderStatus = asyncHandler(async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.id)) fail("Invalid order ID.");
+
   const { status, trackingCode } = req.body;
-  const order = await Order.findById(req.params.id);
-
-  if (!order) {
-    res.status(404);
-    throw new Error("Order not found");
+  if (status !== undefined && !ORDER_STATUSES.includes(status)) {
+    fail("Invalid order status.");
+  }
+  if (trackingCode !== undefined && typeof trackingCode !== "string") {
+    fail("Tracking code must be a string.");
   }
 
-  const changes = [];
-  if (order.status !== status) {
-    changes.push({ field: "status", from: order.status, to: status });
-  }
-  if (trackingCode && order.trackingCode !== trackingCode) {
-    changes.push({ field: "trackingCode", from: order.trackingCode, to: trackingCode });
-  }
+  const result = await runInTransaction(async (session) => {
+    const order = await Order.findById(req.params.id).session(session);
+    if (!order) fail("Order not found.", 404);
 
-  order.status = status;
-  if (trackingCode) order.trackingCode = trackingCode;
-  await order.save();
+    const previousStatus = order.status;
+    const nextStatus = status ?? previousStatus;
 
-  if (changes.length > 0) {
-    const orderNum = order.orderNumber;
-    const statusDesc = changes.find((c) => c.field === "status");
-    req.activity = {
-      action: "order.updated",
+    if (
+      previousStatus === "refunded" &&
+      nextStatus !== "refunded"
+    ) {
+      fail("A refunded order cannot be moved back to another fulfilment status.", 409);
+    }
+    if (
+      previousStatus === "cancelled" &&
+      !["cancelled", "refunded"].includes(nextStatus)
+    ) {
+      fail("A cancelled order cannot be reopened. Create a new order if the customer still wants the items.", 409);
+    }
+    if (
+      nextStatus === "cancelled" &&
+      ["delivered", "picked_up"].includes(previousStatus)
+    ) {
+      fail("Delivered or picked-up orders must be handled through the customer return process, not cancellation.", 409);
+    }
+
+    const changes = [];
+    if (nextStatus !== previousStatus) {
+      changes.push({ field: "Status", from: previousStatus, to: nextStatus });
+    }
+
+    if (trackingCode !== undefined) {
+      const normalizedTrackingCode = trackingCode.trim();
+      if (normalizedTrackingCode !== order.trackingCode) {
+        changes.push({
+          field: "Tracking code",
+          from: order.trackingCode || "—",
+          to: normalizedTrackingCode || "—",
+        });
+        order.trackingCode = normalizedTrackingCode;
+      }
+    }
+
+    if (nextStatus === "cancelled" && !order.stockRestoredAt) {
+      for (const item of order.items) {
+        const productId = item.product?._id || item.product;
+        const product = await Product.findById(productId).session(session);
+        if (!product) {
+          fail(`Cannot restore stock: product for order item "${item.name}" no longer exists.`, 409);
+        }
+
+        await restoreStockAllocations(
+          productId,
+          item.stockAllocations || [],
+          session,
+          {
+            quantity: item.quantity,
+            reason: `Stock released after cancellation of order ${order.orderNumber}`,
+            performedBy: req.user._id,
+            referenceId: order._id,
+            referenceLabel: order.orderNumber,
+            fallbackUnitCost:
+              Number.isSafeInteger(product.costPrice) && product.costPrice > 0
+                ? product.costPrice
+                : null,
+          }
+        );
+      }
+
+      order.stockRestoredAt = new Date();
+      changes.push({ field: "Inventory reservation", from: "Reserved", to: "Released" });
+    }
+
+    order.status = nextStatus;
+    if (changes.length) await order.save({ session });
+
+    return { order, changes, previousStatus, nextStatus };
+  });
+
+  if (result.changes.length) {
+    const orderNumber = result.order.orderNumber;
+    const descriptions = result.changes.map((change) => {
+      if (change.field === "Status" && change.to === "cancelled") {
+        return `cancelled order #${orderNumber} and released its reserved stock`;
+      }
+      if (change.field === "Status") {
+        return `changed order #${orderNumber} status from ${change.from} to ${change.to}`;
+      }
+      if (change.field === "Tracking code") {
+        return `updated the tracking code for order #${orderNumber} from "${change.from}" to "${change.to}"`;
+      }
+      return `released inventory reserved for order #${orderNumber}`;
+    });
+
+    recordActivity(req, {
+      action: result.nextStatus === "cancelled" ? "order.cancelled" : "order.updated",
       entity: "order",
-      entityId: order._id,
-      entityName: `Order #${orderNum}`,
-      actionType: "update",
-      changes,
-      description: statusDesc
-        ? `${req.user.name} updated the status of Order #${orderNum} to '${status}'`
-        : `${req.user.name} updated tracking code for Order #${orderNum}`,
-    };
+      entityId: result.order._id,
+      entityName: `Order #${orderNumber}`,
+      actionType: result.nextStatus === "cancelled" ? "status_toggle" : "update",
+      changes: result.changes,
+      description: descriptions.join("; "),
+    });
   }
 
-  res.json({ success: true, data: order });
+  res.json({ success: true, data: result.order });
 });
 
-// @DESCRIPTION List every order (admin). Distinct from getMyOrders, which
-// is scoped to the caller — admins need the full picture for fulfilment.
+// @DESCRIPTION List all orders for admin fulfilment.
 // @ROUTE       GET /api/v1/orders/all
 // @ACCESS      Admin
 const getAllOrders = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 20, status, search } = req.query;
-
+  const { page, limit, skip } = getPagination(req, 20);
+  const { status, search } = req.query;
   const query = {};
-  if (status) query.status = status;
-  if (search) {
-    query.$or = [
-      { orderNumber: new RegExp(search, "i") },
-      { "shippingAddress.name": new RegExp(search, "i") },
-    ];
+
+  if (status) {
+    if (!ORDER_STATUSES.includes(status)) fail("Invalid order status.");
+    query.status = status;
   }
 
-  const orders = await Order.find(query)
-    .sort("-createdAt")
-    .skip((Number(page) - 1) * Number(limit))
-    .limit(Number(limit))
-    .populate("user", "name email avatar phone")
-    .populate("items.product", "name images")
-    .populate("coupon", "code");
+  if (search !== undefined) {
+    if (typeof search !== "string") fail("Search must be a string.");
+    const value = search.trim();
+    if (value) {
+      const regex = new RegExp(escapeRegex(value), "i");
+      query.$or = [
+        { orderNumber: regex },
+        { "shippingAddress.name": regex },
+        { guestName: regex },
+        { guestEmail: regex },
+      ];
+    }
+  }
 
-  const total = await Order.countDocuments(query);
+  const [orders, total] = await Promise.all([
+    populateOrder(
+      Order.find(query)
+        .sort({ createdAt: -1, _id: -1 })
+        .skip(skip)
+        .limit(limit)
+    ),
+    Order.countDocuments(query),
+  ]);
 
-  res.json({
-    success: true,
-    data: orders,
-    meta: { page: Number(page), limit: Number(limit), total },
-  });
+  res.json({ success: true, data: orders, meta: { page, limit, total } });
 });
 
-export { createOrder, getMyOrders, getOrderById, updateOrderStatus, getAllOrders };
+export {
+  createOrder,
+  getMyOrders,
+  getOrderById,
+  updateOrderStatus,
+  getAllOrders,
+};

@@ -122,34 +122,40 @@ const Pagination = ({ page, total, limit, onChange }) => {
   );
 };
 
-// Shared filter row: a text search + a select.
-const FilterBar = ({ search, onSearch, selects }) => (
-  <div className="flex flex-col sm:flex-row gap-3 mb-6">
-    <div className="relative flex-1 max-w-md">
+// Shared responsive filter row: search + flexible filter controls.
+const FilterBar = ({ search, onSearch, selects = [], searchPlaceholder = "Search..." }) => (
+  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
+    {/* Search */}
+    <div className="relative min-w-0 sm:col-span-2 xl:col-span-1">
       <input
         type="text"
         value={search}
         onChange={(e) => onSearch(e.target.value)}
-        placeholder="Search..."
-        className="w-full pl-4 pr-4 py-2 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
+        placeholder={searchPlaceholder}
+        aria-label={searchPlaceholder}
+        className="w-full min-w-0 pl-4 pr-4 py-2.5 bg-surface border border-border rounded-lg text-sm focus:outline-none focus:border-primary transition-colors"
       />
     </div>
-    <div className="flex items-center gap-2">
-      {selects.map((s) => (
+
+    {/* Filters */}
+    {selects.map((s, index) => (
+      <div key={s.label || index} className="relative min-w-0">
         <select
-          key={s.label}
           value={s.value}
           onChange={(e) => s.onChange(e.target.value)}
-          className="bg-surface border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-primary"
+          aria-label={s.label || `Filter ${index + 1}`}
+          className="w-full min-w-0 appearance-none bg-surface border border-border rounded-lg pl-3 pr-9 py-2.5 text-sm text-text focus:outline-none focus:border-primary transition-colors cursor-pointer"
         >
-          {s.options.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
+          {s.options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
             </option>
           ))}
         </select>
-      ))}
-    </div>
+
+        <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 rotate-90 w-4 h-4 text-text-muted pointer-events-none" />
+      </div>
+    ))}
   </div>
 );
 

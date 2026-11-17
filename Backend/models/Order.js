@@ -2,16 +2,33 @@ import mongoose from "mongoose";
 import { addressSchema } from "./User.js";
 import { integerKobo } from "./Product.js";
 
-// Embedded order item — snapshot preserves price/name/image at purchase time
+const stockAllocationSchema = new mongoose.Schema(
+  {
+    batch: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Inventory",
+      required: true,
+    },
+    quantity: { type: Number, required: true, min: 1 },
+    // Cost snapshot in integer kobo; null means the batch cost was unknown.
+    unitCost: { ...integerKobo(false), default: null },
+  },
+  { _id: false }
+);
+
+// Embedded order item snapshots selling price and batch cost at order time.
 const orderItemSchema = new mongoose.Schema(
   {
     product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
     name: { type: String, required: true },
-    price: integerKobo(true), // kobo snapshot at order time
+    price: integerKobo(true),
     quantity: { type: Number, required: true, min: 1 },
     image: { type: String, default: "" },
+    stockAllocations: { type: [stockAllocationSchema], default: [] },
+    // Null if one or more allocated batches had unknown acquisition cost.
+    costOfGoodsSold: { ...integerKobo(false), default: null },
   },
-  { _id: true },
+  { _id: true }
 );
 
 const orderSchema = new mongoose.Schema(
@@ -32,11 +49,11 @@ const orderSchema = new mongoose.Schema(
       enum: ["own", "thirdparty", "pickup"],
       required: true,
     },
-    deliveryFee: { ...integerKobo(false), default: 0 }, // kobo; 0 for pickup
-    subtotal: integerKobo(true), // kobo
-    discount: { ...integerKobo(false), default: 0 }, // kobo
+    deliveryFee: { ...integerKobo(false), default: 0 },
+    subtotal: integerKobo(true),
+    discount: { ...integerKobo(false), default: 0 },
     coupon: { type: mongoose.Schema.Types.ObjectId, ref: "Coupon" },
-    total: integerKobo(true), // kobo — always equals subtotal - discount + deliveryFee
+    total: integerKobo(true),
     status: {
       type: String,
       enum: [
@@ -61,23 +78,26 @@ const orderSchema = new mongoose.Schema(
     paymentRef: { type: String, index: true },
     trackingCode: { type: String, default: "" },
     notes: { type: String, default: "" },
+    // Idempotency guard: stock can only be restored once for a cancellation.
+    stockRestoredAt: { type: Date, default: null },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
-// Generate order number if not provided
+// Generate order number if not provided. The unique index remains the final
+// guard against concurrent count-based number collisions.
 orderSchema.pre("save", async function (next) {
   if (!this.orderNumber) {
     const date = new Date();
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const count = await mongoose.model("Order").countDocuments({
-      createdAt: { $gte: new Date(year, month - 1, 1) },
+      createdAt: { $gte: new Date(year, date.getMonth(), 1) },
     });
-    this.orderNumber = `NRJ-${year}-${String(count + 1).padStart(4, "0")}`;
+    this.orderNumber = `NRJ-${year}-${month}-${String(count + 1).padStart(4, "0")}`;
   }
   next();
 });
 
 export default mongoose.model("Order", orderSchema);
-export { orderItemSchema };
+export { orderItemSchema, stockAllocationSchema };
