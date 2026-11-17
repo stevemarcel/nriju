@@ -410,6 +410,7 @@ const AdminUsersPage = () => {
 
       {confirmTarget && (
         <ConfirmModal
+          adminStyle
           open={!!confirmTarget}
           title={confirmDetails.title}
           description={confirmDetails.description}

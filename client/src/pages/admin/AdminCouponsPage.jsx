@@ -189,6 +189,7 @@ const AdminCouponsPage = () => {
           description={`This will permanently remove "${deleteTarget.code}". This action cannot be undone.`}
           confirmLabel="Delete"
           variant="destructive"
+          adminStyle
           onConfirm={() => {
             deleteMutation.mutate(deleteTarget._id);
             setDeleteTarget(null);

@@ -12,10 +12,17 @@ import {
   MapPin,
   CreditCard,
   User,
+  ClipboardList,
 } from "lucide-react";
 import Dropdown from "../ui/Dropdown";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import api from "../../services/api";
+import {
+  ADMIN_FIELD_CLASS,
+  ADMIN_PRIMARY_BUTTON_CLASS,
+  ADMIN_SECONDARY_BUTTON_CLASS,
+  AdminModalHeader,
+} from "./AdminModalPrimitives";
 
 const STATUS_OPTIONS = [
   { value: "pending", label: "Pending", Icon: Clock, color: "text-amber-500" },
@@ -52,19 +59,29 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
     updateMutation.mutate({ status, trackingCode });
   };
 
+  const titleId = "order-details-title";
+
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-background rounded-[20px] shadow-sm border border-border/60 w-full max-w-3xl max-h-[90vh] flex flex-col">
-          <div className="bg-surface rounded-t-[20px] flex items-center justify-between p-5 border-b border-border/60">
-            <h2 className="font-heading text-xl font-bold text-text">Order {order.orderNumber}</h2>
-            <button
-              onClick={onClose}
-              className="p-1 rounded hover:bg-primary/10 hover:text-primary transition-all"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && !updateMutation.isPending) onClose();
+          }}
+          className="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-[20px] border border-border/60 bg-background text-text shadow-soft"
+        >
+          <AdminModalHeader
+            icon={ClipboardList}
+            eyebrow="Order details"
+            title={`Order ${order.orderNumber}`}
+            titleId={titleId}
+            onClose={onClose}
+            closeLabel="Close order details"
+            closeDisabled={updateMutation.isPending}
+          />
           <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
             {/* Customer + Shipping row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -144,6 +161,8 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
                     }
                     color="muted"
                     fullWidth
+                    ariaLabel="Select order status"
+                    triggerClassName="min-h-10 rounded-xl focus-visible:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                     menuClassName="sm:w-full"
                   >
                     {statusOptions
@@ -173,7 +192,7 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
                     type="text"
                     value={trackingCode}
                     onChange={(e) => setTrackingCode(e.target.value)}
-                    className="w-full px-3 py-2.5 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                    className={ADMIN_FIELD_CLASS}
                     placeholder="e.g. courier shipment reference"
                   />
                 </div>
@@ -243,16 +262,13 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
             </div>
           </div>
           <div className="p-5 border-t border-border/60 flex justify-end gap-3">
-            <button
-              onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-text-muted hover:bg-background-soft/50 border border-border rounded-xl transition-colors"
-            >
+            <button onClick={onClose} className={ADMIN_SECONDARY_BUTTON_CLASS}>
               Close
             </button>
             <button
               onClick={handleSave}
               disabled={updateMutation.isPending}
-              className="px-5 py-2 bg-primary text-white font-medium rounded-xl inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-60 transition-colors shadow-sm"
+              className={ADMIN_PRIMARY_BUTTON_CLASS}
             >
               <Save className="w-4 h-4" />
               {updateMutation.isPending ? "Saving..." : "Save status"}
@@ -267,6 +283,7 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
         description="This will save the new status and tracking code for this order."
         confirmLabel="Save status"
         variant="success"
+        adminStyle
         onConfirm={handleConfirm}
         onCancel={() => setConfirmOpen(false)}
       />

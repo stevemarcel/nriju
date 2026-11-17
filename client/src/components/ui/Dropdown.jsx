@@ -62,6 +62,11 @@ const Dropdown = ({
   noBorder = false,
   direction = "down",
   portal = false,
+  triggerClassName = "",
+  triggerId,
+  ariaLabel,
+  disabled = false,
+  menuRole,
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState(null);
@@ -182,6 +187,7 @@ const Dropdown = ({
   const menu = (
     <div
       ref={portal ? menuRef : null}
+      role={menuRole}
       onClick={() => setOpen(false)}
       className={`${
         portal ? "w-max" : "absolute z-50 w-full"
@@ -224,11 +230,16 @@ const Dropdown = ({
     >
       <button
         ref={triggerRef}
+        id={triggerId}
         type="button"
+        aria-label={ariaLabel}
+        aria-haspopup={menuRole || "menu"}
+        aria-expanded={open}
+        disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         className={`flex items-center gap-0.5 px-3 py-2 rounded-lg ${color === "table" ? "text-xs" : "text-sm"} font-medium transition-colors text-left ${triggerClass} ${
           fullWidth ? "w-full justify-start" : ""
-        }`}
+        } disabled:cursor-not-allowed disabled:opacity-60 ${triggerClassName}`}
       >
         {trigger}
 

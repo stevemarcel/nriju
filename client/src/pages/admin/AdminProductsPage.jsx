@@ -851,6 +851,7 @@ const AdminProductsPage = () => {
 
       {/* Archive / Permanent Delete Confirmation */}
       <ConfirmModal
+        adminStyle
         open={confirmTarget !== null}
         title={
           confirmTarget?.action === "archive" || confirmTarget?.action === "bulk-archive"

@@ -191,6 +191,7 @@ const AdminReviewsPage = () => {
 
       {moderateTarget && (
         <ConfirmModal
+          adminStyle
           open={!!moderateTarget}
           title="Moderate review"
           description={`Mark this review as ${moderateTarget.status}?`}

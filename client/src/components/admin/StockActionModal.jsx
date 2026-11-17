@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { X, Plus, Minus, Edit3, ShieldAlert } from "lucide-react";
+import { Plus, Minus, Edit3, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import api from "../../services/api";
 import { ConfirmModal } from "../ui/ConfirmModal";
+import {
+  ADMIN_FIELD_CLASS,
+  ADMIN_PRIMARY_BUTTON_CLASS,
+  ADMIN_SECONDARY_BUTTON_CLASS,
+  AdminCircleCheckbox,
+  AdminModalHeader,
+} from "./AdminModalPrimitives";
 
 const ACTION_CONFIG = {
   add: {
@@ -127,46 +134,29 @@ const StockActionModal = ({ product, action, onClose }) => {
     saveMutation.mutate();
   };
 
+  const titleId = "stock-action-title";
+
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-        <div className="bg-background rounded-[20px] shadow-sm w-full max-w-md">
-          <div className="bg-primary text-on-accent rounded-t-[20px] flex items-center justify-between p-5">
-            <div className="flex items-center gap-3">
-              <div
-                className={`p-2 rounded-lg ${
-                  cfg.variant === "success"
-                    ? "bg-emerald-50"
-                    : cfg.variant === "archive"
-                      ? "bg-amber-50"
-                      : "bg-primary/10"
-                }`}
-              >
-                <Icon
-                  className={`w-5 h-5 ${
-                    cfg.variant === "success"
-                      ? "text-emerald-600"
-                      : cfg.variant === "archive"
-                        ? "text-amber-500"
-                        : "text-primary"
-                  }`}
-                />
-              </div>
-
-              <div>
-                <h2 className="font-heading text-lg font-bold text-text">{cfg.title}</h2>
-                <p className="text-xs text-text-muted">{product?.name}</p>
-              </div>
-            </div>
-
-            <button
-              onClick={onClose}
-              disabled={saveMutation.isPending}
-              className="p-1.5 rounded hover:bg-primary/10 transition-colors text-text-muted"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          onKeyDown={(event) => {
+            if (event.key === "Escape" && !saveMutation.isPending) onClose();
+          }}
+          className="w-full max-w-md overflow-hidden rounded-[20px] border border-border/60 bg-background text-text shadow-soft"
+        >
+          <AdminModalHeader
+            icon={Icon}
+            eyebrow="Inventory action"
+            title={cfg.title}
+            titleId={titleId}
+            onClose={onClose}
+            closeLabel={`Close ${cfg.title.toLowerCase()} form`}
+            closeDisabled={saveMutation.isPending}
+          />
 
           <div className="p-5 space-y-4">
             {/* Current stock */}
@@ -185,7 +175,7 @@ const StockActionModal = ({ product, action, onClose }) => {
 
             {/* Quantity */}
             <div>
-              <label className="block text-xs font-medium text-text-muted mb-1.5">
+              <label className="mb-1.5 block text-sm font-semibold text-text">
                 {action === "adjust" ? "New Stock Quantity" : "Quantity"}
               </label>
 
@@ -198,7 +188,7 @@ const StockActionModal = ({ product, action, onClose }) => {
                 placeholder={action === "adjust" ? "0" : "1"}
                 autoFocus
                 disabled={saveMutation.isPending}
-                className="w-full px-3 py-2.5 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                className={ADMIN_FIELD_CLASS}
               />
             </div>
 
@@ -206,7 +196,7 @@ const StockActionModal = ({ product, action, onClose }) => {
             {supportsUnitCost && (
               <div className="space-y-2">
                 <div>
-                  <label className="block text-xs font-medium text-text-muted mb-1.5">
+                  <label className="mb-1.5 block text-sm font-semibold text-text">
                     Unit Cost (₦)
                   </label>
 
@@ -218,7 +208,7 @@ const StockActionModal = ({ product, action, onClose }) => {
                     onChange={(e) => setUnitCost(e.target.value)}
                     placeholder="Leave blank to use product default"
                     disabled={costUnknown || saveMutation.isPending}
-                    className="w-full px-3 py-2.5 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm disabled:opacity-50"
+                    className={ADMIN_FIELD_CLASS}
                   />
 
                   <p className="text-xs text-text-muted mt-1.5">
@@ -226,16 +216,13 @@ const StockActionModal = ({ product, action, onClose }) => {
                   </p>
                 </div>
 
-                <label className="flex items-center gap-2 text-sm text-text cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={costUnknown}
-                    onChange={(e) => setCostUnknown(e.target.checked)}
-                    disabled={saveMutation.isPending}
-                    className="rounded border-border text-primary focus:ring-primary"
-                  />
+                <AdminCircleCheckbox
+                  checked={costUnknown}
+                  onChange={setCostUnknown}
+                  disabled={saveMutation.isPending}
+                >
                   Cost unknown
-                </label>
+                </AdminCircleCheckbox>
 
                 <p className="text-xs text-text-muted">
                   {costUnknown
@@ -252,7 +239,7 @@ const StockActionModal = ({ product, action, onClose }) => {
 
             {/* Reason */}
             <div>
-              <label className="block text-xs font-medium text-text-muted mb-1.5">
+              <label className="mb-1.5 block text-sm font-semibold text-text">
                 Reason (optional)
               </label>
 
@@ -264,7 +251,7 @@ const StockActionModal = ({ product, action, onClose }) => {
                   action === "damage" ? "Describe what was damaged..." : "Optional note..."
                 }
                 disabled={saveMutation.isPending}
-                className="w-full px-3 py-2.5 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm resize-none"
+                className={`${ADMIN_FIELD_CLASS} resize-none`}
               />
             </div>
           </div>
@@ -273,7 +260,7 @@ const StockActionModal = ({ product, action, onClose }) => {
             <button
               onClick={onClose}
               disabled={saveMutation.isPending}
-              className="px-4 py-2 text-sm font-medium text-text-muted hover:bg-background-soft/50 border border-border rounded-xl transition-colors"
+              className={ADMIN_SECONDARY_BUTTON_CLASS}
             >
               Cancel
             </button>
@@ -281,7 +268,7 @@ const StockActionModal = ({ product, action, onClose }) => {
             <button
               onClick={handleSubmit}
               disabled={saveMutation.isPending || quantity === ""}
-              className="px-5 py-2 bg-primary text-white font-medium rounded-xl inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-50 transition-colors shadow-sm"
+              className={ADMIN_PRIMARY_BUTTON_CLASS}
             >
               {saveMutation.isPending ? (
                 <>Processing...</>
@@ -302,6 +289,7 @@ const StockActionModal = ({ product, action, onClose }) => {
         description={`${cfg.desc(product)}. Quantity: ${quantity}${product?.unit || " units"}.`}
         confirmLabel={cfg.label}
         variant={cfg.variant || "success"}
+        adminStyle
         onConfirm={handleConfirm}
         onCancel={() => setConfirmOpen(false)}
       />

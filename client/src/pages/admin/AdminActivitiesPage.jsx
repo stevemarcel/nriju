@@ -11,6 +11,10 @@ import {
 } from "../../components/admin/AdminPrimitives";
 import Dropdown from "../../components/ui/Dropdown";
 import {
+  ADMIN_SECONDARY_BUTTON_CLASS,
+  AdminModalHeader,
+} from "../../components/admin/AdminModalPrimitives";
+import {
   Shield,
   ShieldCheck,
   Search,
@@ -306,18 +310,25 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-background rounded-[20px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="activity-details-title"
+        onKeyDown={(event) => {
+          if (event.key === "Escape") onClose();
+        }}
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[20px] border border-border/60 bg-background text-text shadow-soft"
+      >
         {/* Header */}
-        <div className="bg-primary/95 text-on-accent px-6 py-4 flex items-center justify-between">
-          <h2 className="font-heading text-lg font-bold">Activity Details</h2>
-          <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        <AdminModalHeader
+          icon={Clock}
+          eyebrow="Audit log"
+          title="Activity Details"
+          titleId="activity-details-title"
+          onClose={onClose}
+          closeLabel="Close activity details"
+        />
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-5">
@@ -437,10 +448,11 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border/60 px-6 py-4 bg-surface flex justify-end">
+        <div className="flex justify-end border-t border-border/60 bg-background px-6 py-4">
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-text-muted hover:text-text transition-colors"
+            className={ADMIN_SECONDARY_BUTTON_CLASS}
           >
             Close
           </button>

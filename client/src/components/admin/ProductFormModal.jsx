@@ -1,12 +1,19 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Save, X, FolderOpen, Check, Package, Utensils } from "lucide-react";
+import { Save, FolderOpen, Check, Package } from "lucide-react";
 import Dropdown from "../ui/Dropdown";
 import { toast } from "sonner";
 import api from "../../services/api";
 import { toKobo } from "../../utils/formatMoney";
 import { getCategoryIcon } from "../../utils/categoryIcons";
 import ImageUpload from "../ui/ImageUpload";
+import {
+  ADMIN_FIELD_CLASS,
+  ADMIN_PRIMARY_BUTTON_CLASS,
+  ADMIN_SECONDARY_BUTTON_CLASS,
+  AdminCircleCheckbox,
+  AdminModalHeader,
+} from "./AdminModalPrimitives";
 
 const initialForm = {
   name: "",
@@ -100,24 +107,29 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
     saveMutation.mutate();
   };
 
-  return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-background rounded-[20px] shadow-sm border border-border/60 w-full max-w-2xl max-h-[90vh] flex flex-col">
-        {/* Header */}
-        <div className="bg-surface rounded-t-[20px] flex items-center justify-between p-5 border-b border-border/60">
-          <h2 className="font-heading text-xl font-bold text-text">
-            {mode === "create" ? "Add Product" : `Edit "${product?.name}"`}
-          </h2>
+  const titleId = "product-form-title";
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1 rounded hover:bg-primary/10 hover:text-primary transition-all"
-            aria-label="Close modal"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onKeyDown={(event) => {
+          if (event.key === "Escape" && !saveMutation.isPending && !uploading) onClose();
+        }}
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[20px] border border-border/60 bg-background text-text shadow-soft"
+      >
+        {/* Header */}
+        <AdminModalHeader
+          icon={Package}
+          eyebrow="Product details"
+          title={mode === "create" ? "Add Product" : `Edit "${product?.name}"`}
+          titleId={titleId}
+          onClose={onClose}
+          closeLabel="Close product form"
+          closeDisabled={uploading || saveMutation.isPending}
+        />
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-5">
@@ -137,7 +149,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   required
                   value={form.name}
                   onChange={(event) => handleChange("name", event.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                  className={ADMIN_FIELD_CLASS}
                 />
               </div>
 
@@ -149,7 +161,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   value={form.description}
                   onChange={(event) => handleChange("description", event.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm resize-y"
+                  className={`${ADMIN_FIELD_CLASS} resize-y`}
                 />
               </div>
             </div>
@@ -175,7 +187,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   required
                   value={form.price}
                   onChange={(event) => handleChange("price", event.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                  className={ADMIN_FIELD_CLASS}
                 />
               </div>
 
@@ -191,7 +203,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   step="0.01"
                   value={form.compareAtPrice}
                   onChange={(event) => handleChange("compareAtPrice", event.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                  className={ADMIN_FIELD_CLASS}
                 />
               </div>
 
@@ -206,7 +218,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   value={form.stock}
                   onChange={(event) => handleChange("stock", event.target.value)}
                   placeholder="Enter initial stock quantity"
-                  className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                  className={ADMIN_FIELD_CLASS}
                 />
               </div>
 
@@ -219,6 +231,8 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                     trigger={<span className="min-w-0 truncate">{form.unit || "Select unit"}</span>}
                     color="surface"
                     fullWidth
+                    ariaLabel="Select product unit"
+                    triggerClassName="min-h-10 rounded-xl focus-visible:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                     open={unitOpen}
                     onOpenChange={(next) => {
                       setUnitOpen(next);
@@ -266,6 +280,8 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                     }
                     color="surface"
                     fullWidth
+                    ariaLabel="Select product type"
+                    triggerClassName="min-h-10 rounded-xl focus-visible:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                     open={typeOpen}
                     onOpenChange={(next) => {
                       setTypeOpen(next);
@@ -315,6 +331,8 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                   }
                   color="surface"
                   fullWidth
+                  ariaLabel="Select product category"
+                  triggerClassName="min-h-10 rounded-xl focus-visible:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                   open={categoryOpen}
                   onOpenChange={setCategoryOpen}
                   menuClassName="max-h-96"
@@ -380,7 +398,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                 value={form.tags}
                 onChange={(event) => handleChange("tags", event.target.value)}
                 placeholder="jollof, party"
-                className="w-full px-3 py-2 bg-surface border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
+                className={ADMIN_FIELD_CLASS}
               />
             </div>
           </div>
@@ -394,43 +412,29 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
             </h3>
 
             <div className="flex flex-col gap-3">
-              <label className="flex items-center gap-3 text-sm cursor-pointer select-none">
-                <span
-                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
-                    form.isFeatured ? "border-primary bg-primary" : "border-border bg-transparent"
-                  }`}
-                  onClick={() => handleChange("isFeatured", !form.isFeatured)}
-                >
-                  {form.isFeatured && <span className="w-2 h-2 rounded-full bg-white" />}
-                </span>
+              <AdminCircleCheckbox
+                checked={form.isFeatured}
+                onChange={(checked) => handleChange("isFeatured", checked)}
+                disabled={uploading || saveMutation.isPending}
+              >
                 Featured on homepage
-              </label>
+              </AdminCircleCheckbox>
 
-              <label className="flex items-center gap-3 text-sm cursor-pointer select-none">
-                <span
-                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
-                    form.isActive ? "border-primary bg-primary" : "border-border bg-transparent"
-                  }`}
-                  onClick={() => handleChange("isActive", !form.isActive)}
-                >
-                  {form.isActive && <span className="w-2 h-2 rounded-full bg-white" />}
-                </span>
+              <AdminCircleCheckbox
+                checked={form.isActive}
+                onChange={(checked) => handleChange("isActive", checked)}
+                disabled={uploading || saveMutation.isPending}
+              >
                 Active
-              </label>
+              </AdminCircleCheckbox>
 
-              <label className="flex items-center gap-3 text-sm cursor-pointer select-none">
-                <span
-                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors shrink-0 ${
-                    form.notifyOnOutOfStock
-                      ? "border-primary bg-primary"
-                      : "border-border bg-transparent"
-                  }`}
-                  onClick={() => handleChange("notifyOnOutOfStock", !form.notifyOnOutOfStock)}
-                >
-                  {form.notifyOnOutOfStock && <span className="w-2 h-2 rounded-full bg-white" />}
-                </span>
+              <AdminCircleCheckbox
+                checked={form.notifyOnOutOfStock}
+                onChange={(checked) => handleChange("notifyOnOutOfStock", checked)}
+                disabled={uploading || saveMutation.isPending}
+              >
                 Notify when out of stock
-              </label>
+              </AdminCircleCheckbox>
             </div>
           </div>
 
@@ -440,7 +444,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
               type="button"
               onClick={onClose}
               disabled={uploading || saveMutation.isPending}
-              className="px-4 py-2 text-sm font-medium text-text-muted bg-background hover:bg-background-soft/50 border border-border rounded-xl disabled:opacity-60 disabled:pointer-events-none transition-colors"
+              className={ADMIN_SECONDARY_BUTTON_CLASS}
             >
               Cancel
             </button>
@@ -448,7 +452,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
             <button
               type="submit"
               disabled={uploading || saveMutation.isPending}
-              className="px-5 py-2 bg-primary text-white font-medium rounded-xl inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-60 disabled:pointer-events-none transition-colors shadow-sm"
+              className={ADMIN_PRIMARY_BUTTON_CLASS}
             >
               <Save className="w-4 h-4" />
 

@@ -1130,6 +1130,7 @@ const AdminUserDetailPage = () => {
 
       {/* ── Address removal confirmation ───────────────────────── */}
       <ConfirmModal
+        adminStyle
         open={confirmTarget !== null}
         title="Remove shipping address?"
         description={
