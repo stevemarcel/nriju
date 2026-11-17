@@ -10,7 +10,7 @@ const TARGET_DB = "nriju-DB";
 const MIGRATION_NAME = "generate_estimated_product_and_batch_costs_v1";
 
 const APPLY = process.argv.includes("--apply");
-// By default, preserve any existing positive Product.costPrice. Add
+// By default, preserve any existing known Product.costPrice, including zero. Add
 // --replace-existing only when those values are placeholders you want replaced.
 const REPLACE_EXISTING = process.argv.includes("--replace-existing");
 
@@ -37,6 +37,7 @@ const formatNaira = (kobo) =>
       })}`;
 
 const isPositiveSafeInteger = (value) => Number.isSafeInteger(value) && value > 0;
+const isKnownCost = (value) => Number.isSafeInteger(value) && value >= 0;
 
 // Stable pseudo-random value in [0, 1), based on a string seed.
 // This avoids changing calculated values between dry-run and apply.
@@ -103,7 +104,7 @@ const run = async () => {
 
   console.log(`\nConnected database: ${mongoose.connection.name}`);
   console.log(`Mode: ${APPLY ? "APPLY" : "DRY RUN (no changes will be made)"}`);
-  console.log(`Replace existing positive product costs: ${REPLACE_EXISTING ? "YES" : "NO"}`);
+  console.log(`Replace existing known product costs: ${REPLACE_EXISTING ? "YES" : "NO"}`);
   console.log("\nGross-margin assumptions:");
   console.log("  cooked:    35%–45%");
   console.log("  fresh:     25%–35%");
@@ -127,7 +128,7 @@ const run = async () => {
   let productsSkippedWithoutSalePrice = 0;
 
   for (const product of products) {
-    const existingCostIsKnown = isPositiveSafeInteger(product.costPrice);
+    const existingCostIsKnown = isKnownCost(product.costPrice);
     const generated = calculateProductCost(product);
 
     let effectiveCost = null;
@@ -142,7 +143,7 @@ const run = async () => {
       margin = generated.grossMargin;
       shouldUpdate = true;
     } else if (existingCostIsKnown) {
-      // For a free/zero-priced product, preserve an existing positive cost
+      // For a free/zero-priced product, preserve an existing known cost
       // rather than inventing a cost from a zero selling price.
       effectiveCost = product.costPrice;
       productCostsPreserved += 1;
@@ -185,7 +186,7 @@ const run = async () => {
     const product = productById.get(productId);
     const productCost = effectiveCostByProduct.get(productId);
 
-    if (!product || !isPositiveSafeInteger(productCost)) {
+    if (!product || !isKnownCost(productCost)) {
       batchesSkippedWithoutProductCost += 1;
       continue;
     }

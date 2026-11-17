@@ -3,6 +3,7 @@ node_modules
 
 # Environment
 .env
+.sandbox-costing.json
 
 # Build outputs
 client/dist

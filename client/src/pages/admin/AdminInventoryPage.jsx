@@ -7,7 +7,6 @@ import {
   Pagination,
   StatusPill,
   TableSkeleton,
-  formatDate,
   formatNaira,
 } from "../../components/admin/AdminPrimitives";
 import StockActionModal from "../../components/admin/StockActionModal";
@@ -203,7 +202,7 @@ const AdminInventoryPage = () => {
           }
           icon={CircleDollarSign}
           tone="success"
-          detail="Based on product cost"
+          detail="Batch cost with product fallback"
         />
         <InventoryStat
           label="Low stock"
@@ -373,7 +372,11 @@ const AdminInventoryPage = () => {
               </thead>
               <tbody className="divide-y divide-border admin-table">
                 {products.map((product) => {
-                  const hasCost = Number(product.costPrice) > 0;
+                  const hasCost =
+                    product.costPrice !== null &&
+                    product.costPrice !== undefined &&
+                    Number.isSafeInteger(Number(product.costPrice)) &&
+                    Number(product.costPrice) >= 0;
                   const { Icon: CategoryIcon } =
                     product.category && product.category !== "—"
                       ? getCategoryIcon(product.category)
@@ -491,8 +494,8 @@ const AdminInventoryPage = () => {
 
       <p className="flex items-start gap-2 text-xs text-text-muted">
         <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        Stock cost value currently uses each product's saved cost price. Batch-level acquisition
-        costing will be available after the inventory service and batch model are updated.
+        Stock cost value uses each batch's acquisition cost, with the product's saved cost as a
+        fallback when a batch has no cost.
       </p>
     </div>
   );

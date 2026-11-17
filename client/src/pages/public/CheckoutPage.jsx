@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useAppDispatch, useAppSelector } from "../store/store";
-import { clearAll } from "../slices/cartSlice";
-import api from "../services/api";
-import { formatNaira, toKobo } from "../utils/formatMoney";
+import { useAppDispatch, useAppSelector } from "../../store/store";
+import { clearAll } from "../../slices/cartSlice";
+import api from "../../services/api";
+import { formatNaira, toKobo } from "../../utils/formatMoney";
 import {
   MapPin,
   Phone,

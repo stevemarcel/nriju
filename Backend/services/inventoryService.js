@@ -117,6 +117,7 @@ const createBatch = async ({
   product,
   quantity,
   unitCost = null,
+  useProductCostFallback = true,
   batch,
   receivedDate,
   supplier = "",
@@ -137,10 +138,13 @@ const createBatch = async ({
     batch: typeof batch === "string" && batch.trim() ? batch.trim() : makeBatchNumber(),
     quantity,
     unitCost:
-      unitCost ??
-      (Number.isSafeInteger(product.costPrice) && product.costPrice >= 0
-        ? product.costPrice
-        : null),
+      unitCost !== null && unitCost !== undefined
+        ? unitCost
+        : useProductCostFallback &&
+            Number.isSafeInteger(product.costPrice) &&
+            product.costPrice >= 0
+          ? product.costPrice
+          : null,
     receivedDate: receivedDate ? new Date(receivedDate) : new Date(),
     supplier: String(supplier || "").trim(),
     location: String(location || "").trim(),
@@ -164,6 +168,7 @@ export const addStockBatch = async ({
   productId,
   quantity,
   unitCost,
+  useProductCostFallback = true,
   batch,
   receivedDate,
   supplier,
@@ -181,6 +186,7 @@ export const addStockBatch = async ({
     product,
     quantity,
     unitCost,
+    useProductCostFallback,
     batch,
     receivedDate,
     supplier,
@@ -383,6 +389,7 @@ export const adjustStockToCount = async ({
   productId,
   quantity,
   unitCost,
+  useProductCostFallback = true,
   reason,
   performedBy,
   session,
@@ -408,6 +415,7 @@ export const adjustStockToCount = async ({
       productId,
       quantity: difference,
       unitCost,
+      useProductCostFallback,
       reason: reason || "Physical stock count adjustment",
       performedBy,
       session,

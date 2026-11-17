@@ -1,15 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  X,
-  AlertCircle,
-  AlertTriangle,
-  CheckCircle,
-  Plus,
-  Minus,
-  Edit3,
-  ShieldAlert,
-} from "lucide-react";
+import { X, Plus, Minus, Edit3, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import api from "../../services/api";
 import { ConfirmModal } from "../ui/ConfirmModal";
@@ -46,24 +37,55 @@ const ACTION_CONFIG = {
 
 const StockActionModal = ({ product, action, onClose }) => {
   const qc = useQueryClient();
+
   const [quantity, setQuantity] = useState("");
   const [reason, setReason] = useState("");
+  const [unitCost, setUnitCost] = useState("");
+  const [costUnknown, setCostUnknown] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   const cfg = ACTION_CONFIG[action];
   const Icon = cfg.icon;
-  const mutationFn =
-    action === "adjust"
-      ? () =>
-          api.post(`/inventory/${product._id}/adjust`, {
-            quantity: Number(quantity),
-            reason: reason.trim() || undefined,
-          })
-      : () =>
-          api.post(`/inventory/${product._id}/${action}`, {
-            quantity: Number(quantity),
-            reason: reason.trim() || undefined,
-          });
+
+  const isStockIncrease = action === "adjust" && Number(quantity) > Number(product?.stock ?? 0);
+
+  const supportsUnitCost = action === "add" || isStockIncrease;
+
+  const getRequestBody = () => {
+    const body = {
+      quantity: Number(quantity),
+      reason: reason.trim() || undefined,
+    };
+
+    if (supportsUnitCost) {
+      if (costUnknown) {
+        body.unitCost = null;
+      } else if (unitCost.trim() !== "") {
+        const naira = Number(unitCost);
+
+        if (!Number.isFinite(naira) || naira < 0) {
+          throw new Error("Enter a valid non-negative unit cost.");
+        }
+
+        const kobo = Math.round(naira * 100);
+
+        if (!Number.isSafeInteger(kobo) || Math.abs(naira * 100 - kobo) > 1e-7) {
+          throw new Error("Unit cost must have no more than two decimal places.");
+        }
+
+        body.unitCost = kobo;
+      }
+      // If omitted, the backend uses the product's default cost.
+    }
+
+    return body;
+  };
+
+  const mutationFn = () => {
+    const body = getRequestBody();
+
+    return api.post(`/inventory/${product._id}/${action}`, body);
+  };
 
   const saveMutation = useMutation({
     mutationFn,
@@ -73,15 +95,32 @@ const StockActionModal = ({ product, action, onClose }) => {
       setConfirmOpen(false);
       onClose();
     },
-    onError: (err) => toast.error(err?.response?.data?.message || "Failed to save."),
+    onError: (err) => toast.error(err?.response?.data?.message || err.message || "Failed to save."),
   });
 
   const handleSubmit = () => {
     const qty = Number(quantity);
-    if (!qty || qty < 0) return toast.error("Enter a valid quantity.");
-    if (action !== "adjust" && qty === 0) return toast.error("Quantity must be greater than zero.");
-    if (action === "add") setConfirmOpen(true);
-    else setConfirmOpen(true);
+
+    if (
+      !Number.isSafeInteger(qty) ||
+      qty < 0 ||
+      (action !== "adjust" && qty === 0) ||
+      quantity.trim() === ""
+    ) {
+      return toast.error(
+        action === "adjust"
+          ? "Enter a valid non-negative whole-number stock count."
+          : "Enter a valid positive whole-number quantity.",
+      );
+    }
+
+    try {
+      getRequestBody();
+    } catch (err) {
+      return toast.error(err.message);
+    }
+
+    setConfirmOpen(true);
   };
 
   const handleConfirm = () => {
@@ -95,19 +134,34 @@ const StockActionModal = ({ product, action, onClose }) => {
           <div className="bg-primary text-on-accent rounded-t-[20px] flex items-center justify-between p-5">
             <div className="flex items-center gap-3">
               <div
-                className={`p-2 rounded-lg ${cfg.variant === "success" ? "bg-emerald-50" : cfg.variant === "archive" ? "bg-amber-50" : "bg-primary/10"}`}
+                className={`p-2 rounded-lg ${
+                  cfg.variant === "success"
+                    ? "bg-emerald-50"
+                    : cfg.variant === "archive"
+                      ? "bg-amber-50"
+                      : "bg-primary/10"
+                }`}
               >
                 <Icon
-                  className={`w-5 h-5 ${cfg.variant === "success" ? "text-emerald-600" : cfg.variant === "archive" ? "text-amber-500" : "text-primary"}`}
+                  className={`w-5 h-5 ${
+                    cfg.variant === "success"
+                      ? "text-emerald-600"
+                      : cfg.variant === "archive"
+                        ? "text-amber-500"
+                        : "text-primary"
+                  }`}
                 />
               </div>
+
               <div>
                 <h2 className="font-heading text-lg font-bold text-text">{cfg.title}</h2>
                 <p className="text-xs text-text-muted">{product?.name}</p>
               </div>
             </div>
+
             <button
               onClick={onClose}
+              disabled={saveMutation.isPending}
               className="p-1.5 rounded hover:bg-primary/10 transition-colors text-text-muted"
             >
               <X className="w-4 h-4" />
@@ -115,12 +169,13 @@ const StockActionModal = ({ product, action, onClose }) => {
           </div>
 
           <div className="p-5 space-y-4">
-            {/* Current stock badge */}
+            {/* Current stock */}
             <div className="bg-background-soft/70 rounded-xl p-4 border border-border/60">
               <div className="flex justify-between text-sm">
                 <span className="text-text">Current Stock</span>
                 <span className="font-semibold text-text">{product?.stock ?? 0}</span>
               </div>
+
               {action === "adjust" && (
                 <p className="text-xs text-text-muted mt-2">
                   Enter the exact physical stock count.
@@ -128,11 +183,12 @@ const StockActionModal = ({ product, action, onClose }) => {
               )}
             </div>
 
-            {/* Quantity input */}
+            {/* Quantity */}
             <div>
               <label className="block text-xs font-medium text-text-muted mb-1.5">
                 {action === "adjust" ? "New Stock Quantity" : "Quantity"}
               </label>
+
               <input
                 type="number"
                 min={action === "adjust" ? 0 : 1}
@@ -141,15 +197,65 @@ const StockActionModal = ({ product, action, onClose }) => {
                 onChange={(e) => setQuantity(e.target.value)}
                 placeholder={action === "adjust" ? "0" : "1"}
                 autoFocus
+                disabled={saveMutation.isPending}
                 className="w-full px-3 py-2.5 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm"
               />
             </div>
 
-            {/* Reason input */}
+            {/* Batch unit cost */}
+            {supportsUnitCost && (
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-xs font-medium text-text-muted mb-1.5">
+                    Unit Cost (₦)
+                  </label>
+
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={unitCost}
+                    onChange={(e) => setUnitCost(e.target.value)}
+                    placeholder="Leave blank to use product default"
+                    disabled={costUnknown || saveMutation.isPending}
+                    className="w-full px-3 py-2.5 bg-primary/5 border border-border rounded-xl focus:outline-none focus:border-primary transition-colors text-sm disabled:opacity-50"
+                  />
+
+                  <p className="text-xs text-text-muted mt-1.5">
+                    This cost applies to the new stock batch.
+                  </p>
+                </div>
+
+                <label className="flex items-center gap-2 text-sm text-text cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={costUnknown}
+                    onChange={(e) => setCostUnknown(e.target.checked)}
+                    disabled={saveMutation.isPending}
+                    className="rounded border-border text-primary focus:ring-primary"
+                  />
+                  Cost unknown
+                </label>
+
+                <p className="text-xs text-text-muted">
+                  {costUnknown
+                    ? "This batch will be saved without a known unit cost."
+                    : unitCost.trim() === ""
+                      ? "The product's default cost will be used if available."
+                      : `Batch unit cost: ₦${Number(unitCost).toLocaleString("en-NG", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}`}
+                </p>
+              </div>
+            )}
+
+            {/* Reason */}
             <div>
               <label className="block text-xs font-medium text-text-muted mb-1.5">
                 Reason (optional)
               </label>
+
               <textarea
                 rows={3}
                 value={reason}
@@ -171,10 +277,11 @@ const StockActionModal = ({ product, action, onClose }) => {
             >
               Cancel
             </button>
+
             <button
               onClick={handleSubmit}
-              disabled={saveMutation.isPending || !quantity}
-              className={`px-5 py-2 bg-primary text-white font-medium rounded-xl inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-50 transition-colors shadow-sm`}
+              disabled={saveMutation.isPending || quantity === ""}
+              className="px-5 py-2 bg-primary text-white font-medium rounded-xl inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-50 transition-colors shadow-sm"
             >
               {saveMutation.isPending ? (
                 <>Processing...</>
@@ -192,7 +299,7 @@ const StockActionModal = ({ product, action, onClose }) => {
       <ConfirmModal
         open={confirmOpen}
         title={`${cfg.label}?`}
-        description={`${cfg.desc(product)}. Quantity: ${quantity}${product?.unit}.`}
+        description={`${cfg.desc(product)}. Quantity: ${quantity}${product?.unit || " units"}.`}
         confirmLabel={cfg.label}
         variant={cfg.variant || "success"}
         onConfirm={handleConfirm}

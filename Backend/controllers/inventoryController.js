@@ -417,7 +417,15 @@ const getInventoryMovements = asyncHandler(async (req, res) => {
 const addStock = asyncHandler(async (req, res) => {
   parseProductId(req.params.productId, res);
   const quantity = parseQuantity(req.body.quantity);
-  const unitCost = parseOptionalKobo(req.body.unitCost);
+  const hasUnitCost = Object.prototype.hasOwnProperty.call(req.body, "unitCost");
+
+  const unitCost = hasUnitCost
+    ? req.body.unitCost === null
+      ? null
+      : parseOptionalKobo(req.body.unitCost)
+    : undefined;
+
+  const useProductCostFallback = !hasUnitCost;
   const reason = String(req.body.reason || "").trim();
   const supplier = String(req.body.supplier || "").trim();
   const location = String(req.body.location || "").trim();
@@ -427,6 +435,7 @@ const addStock = asyncHandler(async (req, res) => {
       productId: req.params.productId,
       quantity,
       unitCost,
+      useProductCostFallback,
       batch: req.body.batch,
       receivedDate: req.body.receivedDate,
       supplier,
@@ -510,7 +519,15 @@ const adjustStockDirect = asyncHandler(async (req, res) => {
   const quantity = parseQuantity(req.body.quantity, "Physical stock count", {
     allowZero: true,
   });
-  const unitCost = parseOptionalKobo(req.body.unitCost);
+  const hasUnitCost = Object.prototype.hasOwnProperty.call(req.body, "unitCost");
+
+  const unitCost = hasUnitCost
+    ? req.body.unitCost === null
+      ? null
+      : parseOptionalKobo(req.body.unitCost)
+    : undefined;
+
+  const useProductCostFallback = !hasUnitCost;
   const reason = String(req.body.reason || "").trim();
 
   const result = await runInTransaction((session) =>
@@ -518,6 +535,7 @@ const adjustStockDirect = asyncHandler(async (req, res) => {
       productId: req.params.productId,
       quantity,
       unitCost,
+      useProductCostFallback,
       reason,
       performedBy: req.user?._id,
       session,

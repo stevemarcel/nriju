@@ -31,8 +31,7 @@ const fail = (message, status = 400) => {
   throw error;
 };
 
-const escapeRegex = (value) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const getPagination = (req, defaultLimit = 10) => {
   const page = Number(req.query.page ?? 1);
@@ -84,7 +83,7 @@ const calculateCostOfGoodsSold = (allocations) => {
   }
   return allocations.reduce(
     (total, allocation) => total + allocation.quantity * allocation.unitCost,
-    0
+    0,
   );
 };
 
@@ -157,7 +156,9 @@ const createOrder = asyncHandler(async (req, res) => {
         fail("Coupon has expired.");
       }
       if (subtotalKobo < coupon.minOrder) {
-        fail(`Minimum order for this coupon is ₦${(coupon.minOrder / 100).toLocaleString("en-NG")}.`);
+        fail(
+          `Minimum order for this coupon is ₦${(coupon.minOrder / 100).toLocaleString("en-NG")}.`,
+        );
       }
       discountKobo = coupon.discountKoboFor(subtotalKobo);
       discountKobo = Math.max(0, Math.min(subtotalKobo, Number(discountKobo) || 0));
@@ -182,25 +183,20 @@ const createOrder = asyncHandler(async (req, res) => {
           status: "pending",
         },
       ],
-      { session }
+      { session },
     );
 
     // Deduct stock from oldest received batches and persist the exact allocation
     // on each order item for cancellation restoration and historical COGS.
     for (const orderItem of order.items) {
-      const deduction = await deductStockFIFO(
-        orderItem.product,
-        orderItem.quantity,
-        session,
-        {
-          type: "sale",
-          referenceType: "order",
-          referenceId: order._id,
-          referenceLabel: order.orderNumber,
-          reason: `Stock reserved for order ${order.orderNumber}`,
-          performedBy: req.user._id,
-        }
-      );
+      const deduction = await deductStockFIFO(orderItem.product, orderItem.quantity, session, {
+        type: "sale",
+        referenceType: "order",
+        referenceId: order._id,
+        referenceLabel: order.orderNumber,
+        reason: `Stock reserved for order ${order.orderNumber}`,
+        performedBy: req.user._id,
+      });
 
       orderItem.stockAllocations = deduction.allocations.map((allocation) => ({
         batch: allocation.batch,
@@ -245,12 +241,7 @@ const getMyOrders = asyncHandler(async (req, res) => {
   }
 
   const [orders, total] = await Promise.all([
-    populateOrder(
-      Order.find(query)
-        .sort({ createdAt: -1, _id: -1 })
-        .skip(skip)
-        .limit(limit)
-    ),
+    populateOrder(Order.find(query).sort({ createdAt: -1, _id: -1 }).skip(skip).limit(limit)),
     Order.countDocuments(query),
   ]);
 
@@ -294,23 +285,20 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     const previousStatus = order.status;
     const nextStatus = status ?? previousStatus;
 
-    if (
-      previousStatus === "refunded" &&
-      nextStatus !== "refunded"
-    ) {
+    if (previousStatus === "refunded" && nextStatus !== "refunded") {
       fail("A refunded order cannot be moved back to another fulfilment status.", 409);
     }
-    if (
-      previousStatus === "cancelled" &&
-      !["cancelled", "refunded"].includes(nextStatus)
-    ) {
-      fail("A cancelled order cannot be reopened. Create a new order if the customer still wants the items.", 409);
+    if (previousStatus === "cancelled" && !["cancelled", "refunded"].includes(nextStatus)) {
+      fail(
+        "A cancelled order cannot be reopened. Create a new order if the customer still wants the items.",
+        409,
+      );
     }
-    if (
-      nextStatus === "cancelled" &&
-      ["delivered", "picked_up"].includes(previousStatus)
-    ) {
-      fail("Delivered or picked-up orders must be handled through the customer return process, not cancellation.", 409);
+    if (nextStatus === "cancelled" && ["delivered", "picked_up"].includes(previousStatus)) {
+      fail(
+        "Delivered or picked-up orders must be handled through the customer return process, not cancellation.",
+        409,
+      );
     }
 
     const changes = [];
@@ -335,25 +323,23 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
         const productId = item.product?._id || item.product;
         const product = await Product.findById(productId).session(session);
         if (!product) {
-          fail(`Cannot restore stock: product for order item "${item.name}" no longer exists.`, 409);
+          fail(
+            `Cannot restore stock: product for order item "${item.name}" no longer exists.`,
+            409,
+          );
         }
 
-        await restoreStockAllocations(
-          productId,
-          item.stockAllocations || [],
-          session,
-          {
-            quantity: item.quantity,
-            reason: `Stock released after cancellation of order ${order.orderNumber}`,
-            performedBy: req.user._id,
-            referenceId: order._id,
-            referenceLabel: order.orderNumber,
-            fallbackUnitCost:
-              Number.isSafeInteger(product.costPrice) && product.costPrice > 0
-                ? product.costPrice
-                : null,
-          }
-        );
+        await restoreStockAllocations(productId, item.stockAllocations || [], session, {
+          quantity: item.quantity,
+          reason: `Stock released after cancellation of order ${order.orderNumber}`,
+          performedBy: req.user._id,
+          referenceId: order._id,
+          referenceLabel: order.orderNumber,
+          fallbackUnitCost:
+            Number.isSafeInteger(product.costPrice) && product.costPrice >= 0
+              ? product.costPrice
+              : null,
+        });
       }
 
       order.stockRestoredAt = new Date();
@@ -423,22 +409,11 @@ const getAllOrders = asyncHandler(async (req, res) => {
   }
 
   const [orders, total] = await Promise.all([
-    populateOrder(
-      Order.find(query)
-        .sort({ createdAt: -1, _id: -1 })
-        .skip(skip)
-        .limit(limit)
-    ),
+    populateOrder(Order.find(query).sort({ createdAt: -1, _id: -1 }).skip(skip).limit(limit)),
     Order.countDocuments(query),
   ]);
 
   res.json({ success: true, data: orders, meta: { page, limit, total } });
 });
 
-export {
-  createOrder,
-  getMyOrders,
-  getOrderById,
-  updateOrderStatus,
-  getAllOrders,
-};
+export { createOrder, getMyOrders, getOrderById, updateOrderStatus, getAllOrders };
