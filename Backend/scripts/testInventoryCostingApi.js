@@ -12,6 +12,7 @@ import InventoryMovement from "../models/InventoryMovement.js";
 import ActivityLog from "../models/ActivityLog.js";
 
 import inventoryRoutes from "../routes/inventoryRoutes.js";
+import adminRoutes from "../routes/adminRoutes.js";
 import activityLog from "../middleware/activityLog.js";
 
 const SANDBOX_DB = "nriju_costing_sandbox";
@@ -80,6 +81,7 @@ const run = async () => {
   app.use(cookieParser());
   app.use(activityLog);
   app.use("/api/v1/inventory", inventoryRoutes);
+  app.use("/api/v1/admin", adminRoutes);
 
   app.use((error, req, res, next) => {
     if (res.headersSent) return next(error);
@@ -231,6 +233,19 @@ const run = async () => {
   assert.ok(activities.every((activity) => activity.action.startsWith("inventory.stock_")));
 
   pass("All six successful API mutations generated inventory activity log records");
+
+  // 11. Verify the redesigned dashboard endpoint against the same live records.
+  const dashboardResponse = await fetch(`http://127.0.0.1:${address.port}/api/v1/admin/stats`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const dashboard = await dashboardResponse.json();
+
+  assert.equal(dashboardResponse.status, 200, JSON.stringify(dashboard));
+  assert.ok(Array.isArray(dashboard.data.salesOverview));
+  assert.ok(Array.isArray(dashboard.data.inventory.lowStockProducts));
+  assert.ok(Array.isArray(dashboard.data.recentActivity));
+  assert.equal(typeof dashboard.data.inventory.stockValue, "number");
+  pass("Admin dashboard aggregates return live inventory and activity data");
 
   console.log("\n========== API TEST SUMMARY ==========");
   console.log("ALL INVENTORY COSTING API TESTS PASSED.");

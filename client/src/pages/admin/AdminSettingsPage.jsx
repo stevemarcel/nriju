@@ -241,7 +241,7 @@ const AdminSettingsPage = () => {
               type="button"
               onClick={handleReset}
               disabled={!isDirty || updateMutation.isPending}
-              className={ADMIN_SECONDARY_BUTTON_CLASS}
+              className={`${ADMIN_SECONDARY_BUTTON_CLASS} inline-flex items-center justify-center gap-2`}
             >
               <RotateCcw className="h-4 w-4" />
               Reset
@@ -309,7 +309,7 @@ const AdminSettingsPage = () => {
 
       <ConfirmModal
         open={confirmReset}
-        onClose={() => setConfirmReset(false)}
+        onCancel={() => setConfirmReset(false)}
         onConfirm={confirmResetAction}
         title="Discard unsaved changes?"
         description="Your unsaved settings changes will be discarded and the saved values will be restored."

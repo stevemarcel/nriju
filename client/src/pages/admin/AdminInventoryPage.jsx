@@ -22,7 +22,7 @@ import {
   AlertTriangle,
   ArrowDownUp,
   Check,
-  CircleDollarSign,
+  Boxes,
   Edit3,
   FolderOpen,
   MapPin,
@@ -219,7 +219,7 @@ const AdminInventoryPage = () => {
         <AdminStatCard
           label="Stock cost value"
           value={formatNaira(stats.stockValue)}
-          icon={CircleDollarSign}
+          icon={Boxes}
           tone="success"
           loading={statsPending}
           meta={

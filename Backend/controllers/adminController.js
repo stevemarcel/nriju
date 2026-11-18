@@ -145,10 +145,7 @@ const getStats = asyncHandler(async (_req, res) => {
   const activeCouponFilter = {
     isActive: true,
     expiryDate: { $gte: now },
-    $or: [
-      { usageLimit: null },
-      { $expr: { $lt: ["$usedCount", "$usageLimit"] } },
-    ],
+    $or: [{ usageLimit: null }, { $expr: { $lt: ["$usedCount", "$usageLimit"] } }],
   };
 
   const [
@@ -183,8 +180,15 @@ const getStats = asyncHandler(async (_req, res) => {
       { $group: { _id: null, total: { $sum: "$total" } } },
     ]),
     Order.aggregate([
-      { $match: { createdAt: { $gte: currentPeriodStart }, status: revenueStatusFilter } },
-      { $group: { _id: null, revenue: { $sum: "$total" }, orders: { $sum: 1 } } },
+      {
+        $match: {
+          createdAt: { $gte: currentPeriodStart },
+          status: revenueStatusFilter,
+        },
+      },
+      {
+        $group: { _id: null, revenue: { $sum: "$total" }, orders: { $sum: 1 } },
+      },
     ]),
     Order.aggregate([
       {
@@ -193,10 +197,17 @@ const getStats = asyncHandler(async (_req, res) => {
           status: revenueStatusFilter,
         },
       },
-      { $group: { _id: null, revenue: { $sum: "$total" }, orders: { $sum: 1 } } },
+      {
+        $group: { _id: null, revenue: { $sum: "$total" }, orders: { $sum: 1 } },
+      },
     ]),
     Order.aggregate([
-      { $match: { createdAt: { $gte: currentPeriodStart }, status: revenueStatusFilter } },
+      {
+        $match: {
+          createdAt: { $gte: currentPeriodStart },
+          status: revenueStatusFilter,
+        },
+      },
       {
         $group: {
           _id: {
@@ -226,11 +237,7 @@ const getStats = asyncHandler(async (_req, res) => {
       {
         $addFields: {
           effectiveUnitCost: {
-            $cond: [
-              { $ne: ["$unitCost", null] },
-              "$unitCost",
-              "$productDoc.costPrice",
-            ],
+            $cond: [{ $ne: ["$unitCost", null] }, "$unitCost", "$productDoc.costPrice"],
           },
         },
       },
@@ -260,17 +267,20 @@ const getStats = asyncHandler(async (_req, res) => {
       .select("name stock unit images")
       .sort({ stock: 1, name: 1 })
       .limit(5),
-    ActivityLog.find()
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .populate("user", "name role"),
+    ActivityLog.find().sort({ createdAt: -1 }).limit(5).populate("user", "name role"),
     User.aggregate([{ $group: { _id: "$role", count: { $sum: 1 } } }]),
     Coupon.countDocuments(),
     Coupon.countDocuments(activeCouponFilter),
     Review.countDocuments(),
     Review.aggregate([
       { $match: { status: "approved" } },
-      { $group: { _id: null, averageRating: { $avg: "$rating" }, approved: { $sum: 1 } } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" },
+          approved: { $sum: 1 },
+        },
+      },
     ]),
   ]);
 
