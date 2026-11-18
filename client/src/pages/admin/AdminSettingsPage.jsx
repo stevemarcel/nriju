@@ -1,10 +1,25 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Building2, Truck, FileText, RotateCcw, Save, Check } from "lucide-react";
+import {
+  Building2,
+  Truck,
+  FileText,
+  RotateCcw,
+  Save,
+  Check,
+  CircleAlert,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
 
 import api from "../../services/api";
-import { AdminPageHeader, StatusPill, TableSkeleton } from "../../components/admin/AdminPrimitives";
+import {
+  AdminPageHeader,
+  EmptyState,
+  StatusPill,
+  TableSkeleton,
+} from "../../components/admin/AdminPrimitives";
 import {
   ADMIN_FIELD_CLASS,
   ADMIN_LABEL_CLASS,
@@ -23,10 +38,20 @@ const SECTIONS = [
     icon: Building2,
     keys: [
       { key: "business_name", label: "Business Name", type: "text" },
-      { key: "business_phone", label: "Business Phone", type: "tel" },
+      {
+        key: "business_phone",
+        label: "Business Phone",
+        type: "tel",
+        hint: "Used for phone calls.",
+      },
       { key: "business_email", label: "Business Email", type: "email" },
       { key: "business_address", label: "Business Address", type: "text" },
-      { key: "whatsapp_number", label: "WhatsApp number", type: "tel" },
+      {
+        key: "whatsapp_number",
+        label: "WhatsApp number",
+        type: "tel",
+        hint: "Used for WhatsApp chats.",
+      },
       { key: "instagram_handle", label: "Instagram handle", type: "text" },
       { key: "facebook_page", label: "Facebook page", type: "text" },
       { key: "opening_hours", label: "Opening hours", type: "text" },
@@ -38,8 +63,16 @@ const SECTIONS = [
     description: "Delivery pricing and fulfilment options used across the storefront.",
     icon: Truck,
     keys: [
-      { key: "delivery_fee_own", label: "Own-fleet delivery fee (₦)", type: "money" },
-      { key: "delivery_fee_thirdparty", label: "Third-party delivery fee (₦)", type: "money" },
+      {
+        key: "delivery_fee_own",
+        label: "Own-fleet delivery fee (₦)",
+        type: "money",
+      },
+      {
+        key: "delivery_fee_thirdparty",
+        label: "Third-party delivery fee (₦)",
+        type: "money",
+      },
       { key: "pickup_available", label: "Pickup available", type: "boolean" },
     ],
   },
@@ -51,7 +84,11 @@ const SECTIONS = [
     keys: [
       { key: "return_policy", label: "Return policy", type: "textarea" },
       { key: "privacy_policy", label: "Privacy policy", type: "textarea" },
-      { key: "terms_and_conditions", label: "Terms & conditions", type: "textarea" },
+      {
+        key: "terms_and_conditions",
+        label: "Terms & conditions",
+        type: "textarea",
+      },
     ],
   },
 ];
@@ -64,32 +101,89 @@ const DIRTY_STATUS_MAP = {
 };
 
 const flattenSections = () => SECTIONS.flatMap((section) => section.keys);
+const FIELDS = flattenSections();
+const FIELDS_BY_KEY = new Map(FIELDS.map((field) => [field.key, field]));
+const ADMIN_SETTINGS_QUERY_KEY = ["admin", "settings", "keyed-v4"];
+
+const asBoolean = (value) => value === true || value === "true";
+
+const valuesMatch = (field, draftValue, savedValue) => {
+  if (field.type === "money") {
+    if (draftValue === "" || draftValue == null) {
+      return savedValue === "" || savedValue == null;
+    }
+
+    return toKobo(draftValue) === Number(savedValue);
+  }
+
+  if (field.type === "boolean") {
+    return asBoolean(draftValue) === asBoolean(savedValue);
+  }
+
+  return String(draftValue ?? "") === String(savedValue ?? "");
+};
+
+const normalizeSettings = (payload) => {
+  const data = payload?.data?.data ?? payload?.data ?? payload;
+
+  if (Array.isArray(data)) {
+    return Object.fromEntries(
+      data
+        .filter((setting) => setting && typeof setting.key === "string" && "value" in setting)
+        .map((setting) => [setting.key, setting.value]),
+    );
+  }
+
+  if (data && typeof data === "object") {
+    return data;
+  }
+
+  throw new Error("The settings response has an unexpected format.");
+};
+
+const fetchSettings = async () => {
+  return normalizeSettings(await api.get("/settings"));
+};
 
 const AdminSettingsPage = () => {
   const queryClient = useQueryClient();
-  const { data: settings, isPending } = useQuery({
-    queryKey: ["admin", "settings"],
-    queryFn: async () => (await api.get("/settings")).data.data,
+  const {
+    data: settingsByKey = {},
+    isPending,
+    isError,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ADMIN_SETTINGS_QUERY_KEY,
+    queryFn: fetchSettings,
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
   });
 
   const [values, setValues] = useState({});
   const [confirmReset, setConfirmReset] = useState(false);
 
-  const settingsByKey = new Map((settings || []).map((setting) => [setting.key, setting.value]));
-
-  const merged = flattenSections().map((k) => ({
+  const merged = FIELDS.map((k) => ({
     ...k,
-    value: settingsByKey.has(k.key) ? settingsByKey.get(k.key) : "",
+    value: Object.hasOwn(settingsByKey, k.key) ? settingsByKey[k.key] : "",
   }));
 
-  const isDirty = merged.some(
-    (k) => values[k.key] !== undefined && String(values[k.key]) !== String(k.value),
-  );
+  const isDirty = Object.entries(values).some(([key, draftValue]) => {
+    const field = FIELDS_BY_KEY.get(key);
+    return field && !valuesMatch(field, draftValue, settingsByKey[key]);
+  });
 
   const updateMutation = useMutation({
     mutationFn: (payload) => api.put("/settings", payload),
-    onSuccess: () => {
+    onSuccess: (response) => {
+      const updatedSettings = normalizeSettings(response);
+      queryClient.setQueryData(ADMIN_SETTINGS_QUERY_KEY, (current = {}) => ({
+        ...current,
+        ...updatedSettings,
+      }));
       queryClient.invalidateQueries({ queryKey: ["admin", "settings"] });
+      queryClient.invalidateQueries({ queryKey: ["settings", "public"] });
       setValues({});
       toast.success("Settings saved.");
     },
@@ -99,7 +193,17 @@ const AdminSettingsPage = () => {
   });
 
   const handleChange = (key, value) => {
-    setValues((current) => ({ ...current, [key]: value }));
+    const field = FIELDS_BY_KEY.get(key);
+
+    setValues((current) => {
+      if (field && valuesMatch(field, value, settingsByKey[key])) {
+        const next = { ...current };
+        delete next[key];
+        return next;
+      }
+
+      return { ...current, [key]: value };
+    });
   };
 
   const handleSave = (event) => {
@@ -109,18 +213,20 @@ const AdminSettingsPage = () => {
 
     const payload = {};
 
-    merged.forEach((k) => {
-      const v = values[k.key] !== undefined ? values[k.key] : k.value;
+    Object.entries(values).forEach(([key, value]) => {
+      const field = FIELDS_BY_KEY.get(key);
+      if (!field || valuesMatch(field, value, settingsByKey[key])) return;
 
-      if (k.type === "boolean") {
-        payload[k.key] = v === true || v === "true";
-      } else if (k.type === "money") {
-        payload[k.key] = v === "" || v == null ? null : toKobo(v);
+      if (field.type === "boolean") {
+        payload[key] = asBoolean(value);
+      } else if (field.type === "money") {
+        payload[key] = value === "" || value == null ? null : toKobo(value);
       } else {
-        payload[k.key] = v;
+        payload[key] = value;
       }
     });
 
+    if (Object.keys(payload).length === 0) return;
     updateMutation.mutate(payload);
   };
 
@@ -134,7 +240,17 @@ const AdminSettingsPage = () => {
     setConfirmReset(false);
   };
 
-  const currentValue = (k) => (values[k.key] !== undefined ? values[k.key] : k.value);
+  const currentValue = (k) => {
+    if (values[k.key] !== undefined) return values[k.key];
+
+    const savedValue = Object.hasOwn(settingsByKey, k.key) ? settingsByKey[k.key] : "";
+
+    if (k.type === "money") {
+      return savedValue === "" || savedValue == null ? "" : Number(savedValue) / 100;
+    }
+
+    return savedValue;
+  };
 
   const renderField = (k) => {
     const id = `setting-${k.key}`;
@@ -159,6 +275,7 @@ const AdminSettingsPage = () => {
         <Dropdown
           color="surface"
           fullWidth
+          portal
           menuRole="listbox"
           trigger={
             <span className="flex min-w-0 items-center justify-between gap-2 truncate text-left">
@@ -193,15 +310,13 @@ const AdminSettingsPage = () => {
     }
 
     if (k.type === "money") {
-      const displayValue = current === "" || current == null ? "" : Number(current) / 100;
-
       return (
         <input
           id={id}
           type="number"
           step="0.01"
           min="0"
-          value={displayValue}
+          value={current ?? ""}
           onChange={(e) => handleChange(k.key, e.target.value)}
           className={ADMIN_FIELD_CLASS}
         />
@@ -224,6 +339,39 @@ const AdminSettingsPage = () => {
       <div className="space-y-6">
         <AdminPageHeader title="Settings" subtitle="Loading application settings..." />
         <TableSkeleton rows={8} cols={2} />
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="space-y-6">
+        <AdminPageHeader
+          title="Settings"
+          subtitle="Manage business details, delivery fees and store policies."
+        />
+
+        <EmptyState
+          icon={<CircleAlert className="mx-auto h-10 w-10 text-primary" aria-hidden="true" />}
+          title="Settings could not be loaded"
+          description="Check your connection and try loading the saved settings again."
+          action={
+            <button
+              type="button"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              aria-busy={isFetching}
+              className={`${ADMIN_PRIMARY_BUTTON_CLASS} mx-auto`}
+            >
+              {isFetching ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <RefreshCw className="h-4 w-4" aria-hidden="true" />
+              )}
+              {isFetching ? "Loading settings..." : "Try again"}
+            </button>
+          }
+        />
       </div>
     );
   }
@@ -293,7 +441,7 @@ const AdminSettingsPage = () => {
                           {k.label}
                         </label>
                         <span className="mt-1 block font-mono text-[11px] text-text-muted">
-                          {k.key}
+                          {k.hint || k.key}
                         </span>
                       </div>
 

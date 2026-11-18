@@ -10,7 +10,9 @@
     "server": "nodemon Backend/server.js",
     "client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "seed": "node Backend/seed/runSeed.js"
+    "seed": "node Backend/seed/runSeed.js",
+    "seed:settings": "node Backend/scripts/seedSettings.js",
+    "repair:settings-delivery-fees": "node Backend/scripts/repairInflatedDeliveryFees.js"
   },
   "keywords": [],
   "author": "",

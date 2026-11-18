@@ -468,7 +468,7 @@ const AdminDashboardPage = () => {
                 title="Stock levels look healthy"
               />
             ) : (
-              <table className="w-full min-w-112 text-sm">
+              <table className="w-full min-w-md text-sm">
                 <thead>
                   <tr className={ADMIN_TABLE_HEAD_ROW_CLASS}>
                     <th className="px-4 py-3 text-left">Product</th>

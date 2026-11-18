@@ -24,7 +24,7 @@ const PUBLIC_ENDPOINTS = [
   "/categories",
   "/coupons/validate",
   "/reviews",
-  "/settings",
+  "/settings/public",
   // Session bootstrap — expected to 401 when nobody is logged in.
   // The fetchMe thunk already clears state on rejection; it must not
   // bounce an anonymous visitor to the login page on app load.

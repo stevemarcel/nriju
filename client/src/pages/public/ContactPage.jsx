@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { MapPin, Phone, Mail, Clock, Instagram, Facebook, MessageCircle } from "lucide-react";
 import { usePublicSettings } from "../../hooks/usePublicSettings";
+import { phoneHref, socialProfileHref, whatsappHref } from "../../utils/contactLinks";
 
 const ContactPage = () => {
   const { data: s } = usePublicSettings();
@@ -10,6 +11,8 @@ const ContactPage = () => {
   const address = s?.business_address || "Lagos, Nigeria";
   const hours = s?.opening_hours || "Mon - Sat, 8am - 8pm";
   const whatsapp = s?.whatsapp_number || phone;
+  const instagramUrl = socialProfileHref(s?.instagram_handle, "https://instagram.com");
+  const facebookUrl = socialProfileHref(s?.facebook_page, "https://facebook.com");
 
   return (
     <div>
@@ -47,17 +50,25 @@ const ContactPage = () => {
                   <Phone className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-sm">Call or WhatsApp</h3>
-                  <a href={`tel:${phone}`} className="text-text-muted text-sm hover:text-primary">
+                  <h3 className="font-semibold text-sm">Call us</h3>
+                  <a href={phoneHref(phone)} className="text-text-muted text-sm hover:text-primary">
                     {phone}
                   </a>
+                </div>
+              </div>
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                  <MessageCircle className="w-5 h-5 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-sm">WhatsApp</h3>
                   <a
-                    href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`}
+                    href={whatsappHref(whatsapp)}
                     target="_blank"
-                    rel="noopener"
-                    className="block text-xs text-primary font-medium"
+                    rel="noopener noreferrer"
+                    className="text-text-muted text-sm hover:text-primary"
                   >
-                    Chat on WhatsApp
+                    {whatsapp}
                   </a>
                 </div>
               </div>
@@ -88,25 +99,28 @@ const ContactPage = () => {
 
             <div className="flex gap-3 mt-8">
               <a
-                href="https://instagram.com"
+                href={instagramUrl}
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
                 className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center hover:border-primary transition-colors"
               >
                 <Instagram className="w-4 h-4" />
               </a>
               <a
-                href="https://facebook.com"
+                href={facebookUrl}
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
                 className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center hover:border-primary transition-colors"
               >
                 <Facebook className="w-4 h-4" />
               </a>
               <a
-                href={`https://wa.me/${whatsapp.replace(/\D/g, "")}`}
+                href={whatsappHref(whatsapp)}
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
+                aria-label="WhatsApp"
                 className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center hover:border-primary transition-colors"
               >
                 <MessageCircle className="w-4 h-4" />
@@ -119,7 +133,7 @@ const ContactPage = () => {
             <div className="aspect-square bg-surface rounded-2xl border border-border flex items-center justify-center mb-6">
               <div className="text-center">
                 <MapPin className="w-12 h-12 text-primary mx-auto mb-2" />
-                <p className="text-text-muted text-sm">Lagos, Nigeria</p>
+                <p className="text-text-muted text-sm">{address}</p>
               </div>
             </div>
             <div className="bg-surface rounded-xl border border-border p-6">

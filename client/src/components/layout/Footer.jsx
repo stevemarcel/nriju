@@ -1,7 +1,17 @@
 import { Link } from "react-router-dom";
-import { Phone, MapPin, Clock, Instagram, Facebook } from "lucide-react";
+import { Phone, MapPin, Clock, Instagram, Facebook, MessageCircle } from "lucide-react";
+import { usePublicSettings } from "../../hooks/usePublicSettings";
+import { phoneHref, socialProfileHref, whatsappHref } from "../../utils/contactLinks";
 
 const Footer = () => {
+  const { data: settings } = usePublicSettings();
+  const phone = settings?.business_phone || "+234 800 000 0000";
+  const whatsapp = settings?.whatsapp_number || phone;
+  const address = settings?.business_address || "Lagos, Nigeria";
+  const hours = settings?.opening_hours || "Mon - Sat, 8am - 8pm";
+  const instagramUrl = socialProfileHref(settings?.instagram_handle, "https://instagram.com");
+  const facebookUrl = socialProfileHref(settings?.facebook_page, "https://facebook.com");
+
   return (
     <footer className="bg-text text-white/90">
       <div className="container mx-auto px-4 py-12">
@@ -95,30 +105,45 @@ const Footer = () => {
             <ul className="space-y-3 text-sm">
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 mt-0.5 shrink-0 text-secondary" />
-                <span className="text-white/80">Lagos, Nigeria</span>
+                <span className="text-white/80">{address}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 shrink-0 text-secondary" />
-                <span className="text-white/80">+234 800 000 0000</span>
+                <a href={phoneHref(phone)} className="text-white/80 hover:text-secondary">
+                  {phone}
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 shrink-0 text-secondary" />
+                <a
+                  href={whatsappHref(whatsapp)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white/80 hover:text-secondary"
+                >
+                  {whatsapp}
+                </a>
               </li>
               <li className="flex items-center gap-2">
                 <Clock className="w-4 h-4 shrink-0 text-secondary" />
-                <span className="text-white/80">Mon - Sat, 8am - 8pm</span>
+                <span className="text-white/80">{hours}</span>
               </li>
             </ul>
             <div className="flex gap-3 mt-4">
               <a
-                href="https://instagram.com"
+                href={instagramUrl}
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
+                aria-label="Instagram"
                 className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-secondary transition-colors"
               >
                 <Instagram className="w-4 h-4" />
               </a>
               <a
-                href="https://facebook.com"
+                href={facebookUrl}
                 target="_blank"
-                rel="noopener"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
                 className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-secondary transition-colors"
               >
                 <Facebook className="w-4 h-4" />
