@@ -92,7 +92,14 @@ const productSchema = new mongoose.Schema(
       default: "Cross-regional",
       index: true,
     },
-    images: [{ type: String }],
+    images: {
+      type: [String],
+      default: [],
+      validate: {
+        validator: (value) => value.length <= 10,
+        message: "A product can have up to 10 images.",
+      },
+    },
     tags: [{ type: String, index: true }],
     isActive: { type: Boolean, default: true, index: true },
     isFeatured: { type: Boolean, default: false, index: true },

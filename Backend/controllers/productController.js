@@ -11,6 +11,7 @@ import { productSummary } from "../utils/format.js";
 import { uploadProductToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryUtils.js";
 import { skipActivityLog } from "../utils/activityUtils.js";
 import { LOW_STOCK_THRESHOLD } from "../utils/inventoryConstants.js";
+import { addStockBatch } from "../services/inventoryService.js";
 import {
   recordProductCreated,
   recordProductUpdated,
@@ -18,6 +19,7 @@ import {
 } from "../utils/productActivity.js";
 
 const PRODUCT_TYPES = ["cooked", "packaged", "fresh"];
+const MAX_PRODUCT_IMAGES = 10;
 const PRODUCT_UNITS = [
   "portion",
   "bowl",
@@ -149,6 +151,13 @@ const parseImageList = (value) => {
   if (value === undefined) return undefined;
   if (!Array.isArray(value)) {
     const error = new Error("Product images must be an array of URLs.");
+    error.status = 400;
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (value.length > MAX_PRODUCT_IMAGES) {
+    const error = new Error(`A product can have up to ${MAX_PRODUCT_IMAGES} images.`);
     error.status = 400;
     error.statusCode = 400;
     throw error;
@@ -490,6 +499,8 @@ const createProduct = asyncHandler(async (req, res) => {
     prepLeadTime,
     maxDailyQty,
     costPrice,
+    stock,
+    isActive,
     notifyOnOutOfStock,
   } = req.body;
 
@@ -518,9 +529,15 @@ const createProduct = asyncHandler(async (req, res) => {
 
   const parsedImages = parseImageList(images) || [];
   const parsedFeatured = parseOptionalBoolean(isFeatured, "isFeatured") ?? false;
+  const parsedActive = parseOptionalBoolean(isActive, "isActive") ?? true;
   const parsedNotify = parseOptionalBoolean(notifyOnOutOfStock, "notifyOnOutOfStock") ?? false;
+  const parsedCostPrice = parseNonNegativeInteger(costPrice, "Cost price", {
+    nullable: true,
+    defaultValue: null,
+  });
+  const parsedOpeningStock = parseOptionalNonNegativeInteger(stock, "Opening stock", 0);
 
-  const product = await Product.create({
+  const productData = {
     name,
     description,
     price: parsedPrice,
@@ -528,15 +545,13 @@ const createProduct = asyncHandler(async (req, res) => {
       nullable: true,
       defaultValue: null,
     }),
-    costPrice: parseNonNegativeInteger(costPrice, "Cost price", {
-      nullable: true,
-      defaultValue: null,
-    }),
+    costPrice: parsedCostPrice,
     unit,
     productType,
     category: categoryDocument._id,
     tags: parseTags(tags),
     images: parsedImages,
+    isActive: parsedActive,
     isFeatured: parsedFeatured,
     notifyOnOutOfStock: parsedNotify,
     region,
@@ -545,7 +560,37 @@ const createProduct = asyncHandler(async (req, res) => {
     stock: 0,
     createdBy: req.user._id,
     updatedBy: req.user._id,
-  });
+  };
+
+  let product;
+
+  if (parsedOpeningStock > 0) {
+    const session = await mongoose.startSession();
+    let productId;
+
+    try {
+      await session.withTransaction(async () => {
+        const [createdProduct] = await Product.create([productData], {
+          session,
+        });
+        productId = createdProduct._id;
+
+        await addStockBatch({
+          productId,
+          quantity: parsedOpeningStock,
+          reason: "Opening stock added during product creation",
+          performedBy: req.user._id,
+          session,
+        });
+      });
+    } finally {
+      await session.endSession();
+    }
+
+    product = await Product.findById(productId);
+  } else {
+    product = await Product.create(productData);
+  }
 
   await product.populate("category");
   recordProductCreated(req, product);

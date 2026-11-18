@@ -38,10 +38,13 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
+    const skipGlobalErrorToast = error?.config?.skipGlobalErrorToast === true;
 
     if (status === 401 && !isPublicEndpoint(error?.config?.url)) {
       // Let the auth slice / route guards handle redirect to login
       window.dispatchEvent(new CustomEvent("auth:unauthorized"));
+    } else if (skipGlobalErrorToast) {
+      return Promise.reject(error);
     } else if (status === 403) {
       toast.error("You do not have permission to do that.");
     } else if (status === 404) {
