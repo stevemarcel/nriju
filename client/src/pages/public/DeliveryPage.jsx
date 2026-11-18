@@ -6,7 +6,7 @@ const DeliveryPage = () => {
 
   const ownFee = s?.delivery_fee_own;
   const thirdFee = s?.delivery_fee_thirdparty;
-  const pickupAvailable = s?.pickup_available !== "false";
+  const pickupAvailable = s?.pickup_available !== false && s?.pickup_available !== "false";
   const hours = s?.opening_hours || "Mon - Sat, 8am - 8pm";
 
   const formatFee = (kobo) => {

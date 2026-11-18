@@ -1,39 +1,69 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import api from "../../services/api";
-import { AdminPageHeader, TableSkeleton, EmptyState } from "../../components/admin/AdminPrimitives";
-import { Save, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
+import { Building2, Truck, FileText, RotateCcw, Save, Check } from "lucide-react";
 
-// Every key the public settings endpoint returns — pre-seeded so the
-// editor shows a field for each, even before the DB has a row for it.
-const SETTINGS_KEYS = [
-  { key: "business_name", label: "Business Name", type: "text" },
-  { key: "business_phone", label: "Business Phone", type: "text" },
-  { key: "business_email", label: "Business Email", type: "text" },
-  { key: "business_address", label: "Business Address", type: "text" },
+import api from "../../services/api";
+import { AdminPageHeader, StatusPill, TableSkeleton } from "../../components/admin/AdminPrimitives";
+import {
+  ADMIN_FIELD_CLASS,
+  ADMIN_LABEL_CLASS,
+  ADMIN_PRIMARY_BUTTON_CLASS,
+  ADMIN_SECONDARY_BUTTON_CLASS,
+} from "../../components/admin/AdminModalPrimitives";
+import Dropdown from "../../components/ui/Dropdown";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import { toKobo } from "../../utils/formatMoney";
+
+const SECTIONS = [
   {
-    key: "delivery_fee_own",
-    label: "Own-fleet delivery fee (₦)",
-    type: "money",
+    id: "business",
+    title: "Business Details",
+    description: "Store identity, contact details and public-facing business information.",
+    icon: Building2,
+    keys: [
+      { key: "business_name", label: "Business Name", type: "text" },
+      { key: "business_phone", label: "Business Phone", type: "tel" },
+      { key: "business_email", label: "Business Email", type: "email" },
+      { key: "business_address", label: "Business Address", type: "text" },
+      { key: "whatsapp_number", label: "WhatsApp number", type: "tel" },
+      { key: "instagram_handle", label: "Instagram handle", type: "text" },
+      { key: "facebook_page", label: "Facebook page", type: "text" },
+      { key: "opening_hours", label: "Opening hours", type: "text" },
+    ],
   },
   {
-    key: "delivery_fee_thirdparty",
-    label: "Third-party delivery fee (₦)",
-    type: "money",
+    id: "operations",
+    title: "Operations",
+    description: "Delivery pricing and fulfilment options used across the storefront.",
+    icon: Truck,
+    keys: [
+      { key: "delivery_fee_own", label: "Own-fleet delivery fee (₦)", type: "money" },
+      { key: "delivery_fee_thirdparty", label: "Third-party delivery fee (₦)", type: "money" },
+      { key: "pickup_available", label: "Pickup available", type: "boolean" },
+    ],
   },
-  { key: "pickup_available", label: "Pickup available", type: "boolean" },
-  { key: "whatsapp_number", label: "WhatsApp number", type: "text" },
-  { key: "instagram_handle", label: "Instagram handle", type: "text" },
-  { key: "facebook_page", label: "Facebook page", type: "text" },
-  { key: "opening_hours", label: "Opening hours", type: "text" },
-  { key: "return_policy", label: "Return policy", type: "textarea" },
-  { key: "privacy_policy", label: "Privacy policy", type: "textarea" },
   {
-    key: "terms_and_conditions",
-    label: "Terms & conditions",
-    type: "textarea",
+    id: "policies",
+    title: "Store Policies",
+    description: "Customer-facing policies and legal information for the store.",
+    icon: FileText,
+    keys: [
+      { key: "return_policy", label: "Return policy", type: "textarea" },
+      { key: "privacy_policy", label: "Privacy policy", type: "textarea" },
+      { key: "terms_and_conditions", label: "Terms & conditions", type: "textarea" },
+    ],
   },
 ];
+
+const DIRTY_STATUS_MAP = {
+  dirty: {
+    label: "Unsaved changes",
+    className: "bg-amber-100 text-amber-700",
+  },
+};
+
+const flattenSections = () => SECTIONS.flatMap((section) => section.keys);
 
 const AdminSettingsPage = () => {
   const queryClient = useQueryClient();
@@ -43,48 +73,157 @@ const AdminSettingsPage = () => {
   });
 
   const [values, setValues] = useState({});
-  const [savedAt, setSavedAt] = useState(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
-  // Merge server data with the known key list so every field renders.
-  const merged = SETTINGS_KEYS.map((k) => {
-    const existing = (settings || []).find((s) => s.key === k.key);
-    return { ...k, value: existing ? existing.value : "" };
-  });
+  const settingsByKey = new Map((settings || []).map((setting) => [setting.key, setting.value]));
+
+  const merged = flattenSections().map((k) => ({
+    ...k,
+    value: settingsByKey.has(k.key) ? settingsByKey.get(k.key) : "",
+  }));
+
+  const isDirty = merged.some(
+    (k) => values[k.key] !== undefined && String(values[k.key]) !== String(k.value),
+  );
 
   const updateMutation = useMutation({
     mutationFn: (payload) => api.put("/settings", payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin", "settings"] });
-      setSavedAt(new Date().toLocaleTimeString());
+      setValues({});
+      toast.success("Settings saved.");
+    },
+    onError: (err) => {
+      toast.error(err?.response?.data?.message || err?.message || "Failed to save settings.");
     },
   });
 
   const handleChange = (key, value) => {
-    setValues((v) => ({ ...v, [key]: value }));
+    setValues((current) => ({ ...current, [key]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = (event) => {
+    event.preventDefault();
+
+    if (!isDirty || updateMutation.isPending) return;
+
     const payload = {};
+
     merged.forEach((k) => {
       const v = values[k.key] !== undefined ? values[k.key] : k.value;
-      if (k.type === "boolean") payload[k.key] = v === true || v === "true";
-      else if (k.type === "money")
-        payload[k.key] = v === "" || v == null ? null : Math.round(Number(v) * 100);
-      else payload[k.key] = v;
+
+      if (k.type === "boolean") {
+        payload[k.key] = v === true || v === "true";
+      } else if (k.type === "money") {
+        payload[k.key] = v === "" || v == null ? null : toKobo(v);
+      } else {
+        payload[k.key] = v;
+      }
     });
+
     updateMutation.mutate(payload);
   };
 
   const handleReset = () => {
+    if (!isDirty) return;
+    setConfirmReset(true);
+  };
+
+  const confirmResetAction = () => {
     setValues({});
-    setSavedAt(null);
+    setConfirmReset(false);
+  };
+
+  const currentValue = (k) => (values[k.key] !== undefined ? values[k.key] : k.value);
+
+  const renderField = (k) => {
+    const id = `setting-${k.key}`;
+    const current = currentValue(k);
+
+    if (k.type === "textarea") {
+      return (
+        <textarea
+          id={id}
+          rows={4}
+          value={current ?? ""}
+          onChange={(e) => handleChange(k.key, e.target.value)}
+          className={`${ADMIN_FIELD_CLASS} resize-y`}
+        />
+      );
+    }
+
+    if (k.type === "boolean") {
+      const enabled = current === true || current === "true";
+
+      return (
+        <Dropdown
+          color="surface"
+          fullWidth
+          menuRole="listbox"
+          trigger={
+            <span className="flex min-w-0 items-center justify-between gap-2 truncate text-left">
+              <span>{enabled ? "Enabled" : "Disabled"}</span>
+              <Check className="h-4 w-4 shrink-0 text-primary" />
+            </span>
+          }
+        >
+          <button
+            type="button"
+            role="option"
+            aria-selected={enabled}
+            onClick={() => handleChange(k.key, true)}
+            className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-background-soft"
+          >
+            <span>Enabled</span>
+            {enabled && <Check className="h-4 w-4 text-primary" />}
+          </button>
+
+          <button
+            type="button"
+            role="option"
+            aria-selected={!enabled}
+            onClick={() => handleChange(k.key, false)}
+            className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm hover:bg-background-soft"
+          >
+            <span>Disabled</span>
+            {!enabled && <Check className="h-4 w-4 text-primary" />}
+          </button>
+        </Dropdown>
+      );
+    }
+
+    if (k.type === "money") {
+      const displayValue = current === "" || current == null ? "" : Number(current) / 100;
+
+      return (
+        <input
+          id={id}
+          type="number"
+          step="0.01"
+          min="0"
+          value={displayValue}
+          onChange={(e) => handleChange(k.key, e.target.value)}
+          className={ADMIN_FIELD_CLASS}
+        />
+      );
+    }
+
+    return (
+      <input
+        id={id}
+        type={k.type}
+        value={current ?? ""}
+        onChange={(e) => handleChange(k.key, e.target.value)}
+        className={ADMIN_FIELD_CLASS}
+      />
+    );
   };
 
   if (isPending) {
     return (
       <div className="space-y-6">
         <AdminPageHeader title="Settings" subtitle="Loading application settings..." />
-        <TableSkeleton rows={14} cols={3} />
+        <TableSkeleton rows={8} cols={2} />
       </div>
     );
   }
@@ -95,67 +234,89 @@ const AdminSettingsPage = () => {
         title="Settings"
         subtitle="Manage business details, delivery fees and store policies."
         action={
-          <div className="flex items-center gap-2">
-            {savedAt && (
-              <span className="text-xs text-emerald-600 font-medium">Saved at {savedAt}</span>
-            )}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {isDirty && <StatusPill status="dirty" map={DIRTY_STATUS_MAP} dot />}
+
             <button
+              type="button"
               onClick={handleReset}
-              className="px-4 py-2 text-sm text-text-muted border border-border rounded-lg hover:bg-background-soft inline-flex items-center gap-2"
+              disabled={!isDirty || updateMutation.isPending}
+              className={ADMIN_SECONDARY_BUTTON_CLASS}
             >
-              <RotateCcw className="w-4 h-4" /> Reset
+              <RotateCcw className="h-4 w-4" />
+              Reset
             </button>
+
             <button
-              onClick={handleSave}
-              disabled={updateMutation.isPending}
-              className="px-5 py-2 bg-primary text-white font-medium rounded-lg inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-60 transition-colors"
+              type="submit"
+              form="settings-form"
+              disabled={!isDirty || updateMutation.isPending}
+              className={ADMIN_PRIMARY_BUTTON_CLASS}
             >
-              <Save className="w-4 h-4" /> {updateMutation.isPending ? "Saving..." : "Save All"}
+              <Save className="h-4 w-4" />
+              {updateMutation.isPending ? "Saving..." : "Save All"}
             </button>
           </div>
         }
       />
 
-      <div className="bg-surface rounded-2xl border border-border divide-y divide-border">
-        {merged.map((k) => {
-          const current = values[k.key] !== undefined ? values[k.key] : k.value;
+      <form id="settings-form" onSubmit={handleSave} className="space-y-6">
+        {SECTIONS.map((section) => {
+          const Icon = section.icon;
+
           return (
-            <div key={k.key} className="p-5 grid sm:grid-cols-3 gap-4 items-start">
-              <div>
-                <label className="block text-sm font-medium text-text">{k.label}</label>
-                <span className="block text-xs text-text-muted font-mono mt-0.5">{k.key}</span>
+            <section
+              key={section.id}
+              className="overflow-hidden rounded-[20px] border border-border/60 bg-surface shadow-sm"
+            >
+              <div className="flex items-start gap-3 border-b border-border/60 px-5 py-4">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon className="h-5 w-5" />
+                </div>
+
+                <div>
+                  <h2 className="font-heading text-base font-semibold text-text">
+                    {section.title}
+                  </h2>
+                  <p className="mt-0.5 text-sm text-text-muted">{section.description}</p>
+                </div>
               </div>
-              <div className="sm:col-span-2">
-                {k.type === "textarea" ? (
-                  <textarea
-                    value={current ?? ""}
-                    onChange={(e) => handleChange(k.key, e.target.value)}
-                    rows={4}
-                    className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm resize-y"
-                  />
-                ) : k.type === "boolean" ? (
-                  <label className="inline-flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={current === true || current === "true"}
-                      onChange={(e) => handleChange(k.key, e.target.checked)}
-                    />
-                    Enabled
-                  </label>
-                ) : (
-                  <input
-                    type={k.type === "money" ? "number" : "text"}
-                    step={k.type === "money" ? "0.01" : undefined}
-                    value={current ?? ""}
-                    onChange={(e) => handleChange(k.key, e.target.value)}
-                    className="w-full px-3 py-2 bg-background-soft border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
-                  />
-                )}
+
+              <div className="divide-y divide-border/60">
+                {section.keys.map((k) => {
+                  const id = `setting-${k.key}`;
+
+                  return (
+                    <div key={k.key} className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:gap-6">
+                      <div className="sm:w-56 sm:shrink-0">
+                        <label htmlFor={id} className={ADMIN_LABEL_CLASS}>
+                          {k.label}
+                        </label>
+                        <span className="mt-1 block font-mono text-[11px] text-text-muted">
+                          {k.key}
+                        </span>
+                      </div>
+
+                      <div className="min-w-0 flex-1">{renderField(k)}</div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            </section>
           );
         })}
-      </div>
+      </form>
+
+      <ConfirmModal
+        open={confirmReset}
+        onClose={() => setConfirmReset(false)}
+        onConfirm={confirmResetAction}
+        title="Discard unsaved changes?"
+        description="Your unsaved settings changes will be discarded and the saved values will be restored."
+        confirmLabel="Discard changes"
+        variant="destructive"
+        adminStyle
+      />
     </div>
   );
 };
