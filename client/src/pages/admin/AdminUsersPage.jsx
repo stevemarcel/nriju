@@ -199,7 +199,10 @@ const AdminUsersPage = () => {
 
   return (
     <div>
-      <AdminPageHeader title="Staff & Users" />
+      <AdminPageHeader
+        title="Staff & Users"
+        subtitle="Manage staff access, customer accounts and account status."
+      />
 
       {/* Filter bar */}
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">

@@ -36,7 +36,7 @@ const AdminCustomersPage = () => {
     <div>
       <AdminPageHeader
         title="Customers"
-        subtitle={`Showing ${customers.length} of ${meta.total} customers.`}
+        subtitle="Manage customer accounts, contact details and account status."
       />
 
       <FilterBar

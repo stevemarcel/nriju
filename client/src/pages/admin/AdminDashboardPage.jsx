@@ -52,7 +52,10 @@ const AdminDashboardPage = () => {
 
   return (
     <div>
-      <AdminPageHeader title="Dashboard" subtitle="High-level overview of the Nriju store." />
+      <AdminPageHeader
+        title="Dashboard"
+        subtitle="Track store performance, recent orders and key activity."
+      />
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

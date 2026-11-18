@@ -380,7 +380,7 @@ const AdminProductsPage = () => {
     <div>
       <AdminPageHeader
         title="Products"
-        subtitle=""
+        subtitle="Manage product details, pricing, availability and visibility."
         action={
           <button
             onClick={() => toggleModal("create")}

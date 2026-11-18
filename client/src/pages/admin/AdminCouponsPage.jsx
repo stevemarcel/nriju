@@ -70,7 +70,7 @@ const AdminCouponsPage = () => {
     <div>
       <AdminPageHeader
         title="Coupons"
-        subtitle={`${coupons.length} coupons on this page.`}
+        subtitle="Create and manage discount codes, usage limits and expiry dates."
         action={
           <button
             onClick={() => setModal("create")}

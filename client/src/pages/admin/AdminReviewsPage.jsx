@@ -56,7 +56,10 @@ const AdminReviewsPage = () => {
 
   return (
     <div>
-      <AdminPageHeader title="Reviews" subtitle={`${reviews.length} reviews on this page.`} />
+      <AdminPageHeader
+        title="Reviews"
+        subtitle="Moderate customer reviews and manage what appears in the store."
+      />
 
       {/* Filter bar */}
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">

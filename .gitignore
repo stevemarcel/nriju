@@ -21,17 +21,4 @@ Thumbs.db
 .idea
 
 # Local UX/UI agent kit
-/.claude/
-/.ds-receipts/
-/CLAUDE.md
-/accessibility/
-/components/
-/content/
-/design-systems/
-/examples/
-/frameworks/
-/scripts/
-/taste/
-/templates/
-/tokens/
-/workflows/
+/.ux-ui-agent-skills/

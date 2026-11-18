@@ -111,7 +111,10 @@ const AdminOrdersPage = () => {
 
   return (
     <div>
-      <AdminPageHeader title="Orders" />
+      <AdminPageHeader
+        title="Orders"
+        subtitle="Track orders, update statuses and review customer purchases."
+      />
 
       {/* Filter bar */}
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">

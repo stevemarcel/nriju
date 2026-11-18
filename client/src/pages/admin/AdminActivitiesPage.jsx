@@ -113,7 +113,10 @@ const AdminActivitiesPage = () => {
 
   return (
     <div>
-      <AdminPageHeader title="Activity Log" />
+      <AdminPageHeader
+        title="Activity Log"
+        subtitle="Review important admin actions and changes across the store."
+      />
 
       {/* Filter bar */}
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">
@@ -449,11 +452,7 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
 
         {/* Footer */}
         <div className="flex justify-end border-t border-border/60 bg-background px-6 py-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className={ADMIN_SECONDARY_BUTTON_CLASS}
-          >
+          <button type="button" onClick={onClose} className={ADMIN_SECONDARY_BUTTON_CLASS}>
             Close
           </button>
         </div>

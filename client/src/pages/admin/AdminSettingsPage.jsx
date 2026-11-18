@@ -81,7 +81,7 @@ const AdminSettingsPage = () => {
     <div>
       <AdminPageHeader
         title="Settings"
-        subtitle="Business details, delivery fees, and policy text."
+        subtitle="Manage business details, delivery fees and store policies."
         action={
           <div className="flex items-center gap-2">
             {savedAt && (
