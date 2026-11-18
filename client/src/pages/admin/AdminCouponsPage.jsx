@@ -11,8 +11,8 @@ import {
   TableSkeleton,
   EmptyState,
   StatusPill,
-  formatDate,
 } from "../../components/admin/AdminPrimitives";
+import { formatDate } from "../../utils/formatDate";
 import { formatNaira } from "../../utils/formatMoney";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import CouponFormModal from "../../components/admin/CouponFormModal";
