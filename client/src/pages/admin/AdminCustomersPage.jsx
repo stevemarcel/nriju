@@ -9,8 +9,8 @@ import {
   TableSkeleton,
   EmptyState,
   FilterBar,
-  formatDate,
 } from "../../components/admin/AdminPrimitives";
+import { formatDate } from "../../utils/formatDate";
 import { Users, UserCheck, UserX, Mail } from "lucide-react";
 
 const AdminCustomersPage = () => {

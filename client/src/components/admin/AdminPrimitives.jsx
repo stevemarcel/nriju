@@ -287,23 +287,6 @@ const FilterBar = ({ search, onSearch, selects = [], searchPlaceholder = "Search
   </div>
 );
 
-// Format integer kobo to a naira display string.
-const formatNaira = (kobo) =>
-  `₦${(Number(kobo) / 100).toLocaleString("en-NG", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  })}`;
-
-// Format a date into a compact, human-readable string.
-const formatDate = (d) =>
-  d
-    ? new Date(d).toLocaleDateString("en-NG", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
-    : "—";
-
 export {
   AdminPageHeader,
   AdminStatCard,
@@ -317,6 +300,4 @@ export {
   EmptyState,
   Pagination,
   FilterBar,
-  formatNaira,
-  formatDate,
 };

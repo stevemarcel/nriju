@@ -11,9 +11,9 @@ import {
   TableSkeleton,
   EmptyState,
   StatusPill,
-  formatNaira,
-  formatDate,
 } from "../../components/admin/AdminPrimitives";
+import { formatNaira } from "../../utils/formatMoney";
+import { formatDate } from "../../utils/formatDate";
 import OrderDetailsModal from "../../components/admin/OrderDetailsModal";
 import Dropdown from "../../components/ui/Dropdown";
 import {

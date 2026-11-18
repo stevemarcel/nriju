@@ -12,8 +12,8 @@ import {
   EmptyState,
   StatusPill,
   formatDate,
-  formatNaira,
 } from "../../components/admin/AdminPrimitives";
+import { formatNaira } from "../../utils/formatMoney";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import CouponFormModal from "../../components/admin/CouponFormModal";
 import { Plus, Edit, Trash2, Ticket } from "lucide-react";

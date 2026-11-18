@@ -9,9 +9,9 @@ import {
   EmptyState,
   StatusPill,
   TableSkeleton,
-  formatDate,
-  formatNaira,
 } from "../../components/admin/AdminPrimitives";
+import { formatNaira } from "../../utils/formatMoney";
+import { formatDate } from "../../utils/formatDate";
 import {
   Activity,
   ChevronRight,

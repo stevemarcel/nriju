@@ -11,8 +11,8 @@ import {
   TableSkeleton,
   EmptyState,
   StatusPill,
-  formatDate,
 } from "../../components/admin/AdminPrimitives";
+import { formatDate } from "../../utils/formatDate";
 import Dropdown from "../../components/ui/Dropdown";
 import {
   ADMIN_SECONDARY_BUTTON_CLASS,

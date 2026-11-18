@@ -12,9 +12,9 @@ import {
   TableSkeleton,
   EmptyState,
   StatusPill,
-  formatNaira,
-  formatDate,
 } from "../../components/admin/AdminPrimitives";
+import { formatNaira } from "../../utils/formatMoney";
+import { formatDate } from "../../utils/formatDate";
 import ProductFormModal from "../../components/admin/ProductFormModal";
 import StockActionModal from "../../components/admin/StockActionModal";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";

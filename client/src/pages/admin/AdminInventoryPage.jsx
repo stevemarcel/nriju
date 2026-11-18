@@ -12,8 +12,8 @@ import {
   EmptyState,
   StatusPill,
   TableSkeleton,
-  formatNaira,
 } from "../../components/admin/AdminPrimitives";
+import { formatNaira } from "../../utils/formatMoney";
 import StockActionModal from "../../components/admin/StockActionModal";
 import Dropdown from "../../components/ui/Dropdown";
 import { getCategoryIcon } from "../../utils/categoryIcons";

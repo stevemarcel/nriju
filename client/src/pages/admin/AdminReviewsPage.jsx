@@ -11,8 +11,8 @@ import {
   TableSkeleton,
   EmptyState,
   StatusPill,
-  formatDate,
 } from "../../components/admin/AdminPrimitives";
+import { formatDate } from "../../utils/formatDate";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import Dropdown from "../../components/ui/Dropdown";
 import { Star, Check, Clock, CheckCircle, X } from "lucide-react";
