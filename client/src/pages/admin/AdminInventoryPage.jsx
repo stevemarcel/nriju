@@ -452,16 +452,16 @@ const AdminInventoryPage = () => {
                           <Dropdown
                             trigger={
                               <>
-                                <ArrowDownUp className="h-3.5 w-3.5" />
+                                <ArrowDownUp className="h-3 w-3" />
                                 <span>Manage stock</span>
                               </>
                             }
-                            color="surface"
+                            color="table"
                             noBorder
                             triggerClassName="whitespace-nowrap"
                             align="right"
                             portal
-                            menuClassName="w-48"
+                            menuClassName="sm:w-44"
                           >
                             {STOCK_ACTIONS.map(({ value, label, icon: Icon, color }) => (
                               <button

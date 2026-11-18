@@ -760,7 +760,7 @@ const AdminProductsPage = () => {
                             <Dropdown
                               trigger={
                                 <>
-                                  <ArrowDownUp className="w-3 h-3" /> Adjust
+                                  <ArrowDownUp className="w-3 h-3" /> <span>Manage stock</span>
                                 </>
                               }
                               color="table"
