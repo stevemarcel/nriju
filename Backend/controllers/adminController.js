@@ -512,7 +512,7 @@ const deleteUserAvatar = asyncHandler(async (req, res) => {
 // @ROUTE       GET /api/v1/admin/activity-logs
 // @ACCESS      Admin
 const getActivityLogs = asyncHandler(async (req, res) => {
-  const { user, entity, action } = req.query;
+  const { user, entity, action, actionType } = req.query;
   const { page, limit, skip } = getPagination(req, res, 50);
   const query = {};
 
@@ -538,6 +538,14 @@ const getActivityLogs = asyncHandler(async (req, res) => {
       throw new Error("Action filter must be a string.");
     }
     query.action = action;
+  }
+
+  if (actionType !== undefined && actionType !== "") {
+    if (typeof actionType !== "string") {
+      res.status(400);
+      throw new Error("Action type filter must be a string.");
+    }
+    query.actionType = actionType;
   }
 
   const [logs, total] = await Promise.all([

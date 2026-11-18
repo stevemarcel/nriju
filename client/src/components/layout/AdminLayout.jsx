@@ -15,14 +15,14 @@ import {
   Menu,
   X,
   Clock,
-  Warehouse,
+  ClipboardList,
 } from "lucide-react";
 import { useState } from "react";
 
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/products", label: "Products", icon: Package },
-  { to: "/admin/inventory", label: "Inventory", icon: Warehouse },
+  { to: "/admin/inventory", label: "Inventory", icon: ClipboardList },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { to: "/admin/users", label: "Staff & Users", icon: UserCog },
   { to: "/admin/reviews", label: "Reviews", icon: Star },

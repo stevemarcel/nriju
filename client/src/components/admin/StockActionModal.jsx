@@ -96,10 +96,13 @@ const StockActionModal = ({ product, action, onClose }) => {
 
   const saveMutation = useMutation({
     mutationFn,
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin", "inventory"] });
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["admin", "inventory"] }),
+        qc.invalidateQueries({ queryKey: ["admin", "products"] }),
+        qc.invalidateQueries({ queryKey: ["admin", "activities"] }),
+      ]);
       toast.success(cfg.label + " saved successfully.");
-      setConfirmOpen(false);
       onClose();
     },
     onError: (err) => toast.error(err?.response?.data?.message || err.message || "Failed to save."),
@@ -131,6 +134,7 @@ const StockActionModal = ({ product, action, onClose }) => {
   };
 
   const handleConfirm = () => {
+    setConfirmOpen(false);
     saveMutation.mutate();
   };
 

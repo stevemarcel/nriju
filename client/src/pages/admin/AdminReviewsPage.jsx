@@ -3,20 +3,29 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../services/api";
 import {
   AdminPageHeader,
+  AdminFilterBar,
+  AdminSearchInput,
+  AdminTableHeader,
+  AdminTablePagination,
+  ADMIN_TABLE_HEAD_ROW_CLASS,
   TableSkeleton,
   EmptyState,
-  Pagination,
   StatusPill,
   formatDate,
 } from "../../components/admin/AdminPrimitives";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import Dropdown from "../../components/ui/Dropdown";
-import { Star, Search, Check, Clock, CheckCircle, X } from "lucide-react";
+import { Star, Check, Clock, CheckCircle, X } from "lucide-react";
 
 const FILTER_OPTIONS = [
   { value: "", label: "All", icon: Star, color: "text-text-muted" },
   { value: "pending", label: "Pending", icon: Clock, color: "text-amber-500" },
-  { value: "approved", label: "Approved", icon: CheckCircle, color: "text-emerald-500" },
+  {
+    value: "approved",
+    label: "Approved",
+    icon: CheckCircle,
+    color: "text-emerald-500",
+  },
   { value: "rejected", label: "Rejected", icon: X, color: "text-rose-500" },
 ];
 
@@ -55,76 +64,77 @@ const AdminReviewsPage = () => {
   const handleModerate = (r, newStatus) => setModerateTarget({ review: r, status: newStatus });
 
   return (
-    <div>
+    <div className="space-y-6">
       <AdminPageHeader
         title="Reviews"
         subtitle="Moderate customer reviews and manage what appears in the store."
       />
 
       {/* Filter bar */}
-      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">
-        {/* Search */}
-        <div className="relative flex-3 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-          <input
-            type="text"
+      <AdminFilterBar
+        filterCount={1}
+        ariaLabel="Review filters"
+        search={
+          <AdminSearchInput
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
+            onChange={(value) => {
+              setSearch(value);
               setPage(1);
             }}
             placeholder="Search reviews..."
-            className="w-full pl-9 pr-4 py-2 bg-primary/5 border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
+            ariaLabel="Search reviews"
           />
+        }
+      >
+        {/* Status Filter */}
+        <div className="relative min-w-0">
+          <Dropdown
+            trigger={
+              <>
+                {(() => {
+                  const { icon, color } = FILTER_OPTIONS.find((s) => s.value === statusFilter);
+                  const Icon = icon || Star;
+                  return (
+                    <Icon className={`w-4 h-4 mr-2 ${color} text-white group-hover:text-white`} />
+                  );
+                })()}
+                <span className="flex-1 text-left whitespace-nowrap">
+                  {" "}
+                  {FILTER_OPTIONS.find((s) => s.value === statusFilter).label}
+                </span>
+              </>
+            }
+            color="primary"
+            fullWidth
+            menuClassName="sm:w-48"
+          >
+            {FILTER_OPTIONS.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => {
+                  setStatusFilter(s.value);
+                  setPage(1);
+                }}
+                className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                  statusFilter === s.value ? "text-primary font-semibold bg-primary/5" : "text-text"
+                }`}
+              >
+                <s.icon className={`w-4 h-4 ${s.color}`} />
+                <span className="flex-1">{s.label}</span>
+                {statusFilter === s.value && <Check className="w-3.5 h-3.5" />}
+              </button>
+            ))}
+          </Dropdown>
         </div>
-
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 flex-wrap flex-2">
-          {/* Status Filter */}
-          <div className="relative w-full md:w-0 md:flex-1">
-            <Dropdown
-              trigger={
-                <>
-                  {(() => {
-                    const { icon, color } = FILTER_OPTIONS.find((s) => s.value === statusFilter);
-                    const Icon = icon || Star;
-                    return (
-                      <Icon className={`w-4 h-4 mr-2 ${color} text-white group-hover:text-white`} />
-                    );
-                  })()}
-                  <span className="flex-1 text-left whitespace-nowrap">
-                    {" "}
-                    {FILTER_OPTIONS.find((s) => s.value === statusFilter).label}
-                  </span>
-                </>
-              }
-              color="primary"
-              fullWidth
-              menuClassName="sm:w-48"
-            >
-              {FILTER_OPTIONS.map((s) => (
-                <button
-                  key={s.value}
-                  onClick={() => {
-                    setStatusFilter(s.value);
-                    setPage(1);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                    statusFilter === s.value
-                      ? "text-primary font-semibold bg-primary/5"
-                      : "text-text"
-                  }`}
-                >
-                  <s.icon className={`w-4 h-4 ${s.color}`} />
-                  <span className="flex-1">{s.label}</span>
-                  {statusFilter === s.value && <Check className="w-3.5 h-3.5" />}
-                </button>
-              ))}
-            </Dropdown>
-          </div>
-        </div>
-      </div>
+      </AdminFilterBar>
 
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 overflow-hidden">
+        <AdminTableHeader
+          title="Customer reviews"
+          description="Moderate feedback before it appears in the store."
+          total={meta.total}
+          countLabel="reviews"
+        />
         <div className="overflow-x-auto">
           {isPending ? (
             <TableSkeleton rows={6} cols={7} />
@@ -136,7 +146,7 @@ const AdminReviewsPage = () => {
           ) : (
             <table className="w-full text-sm min-w-max">
               <thead>
-                <tr className="bg-primary/95 text-on-accent text-xs uppercase tracking-wider font-semibold border-b-2 border-primary">
+                <tr className={ADMIN_TABLE_HEAD_ROW_CLASS}>
                   <th className="text-left py-4 px-4">Product</th>
                   <th className="text-left py-4 px-4">Reviewer</th>
                   <th className="text-center py-4 px-4">Rating</th>
@@ -188,9 +198,15 @@ const AdminReviewsPage = () => {
             </table>
           )}
         </div>
+        {!isPending && reviews.length > 0 ? (
+          <AdminTablePagination
+            page={page}
+            total={meta.total}
+            limit={meta.limit}
+            onChange={setPage}
+          />
+        ) : null}
       </div>
-
-      <Pagination page={page} total={meta.total} limit={meta.limit} onChange={setPage} />
 
       {moderateTarget && (
         <ConfirmModal

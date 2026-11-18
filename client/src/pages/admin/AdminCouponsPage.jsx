@@ -3,20 +3,32 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../services/api";
 import {
   AdminPageHeader,
+  AdminFilterBar,
+  AdminSearchInput,
+  AdminTableHeader,
+  AdminTablePagination,
+  ADMIN_TABLE_HEAD_ROW_CLASS,
   TableSkeleton,
   EmptyState,
-  Pagination,
   StatusPill,
   formatDate,
   formatNaira,
 } from "../../components/admin/AdminPrimitives";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import CouponFormModal from "../../components/admin/CouponFormModal";
-import { Plus, Edit, Trash2, Ticket, Search } from "lucide-react";
+import { Plus, Edit, Trash2, Ticket } from "lucide-react";
 
 const COUPON_STATUS_MAP = {
-  true: { label: "Active", cls: "bg-emerald-100 text-emerald-700", dotColor: "bg-emerald-500" },
-  false: { label: "Inactive", cls: "bg-slate-100 text-slate-600", dotColor: "bg-slate-500" },
+  true: {
+    label: "Active",
+    cls: "bg-emerald-100 text-emerald-700",
+    dotColor: "bg-emerald-500",
+  },
+  false: {
+    label: "Inactive",
+    cls: "bg-slate-100 text-slate-600",
+    dotColor: "bg-slate-500",
+  },
 };
 
 // A coupon is inactive when it is toggled off OR its expiry date has passed.
@@ -67,7 +79,7 @@ const AdminCouponsPage = () => {
   const handleDelete = (c) => setDeleteTarget(c);
 
   return (
-    <div>
+    <div className="space-y-6">
       <AdminPageHeader
         title="Coupons"
         subtitle="Create and manage discount codes, usage limits and expiry dates."
@@ -82,24 +94,29 @@ const AdminCouponsPage = () => {
       />
 
       {/* Filter bar */}
-      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">
-        {/* Search */}
-        <div className="relative flex-3 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-          <input
-            type="text"
+      <AdminFilterBar
+        filterCount={0}
+        ariaLabel="Coupon search"
+        search={
+          <AdminSearchInput
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
+            onChange={(value) => {
+              setSearch(value);
               setPage(1);
             }}
             placeholder="Search coupons..."
-            className="w-full pl-9 pr-4 py-2 bg-primary/5 border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
+            ariaLabel="Search coupons"
           />
-        </div>
-      </div>
+        }
+      />
 
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 overflow-hidden">
+        <AdminTableHeader
+          title="Discount codes"
+          description="Review availability, usage limits and expiry dates."
+          total={meta.total}
+          countLabel="coupons"
+        />
         <div className="overflow-x-auto">
           {isPending ? (
             <TableSkeleton rows={6} cols={7} />
@@ -111,7 +128,7 @@ const AdminCouponsPage = () => {
           ) : (
             <table className="w-full text-sm min-w-max">
               <thead>
-                <tr className="bg-primary/95 text-on-accent text-xs uppercase tracking-wider font-semibold border-b-2 border-primary">
+                <tr className={ADMIN_TABLE_HEAD_ROW_CLASS}>
                   <th className="text-left py-4 px-4">Code</th>
                   <th className="text-left py-4 px-4">Type</th>
                   <th className="text-right py-4 px-4">Value</th>
@@ -167,9 +184,15 @@ const AdminCouponsPage = () => {
             </table>
           )}
         </div>
+        {!isPending && coupons.length > 0 ? (
+          <AdminTablePagination
+            page={page}
+            total={meta.total}
+            limit={meta.limit}
+            onChange={setPage}
+          />
+        ) : null}
       </div>
-
-      <Pagination page={page} total={meta.total} limit={meta.limit} onChange={setPage} />
 
       <CouponFormModal
         key={modal ? (modal === "create" ? "create" : "edit-" + modal.edit._id) : "closed"}

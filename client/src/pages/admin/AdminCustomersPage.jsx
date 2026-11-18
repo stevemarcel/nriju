@@ -3,9 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../services/api";
 import {
   AdminPageHeader,
+  AdminTableHeader,
+  AdminTablePagination,
+  ADMIN_TABLE_HEAD_ROW_CLASS,
   TableSkeleton,
   EmptyState,
-  Pagination,
   FilterBar,
   formatDate,
 } from "../../components/admin/AdminPrimitives";
@@ -48,7 +50,13 @@ const AdminCustomersPage = () => {
         selects={[]}
       />
 
-      <div className="bg-surface rounded-xl border border-border overflow-hidden">
+      <div className="overflow-hidden rounded-[20px] border border-border/60 bg-surface shadow-sm">
+        <AdminTableHeader
+          title="Customer list"
+          description="Review contact details and account status."
+          total={meta.total}
+          countLabel="customers"
+        />
         <div className="overflow-x-auto">
           {isPending ? (
             <TableSkeleton rows={6} cols={6} />
@@ -60,16 +68,16 @@ const AdminCustomersPage = () => {
           ) : (
             <table className="w-full text-sm min-w-max">
               <thead>
-                <tr className="bg-background-soft/50">
-                  <th className="text-left font-medium py-3 px-4">Customer</th>
-                  <th className="text-left font-medium py-3 px-4">Email</th>
-                  <th className="text-left font-medium py-3 px-4">Phone</th>
-                  <th className="text-center font-medium py-3 px-4">Verified</th>
-                  <th className="text-center font-medium py-3 px-4">Active</th>
-                  <th className="text-right font-medium py-3 px-4">Joined</th>
+                <tr className={ADMIN_TABLE_HEAD_ROW_CLASS}>
+                  <th className="px-4 py-4 text-left">Customer</th>
+                  <th className="px-4 py-4 text-left">Email</th>
+                  <th className="px-4 py-4 text-left">Phone</th>
+                  <th className="px-4 py-4 text-center">Verified</th>
+                  <th className="px-4 py-4 text-center">Active</th>
+                  <th className="px-4 py-4 text-right">Joined</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border">
+              <tbody className="admin-table divide-y divide-border">
                 {customers.map((u) => (
                   <tr key={u._id} className="hover:bg-background-soft/30">
                     <td className="py-3 px-4">
@@ -115,9 +123,15 @@ const AdminCustomersPage = () => {
             </table>
           )}
         </div>
+        {!isPending && customers.length > 0 ? (
+          <AdminTablePagination
+            page={page}
+            total={meta.total}
+            limit={meta.limit}
+            onChange={setPage}
+          />
+        ) : null}
       </div>
-
-      <Pagination page={page} total={meta.total} limit={meta.limit} onChange={setPage} />
     </div>
   );
 };

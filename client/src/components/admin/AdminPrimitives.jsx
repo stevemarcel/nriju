@@ -1,5 +1,7 @@
-import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Search } from "lucide-react";
+
+const ADMIN_TABLE_HEAD_ROW_CLASS =
+  "border-b-2 border-primary bg-primary/95 text-xs font-semibold uppercase tracking-wider text-on-accent";
 
 // Page title + subtitle + optional action button. Keeps admin headers consistent.
 const AdminPageHeader = ({ title, subtitle, action }) => (
@@ -12,13 +14,69 @@ const AdminPageHeader = ({ title, subtitle, action }) => (
   </div>
 );
 
+const AdminStatCard = ({ label, value, icon: Icon, tone = "primary", meta, loading = false }) => {
+  const tones = {
+    primary: "bg-primary/5 text-primary",
+    success: "bg-emerald-50 text-emerald-600",
+    warning: "bg-amber-50 text-amber-600",
+    danger: "bg-rose-50 text-rose-600",
+  };
+
+  return (
+    <div className="relative min-w-0 overflow-hidden rounded-[20px] border border-border/60 bg-surface p-4 shadow-sm sm:p-5">
+      <div className="relative z-10 mb-3 flex items-start justify-between gap-3">
+        <span className={`rounded-xl p-2 ${tones[tone] || tones.primary}`}>
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        {meta}
+      </div>
+      <p className="relative z-10 text-sm font-medium text-text-muted">{label}</p>
+      <div className="relative z-10 mt-1 min-h-8 wrap-break-word font-heading text-2xl font-bold text-text">
+        {loading ? (
+          <span className="inline-flex items-center gap-2" role="status">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" aria-hidden="true" />
+            <span className="sr-only">Loading {label.toLowerCase()}</span>
+          </span>
+        ) : (
+          value
+        )}
+      </div>
+      <svg
+        className="pointer-events-none absolute -bottom-2 -right-2 h-20 w-20 text-primary/5"
+        viewBox="0 0 100 100"
+        fill="currentColor"
+        aria-hidden="true"
+      >
+        <path d="M100 0C44.77 0 0 44.77 0 100h100V0z" />
+      </svg>
+    </div>
+  );
+};
+
+const AdminTableHeader = ({ title, description, total, countLabel = "items" }) => (
+  <div className="flex flex-col gap-1 border-b border-border/60 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+    <div>
+      <h2 className="font-heading text-lg font-semibold text-text">{title}</h2>
+      {description ? <p className="text-xs text-text-muted">{description}</p> : null}
+    </div>
+    {Number.isFinite(Number(total)) ? (
+      <span className="shrink-0 text-xs text-text-muted">
+        {Number(total).toLocaleString("en-NG")} {countLabel}
+      </span>
+    ) : null}
+  </div>
+);
+
 // Colour-coded status pill. Statuses are domain-specific, so callers pass a map.
 // `dot` renders a 1.5px dot instead of an icon — used for binary on/off states.
 const StatusPill = ({ status, map, dot = false }) => {
-  const cfg = map[status] || { label: status, cls: "bg-background text-text-muted" };
+  const cfg = map[status] || {
+    label: status,
+    cls: "bg-background text-text-muted",
+  };
   return (
     <span
-      className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full ${cfg.cls}`}
+      className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-medium ${cfg.cls}`}
     >
       {dot ? (
         <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${cfg.dotColor || "bg-current"}`} />
@@ -77,32 +135,39 @@ const Pagination = ({ page, total, limit, onChange }) => {
   }
 
   return (
-    <div className="flex items-center justify-center gap-3 mt-6">
+    <nav aria-label="Table pagination" className="flex items-center justify-center gap-3">
       <button
+        type="button"
         onClick={() => go(page - 1)}
         disabled={page === 1}
-        className="w-9 h-9 rounded-full border border-border bg-surface disabled:opacity-40 hover:bg-background transition-colors flex items-center justify-center"
+        aria-label="Previous page"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-primary/30 hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <ChevronLeft className="w-4 h-4 text-text-muted" />
+        <ChevronLeft className="h-4 w-4" aria-hidden="true" />
       </button>
 
-      <div className="flex items-center gap-1 bg-surface border border-border rounded-full px-2 py-1">
+      <div className="flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-1">
         {visible.map((p, idx) => {
           const isLast = idx === visible.length - 1;
           const showEllipsis = !isLast && p !== pages - 1 && visible[idx + 1] === pages;
           if (showEllipsis) {
             return (
-              <span key="ellipsis" className="px-1.5 text-text-muted text-sm select-none">
+              <span key="ellipsis" className="select-none px-1.5 text-sm text-text-secondary">
                 ...
               </span>
             );
           }
           return (
             <button
+              type="button"
               key={p}
               onClick={() => go(p)}
-              className={`w-8 h-8 rounded-full text-sm font-medium transition-colors flex items-center justify-center ${
-                p === page ? "bg-primary text-on-accent" : "text-text-muted hover:bg-background"
+              aria-label={`Page ${p}`}
+              aria-current={p === page ? "page" : undefined}
+              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                p === page
+                  ? "bg-primary text-on-accent"
+                  : "text-text-secondary hover:bg-background-soft hover:text-primary"
               }`}
             >
               {p}
@@ -112,13 +177,79 @@ const Pagination = ({ page, total, limit, onChange }) => {
       </div>
 
       <button
+        type="button"
         onClick={() => go(page + 1)}
         disabled={page === pages}
-        className="w-9 h-9 rounded-full border border-border bg-surface disabled:opacity-40 hover:bg-background transition-colors flex items-center justify-center"
+        aria-label="Next page"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-primary/30 hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <ChevronRight className="w-4 h-4 text-text-muted" />
+        <ChevronRight className="h-4 w-4" aria-hidden="true" />
       </button>
+    </nav>
+  );
+};
+
+const AdminTablePagination = (props) => {
+  const pages = Math.ceil(Number(props.total || 0) / Number(props.limit || 1));
+  if (pages <= 1) return null;
+
+  return (
+    <div className="border-t border-border/60 px-4 py-3 sm:px-5">
+      <Pagination {...props} />
     </div>
+  );
+};
+
+const FILTER_GRID_CLASSES = {
+  0: "grid-cols-1",
+  1: "grid-cols-1 sm:grid-cols-[minmax(0,1.75fr)_minmax(170px,1fr)]",
+  2: "grid-cols-1 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1.5fr)_repeat(2,minmax(170px,1fr))]",
+  3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-[minmax(220px,1.5fr)_repeat(3,minmax(150px,1fr))]",
+};
+
+const SEARCH_GRID_CLASSES = {
+  0: "",
+  1: "",
+  2: "sm:col-span-2 xl:col-span-1",
+  3: "sm:col-span-2 lg:col-span-3 xl:col-span-1",
+};
+
+const AdminSearchInput = ({
+  value,
+  onChange,
+  placeholder = "Search...",
+  ariaLabel,
+  icon: Icon = Search,
+}) => (
+  <div className="relative min-w-0">
+    <Icon
+      className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
+      aria-hidden="true"
+    />
+    <input
+      type="search"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      placeholder={placeholder}
+      aria-label={ariaLabel || placeholder}
+      className="w-full rounded-lg border border-border bg-primary/5 py-2.5 pl-9 pr-3 text-sm transition-colors focus:border-primary focus:outline-none"
+    />
+  </div>
+);
+
+const AdminFilterBar = ({ search, filterCount = 0, children, ariaLabel = "List filters" }) => {
+  const supportedCount = Math.min(Math.max(Number(filterCount) || 0, 0), 3);
+
+  return (
+    <section
+      aria-label={ariaLabel}
+      className="rounded-[20px] border border-border/60 bg-surface p-4 shadow-sm"
+    >
+      <div className={`grid gap-3 ${FILTER_GRID_CLASSES[supportedCount]}`}>
+        <div className={`min-w-0 ${SEARCH_GRID_CLASSES[supportedCount]}`}>{search}</div>
+        {children}
+      </div>
+    </section>
   );
 };
 
@@ -169,11 +300,21 @@ const formatNaira = (kobo) =>
 // Format a date into a compact, human-readable string.
 const formatDate = (d) =>
   d
-    ? new Date(d).toLocaleDateString("en-NG", { year: "numeric", month: "short", day: "numeric" })
+    ? new Date(d).toLocaleDateString("en-NG", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      })
     : "—";
 
 export {
   AdminPageHeader,
+  AdminStatCard,
+  AdminTableHeader,
+  AdminTablePagination,
+  AdminFilterBar,
+  AdminSearchInput,
+  ADMIN_TABLE_HEAD_ROW_CLASS,
   StatusPill,
   TableSkeleton,
   EmptyState,

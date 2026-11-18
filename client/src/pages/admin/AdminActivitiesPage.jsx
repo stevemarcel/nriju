@@ -3,9 +3,13 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../../services/api";
 import {
   AdminPageHeader,
+  AdminFilterBar,
+  AdminSearchInput,
+  AdminTableHeader,
+  AdminTablePagination,
+  ADMIN_TABLE_HEAD_ROW_CLASS,
   TableSkeleton,
   EmptyState,
-  Pagination,
   StatusPill,
   formatDate,
 } from "../../components/admin/AdminPrimitives";
@@ -17,7 +21,6 @@ import {
 import {
   Shield,
   ShieldCheck,
-  Search,
   Filter,
   Eye,
   Clock,
@@ -36,20 +39,50 @@ import {
 
 const ACTION_TYPE_OPTIONS = [
   { value: "", label: "All actions", icon: Clock, color: "text-text-muted" },
-  { value: "create", label: "Created", icon: CirclePlus, color: "text-emerald-600" },
+  {
+    value: "create",
+    label: "Created",
+    icon: CirclePlus,
+    color: "text-emerald-600",
+  },
   { value: "update", label: "Updated", icon: Pencil, color: "text-amber-600" },
   { value: "delete", label: "Deleted", icon: Trash2, color: "text-rose-600" },
-  { value: "role_change", label: "Role Change", icon: ShieldCheck, color: "text-blue-600" },
-  { value: "status_toggle", label: "Status Change", icon: RefreshCw, color: "text-violet-600" },
+  {
+    value: "role_change",
+    label: "Role Change",
+    icon: ShieldCheck,
+    color: "text-blue-600",
+  },
+  {
+    value: "status_toggle",
+    label: "Status Change",
+    icon: RefreshCw,
+    color: "text-violet-600",
+  },
 ];
 
 const ENTITY_TYPE_OPTIONS = [
   { value: "", label: "All entities", icon: Clock, color: "text-text-muted" },
-  { value: "product", label: "Product", icon: Package, color: "text-green-600" },
-  { value: "order", label: "Order", icon: ShoppingCart, color: "text-blue-600" },
+  {
+    value: "product",
+    label: "Product",
+    icon: Package,
+    color: "text-green-600",
+  },
+  {
+    value: "order",
+    label: "Order",
+    icon: ShoppingCart,
+    color: "text-blue-600",
+  },
   { value: "user", label: "User", icon: Users, color: "text-purple-600" },
   { value: "coupon", label: "Coupon", icon: Ticket, color: "text-amber-600" },
-  { value: "inventory", label: "Inventory", icon: Package, color: "text-cyan-600" },
+  {
+    value: "inventory",
+    label: "Inventory",
+    icon: Package,
+    color: "text-cyan-600",
+  },
 ];
 
 const ROLE_ICON_MAP = {
@@ -59,10 +92,26 @@ const ROLE_ICON_MAP = {
 };
 
 const ACTION_TYPE_MAP = {
-  create: { label: "Created", cls: "bg-emerald-100 text-emerald-700", dotColor: "bg-emerald-500" },
-  update: { label: "Updated", cls: "bg-amber-100 text-amber-700", dotColor: "bg-amber-500" },
-  delete: { label: "Deleted", cls: "bg-rose-100 text-rose-700", dotColor: "bg-rose-500" },
-  role_change: { label: "Role Change", cls: "bg-blue-100 text-blue-700", dotColor: "bg-blue-500" },
+  create: {
+    label: "Created",
+    cls: "bg-emerald-100 text-emerald-700",
+    dotColor: "bg-emerald-500",
+  },
+  update: {
+    label: "Updated",
+    cls: "bg-amber-100 text-amber-700",
+    dotColor: "bg-amber-500",
+  },
+  delete: {
+    label: "Deleted",
+    cls: "bg-rose-100 text-rose-700",
+    dotColor: "bg-rose-500",
+  },
+  role_change: {
+    label: "Role Change",
+    cls: "bg-blue-100 text-blue-700",
+    dotColor: "bg-blue-500",
+  },
   status_toggle: {
     label: "Status Change",
     cls: "bg-violet-100 text-violet-700",
@@ -83,7 +132,7 @@ const AdminActivitiesPage = () => {
     queryFn: async () => {
       const params = new URLSearchParams({ page, limit: 20 });
       if (search) params.set("search", search);
-      if (filterAction) params.set("action", filterAction);
+      if (filterAction) params.set("actionType", filterAction);
       if (filterEntity) params.set("entity", filterEntity);
       const res = await api.get(`/admin/activity-logs?${params.toString()}`);
       return res.data;
@@ -106,112 +155,109 @@ const AdminActivitiesPage = () => {
   const activities = data?.data ?? [];
   const meta = data?.meta ?? { total: 0, limit: 20 };
 
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setPage(1);
-  };
-
   return (
-    <div>
+    <div className="space-y-6">
       <AdminPageHeader
         title="Activity Log"
         subtitle="Review important admin actions and changes across the store."
       />
 
       {/* Filter bar */}
-      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 flex flex-col items-stretch md:flex-row md:items-center gap-3">
-        {/* Search */}
-        <div className="relative flex-3 min-w-0">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-          <input
-            type="text"
+      <AdminFilterBar
+        filterCount={2}
+        ariaLabel="Activity filters"
+        search={
+          <AdminSearchInput
             value={search}
-            onChange={handleSearchChange}
+            onChange={(value) => {
+              setSearch(value);
+              setPage(1);
+            }}
             placeholder="Search activities..."
-            className="w-full pl-9 pr-4 py-2 bg-primary/5 border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
+            ariaLabel="Search activities"
           />
+        }
+      >
+        {/* Action Type Filter */}
+        <div className="relative min-w-0">
+          <Dropdown
+            trigger={
+              <>
+                <Filter className="w-4 h-4 mr-2 text-white group-hover:text-white" />
+                <span className="flex-1 text-left whitespace-nowrap">
+                  {ACTION_TYPE_OPTIONS.find((s) => s.value === filterAction)?.label ||
+                    "All actions"}
+                </span>
+              </>
+            }
+            color="primary"
+            noBorder
+            fullWidth
+            menuClassName="sm:w-48"
+          >
+            {ACTION_TYPE_OPTIONS.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => {
+                  setFilterAction(s.value);
+                  setPage(1);
+                }}
+                className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                  filterAction === s.value ? "text-primary font-semibold bg-primary/5" : "text-text"
+                }`}
+              >
+                {s.icon && <s.icon className={`w-4 h-4 ${s.color || "text-text-muted"}`} />}
+                <span className="flex-1">{s.label}</span>
+                {filterAction === s.value && <Check className="w-3.5 h-3.5" />}
+              </button>
+            ))}
+          </Dropdown>
         </div>
 
-        <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 flex-wrap flex-2">
-          {/* Action Type Filter */}
-          <div className="relative w-full md:w-0 md:flex-1">
-            <Dropdown
-              trigger={
-                <>
-                  <Filter className="w-4 h-4 mr-2 text-white group-hover:text-white" />
-                  <span className="flex-1 text-left whitespace-nowrap">
-                    {ACTION_TYPE_OPTIONS.find((s) => s.value === filterAction)?.label ||
-                      "All actions"}
-                  </span>
-                </>
-              }
-              color="primary"
-              noBorder
-              fullWidth
-              menuClassName="sm:w-48"
-            >
-              {ACTION_TYPE_OPTIONS.map((s) => (
-                <button
-                  key={s.value}
-                  onClick={() => {
-                    setFilterAction(s.value);
-                    setPage(1);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                    filterAction === s.value
-                      ? "text-primary font-semibold bg-primary/5"
-                      : "text-text"
-                  }`}
-                >
-                  {s.icon && <s.icon className={`w-4 h-4 ${s.color || "text-text-muted"}`} />}
-                  <span className="flex-1">{s.label}</span>
-                  {filterAction === s.value && <Check className="w-3.5 h-3.5" />}
-                </button>
-              ))}
-            </Dropdown>
-          </div>
-
-          {/* Entity Type Filter */}
-          <div className="relative w-full md:w-0 md:flex-1">
-            <Dropdown
-              trigger={
-                <>
-                  <Clock className="w-4 h-4 mr-2 text-white group-hover:text-white" />
-                  <span className="flex-1 text-left whitespace-nowrap">
-                    {ENTITY_TYPE_OPTIONS.find((s) => s.value === filterEntity)?.label ||
-                      "All entities"}
-                  </span>
-                </>
-              }
-              color="primary"
-              noBorder
-              fullWidth
-              menuClassName="sm:w-48"
-            >
-              {ENTITY_TYPE_OPTIONS.map((s) => (
-                <button
-                  key={s.value}
-                  onClick={() => {
-                    setFilterEntity(s.value);
-                    setPage(1);
-                  }}
-                  className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
-                    filterEntity === s.value
-                      ? "text-primary font-semibold bg-primary/5"
-                      : "text-text"
-                  }`}
-                >
-                  {s.icon && <s.icon className={`w-4 h-4 ${s.color || "text-text-muted"}`} />}
-                  <span className="flex-1">{s.label}</span>
-                  {filterEntity === s.value && <Check className="w-3.5 h-3.5" />}
-                </button>
-              ))}
-            </Dropdown>
-          </div>
+        {/* Entity Type Filter */}
+        <div className="relative min-w-0">
+          <Dropdown
+            trigger={
+              <>
+                <Clock className="w-4 h-4 mr-2 text-white group-hover:text-white" />
+                <span className="flex-1 text-left whitespace-nowrap">
+                  {ENTITY_TYPE_OPTIONS.find((s) => s.value === filterEntity)?.label ||
+                    "All entities"}
+                </span>
+              </>
+            }
+            color="primary"
+            noBorder
+            fullWidth
+            menuClassName="sm:w-48"
+          >
+            {ENTITY_TYPE_OPTIONS.map((s) => (
+              <button
+                key={s.value}
+                onClick={() => {
+                  setFilterEntity(s.value);
+                  setPage(1);
+                }}
+                className={`w-full text-left px-4 py-2.5 text-sm flex items-center gap-3 hover:bg-background transition-colors ${
+                  filterEntity === s.value ? "text-primary font-semibold bg-primary/5" : "text-text"
+                }`}
+              >
+                {s.icon && <s.icon className={`w-4 h-4 ${s.color || "text-text-muted"}`} />}
+                <span className="flex-1">{s.label}</span>
+                {filterEntity === s.value && <Check className="w-3.5 h-3.5" />}
+              </button>
+            ))}
+          </Dropdown>
         </div>
-      </div>
+      </AdminFilterBar>
 
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 overflow-hidden">
+        <AdminTableHeader
+          title="Recent activity"
+          description="Review important changes made across the admin."
+          total={meta.total}
+          countLabel="activities"
+        />
         <div className="overflow-x-auto">
           {isPending ? (
             <TableSkeleton rows={6} cols={5} />
@@ -223,7 +269,7 @@ const AdminActivitiesPage = () => {
           ) : (
             <table className="w-full text-sm min-w-max">
               <thead>
-                <tr className="bg-primary/95 text-on-accent text-xs uppercase tracking-wider font-semibold border-b-2 border-primary">
+                <tr className={ADMIN_TABLE_HEAD_ROW_CLASS}>
                   <th className="text-left py-4 px-4">Date</th>
                   <th className="text-left py-4 px-4">Performed By</th>
                   <th className="text-left py-4 px-4">Action</th>
@@ -283,9 +329,15 @@ const AdminActivitiesPage = () => {
             </table>
           )}
         </div>
+        {!isPending && activities.length > 0 ? (
+          <AdminTablePagination
+            page={page}
+            total={meta.total}
+            limit={meta.limit}
+            onChange={setPage}
+          />
+        ) : null}
       </div>
-
-      <Pagination page={page} total={meta.total} limit={meta.limit} onChange={setPage} />
 
       {selectedActivity && (
         <ActivityDetailsModal

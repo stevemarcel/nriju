@@ -11,8 +11,16 @@ const SETTINGS_KEYS = [
   { key: "business_phone", label: "Business Phone", type: "text" },
   { key: "business_email", label: "Business Email", type: "text" },
   { key: "business_address", label: "Business Address", type: "text" },
-  { key: "delivery_fee_own", label: "Own-fleet delivery fee (₦)", type: "money" },
-  { key: "delivery_fee_thirdparty", label: "Third-party delivery fee (₦)", type: "money" },
+  {
+    key: "delivery_fee_own",
+    label: "Own-fleet delivery fee (₦)",
+    type: "money",
+  },
+  {
+    key: "delivery_fee_thirdparty",
+    label: "Third-party delivery fee (₦)",
+    type: "money",
+  },
   { key: "pickup_available", label: "Pickup available", type: "boolean" },
   { key: "whatsapp_number", label: "WhatsApp number", type: "text" },
   { key: "instagram_handle", label: "Instagram handle", type: "text" },
@@ -20,7 +28,11 @@ const SETTINGS_KEYS = [
   { key: "opening_hours", label: "Opening hours", type: "text" },
   { key: "return_policy", label: "Return policy", type: "textarea" },
   { key: "privacy_policy", label: "Privacy policy", type: "textarea" },
-  { key: "terms_and_conditions", label: "Terms & conditions", type: "textarea" },
+  {
+    key: "terms_and_conditions",
+    label: "Terms & conditions",
+    type: "textarea",
+  },
 ];
 
 const AdminSettingsPage = () => {
@@ -70,7 +82,7 @@ const AdminSettingsPage = () => {
 
   if (isPending) {
     return (
-      <div>
+      <div className="space-y-6">
         <AdminPageHeader title="Settings" subtitle="Loading application settings..." />
         <TableSkeleton rows={14} cols={3} />
       </div>
@@ -78,7 +90,7 @@ const AdminSettingsPage = () => {
   }
 
   return (
-    <div>
+    <div className="space-y-6">
       <AdminPageHeader
         title="Settings"
         subtitle="Manage business details, delivery fees and store policies."

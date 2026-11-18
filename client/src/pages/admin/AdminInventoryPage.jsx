@@ -3,8 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
 import {
   AdminPageHeader,
+  AdminStatCard,
+  AdminFilterBar,
+  AdminSearchInput,
+  AdminTableHeader,
+  AdminTablePagination,
+  ADMIN_TABLE_HEAD_ROW_CLASS,
   EmptyState,
-  Pagination,
   StatusPill,
   TableSkeleton,
   formatNaira,
@@ -20,14 +25,12 @@ import {
   CircleDollarSign,
   Edit3,
   FolderOpen,
-  Loader2,
   MapPin,
   Minus,
   Package,
   Plus,
-  Search,
   ShieldAlert,
-  Warehouse,
+  ClipboardList,
 } from "lucide-react";
 
 const INVENTORY_STATUS_MAP = {
@@ -54,42 +57,65 @@ const INVENTORY_STATUS_MAP = {
 };
 
 const INVENTORY_FILTERS = [
-  { value: "all", label: "All stock", icon: Warehouse },
-  { value: "active", label: "Active products", icon: Check },
-  { value: "inStock", label: "In stock", icon: Package },
-  { value: "lowStock", label: "Low stock", icon: AlertTriangle },
-  { value: "outOfStock", label: "Out of stock", icon: AlertCircle },
-  { value: "archived", label: "Archived", icon: FolderOpen },
+  {
+    value: "all",
+    label: "All stock",
+    icon: ClipboardList,
+    color: "text-text-muted",
+  },
+  {
+    value: "active",
+    label: "Active products",
+    icon: Check,
+    color: "text-emerald-500",
+  },
+  {
+    value: "inStock",
+    label: "In stock",
+    icon: Package,
+    color: "text-emerald-500",
+  },
+  {
+    value: "lowStock",
+    label: "Low stock",
+    icon: AlertTriangle,
+    color: "text-amber-500",
+  },
+  {
+    value: "outOfStock",
+    label: "Out of stock",
+    icon: AlertCircle,
+    color: "text-rose-500",
+  },
+  {
+    value: "archived",
+    label: "Archived",
+    icon: FolderOpen,
+    color: "text-slate-500",
+  },
 ];
 
 const STOCK_ACTIONS = [
   { value: "add", label: "Add stock", icon: Plus, color: "text-emerald-600" },
-  { value: "remove", label: "Remove stock", icon: Minus, color: "text-rose-600" },
-  { value: "adjust", label: "Adjust stock", icon: Edit3, color: "text-amber-600" },
-  { value: "damage", label: "Record damage", icon: ShieldAlert, color: "text-orange-600" },
+  {
+    value: "remove",
+    label: "Remove stock",
+    icon: Minus,
+    color: "text-rose-600",
+  },
+  {
+    value: "adjust",
+    label: "Adjust stock",
+    icon: Edit3,
+    color: "text-amber-600",
+  },
+  {
+    value: "damage",
+    label: "Record damage",
+    icon: ShieldAlert,
+    color: "text-orange-600",
+  },
 ];
-
-const InventoryStat = ({ label, value, icon: Icon, tone = "default", detail }) => {
-  const tones = {
-    default: "bg-primary/5 text-primary",
-    success: "bg-emerald-50 text-emerald-600",
-    warning: "bg-amber-50 text-amber-600",
-    danger: "bg-rose-50 text-rose-600",
-  };
-
-  return (
-    <div className="relative min-w-0 overflow-hidden rounded-[20px] border border-border/60 bg-surface p-4 shadow-sm sm:p-5">
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <span className={`rounded-xl p-2 ${tones[tone]}`}>
-          <Icon className="h-5 w-5" />
-        </span>
-        {detail && <span className="text-right text-xs text-text-muted">{detail}</span>}
-      </div>
-      <p className="text-sm font-medium text-text-muted">{label}</p>
-      <p className="mt-1 wrap-break-word font-heading text-2xl font-bold text-text">{value}</p>
-    </div>
-  );
-};
 
 const AdminInventoryPage = () => {
   const [search, setSearch] = useState("");
@@ -176,171 +202,157 @@ const AdminInventoryPage = () => {
       {/* Inventory overview */}
       <section
         aria-label="Inventory overview"
-        className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-4 sm:gap-4"
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4"
       >
-        <InventoryStat
+        <AdminStatCard
           label="Active products"
-          value={
-            statsPending ? (
-              <Loader2 className="h-6 w-6 animate-spin" />
-            ) : (
-              stats.activeProducts.toLocaleString("en-NG")
-            )
-          }
+          value={stats.activeProducts.toLocaleString("en-NG")}
           icon={Package}
-          tone="default"
-          detail="Active catalogue items"
-        />
-        <InventoryStat
-          label="Stock cost value"
-          value={
-            statsPending ? (
-              <Loader2 className="h-6 w-6 animate-spin" />
-            ) : (
-              formatNaira(stats.stockValue)
-            )
+          tone="primary"
+          loading={statsPending}
+          meta={
+            <span className="max-w-28 text-right text-xs text-text-muted">
+              Active catalogue items
+            </span>
           }
+        />
+        <AdminStatCard
+          label="Stock cost value"
+          value={formatNaira(stats.stockValue)}
           icon={CircleDollarSign}
           tone="success"
-          detail="Batch cost with product fallback"
-        />
-        <InventoryStat
-          label="Low stock"
-          value={
-            statsPending ? (
-              <Loader2 className="h-6 w-6 animate-spin" />
-            ) : (
-              stats.lowStock.toLocaleString("en-NG")
-            )
+          loading={statsPending}
+          meta={
+            <span className="max-w-28 text-right text-xs text-text-muted">
+              Batch cost with product fallback
+            </span>
           }
+        />
+        <AdminStatCard
+          label="Low stock"
+          value={stats.lowStock.toLocaleString("en-NG")}
           icon={AlertTriangle}
           tone="warning"
-          detail="Needs replenishment"
-        />
-        <InventoryStat
-          label="Out of stock"
-          value={
-            statsPending ? (
-              <Loader2 className="h-6 w-6 animate-spin" />
-            ) : (
-              stats.outOfStock.toLocaleString("en-NG")
-            )
+          loading={statsPending}
+          meta={
+            <span className="max-w-28 text-right text-xs text-text-muted">Needs replenishment</span>
           }
+        />
+        <AdminStatCard
+          label="Out of stock"
+          value={stats.outOfStock.toLocaleString("en-NG")}
           icon={AlertCircle}
           tone="danger"
-          detail="No available units"
+          loading={statsPending}
+          meta={
+            <span className="max-w-28 text-right text-xs text-text-muted">No available units</span>
+          }
         />
       </section>
 
       {/* Inventory filters */}
-      <section className="rounded-[20px] border border-border/60 bg-surface p-4 shadow-sm">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(220px,1.5fr)_repeat(2,minmax(170px,1fr))]">
-          <div className="relative min-w-0 sm:col-span-2 xl:col-span-1">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
-            <input
-              type="search"
-              value={search}
-              onChange={(event) => {
-                setSearch(event.target.value);
-                setPage(1);
-              }}
-              placeholder="Search products..."
-              aria-label="Search inventory products"
-              className="w-full rounded-lg border border-border bg-primary/5 py-2.5 pl-9 pr-3 text-sm transition-colors focus:border-primary focus:outline-none"
-            />
-          </div>
-
-          <div className="relative min-w-0">
-            <Dropdown
-              trigger={
-                <>
-                  <SelectedFilterIcon className="mr-2 h-4 w-4 shrink-0" />
-                  <span className="min-w-0 flex-1 truncate text-left">{selectedFilter.label}</span>
-                </>
-              }
-              color="primary"
-              fullWidth
-              menuClassName="sm:w-56"
-            >
-              {INVENTORY_FILTERS.map(({ value, label, icon: Icon }) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => changeFilter(setStockFilter, value)}
-                  className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-background ${
-                    stockFilter === value ? "bg-primary/5 font-semibold text-primary" : "text-text"
-                  }`}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span className="flex-1">{label}</span>
-                  {stockFilter === value && <Check className="h-3.5 w-3.5" />}
-                </button>
-              ))}
-            </Dropdown>
-          </div>
-
-          <div className="relative min-w-0">
-            <Dropdown
-              trigger={
-                <>
-                  <SelectedCategoryIcon className="mr-2 h-4 w-4 shrink-0" />
-                  <span className="min-w-0 flex-1 truncate text-left">
-                    {selectedCategory?.name || "All categories"}
-                  </span>
-                </>
-              }
-              color="primary"
-              fullWidth
-              menuClassName="sm:w-60"
-            >
+      <AdminFilterBar
+        filterCount={2}
+        ariaLabel="Inventory filters"
+        search={
+          <AdminSearchInput
+            value={search}
+            onChange={(value) => {
+              setSearch(value);
+              setPage(1);
+            }}
+            placeholder="Search products..."
+            ariaLabel="Search inventory products"
+          />
+        }
+      >
+        <div className="relative min-w-0">
+          <Dropdown
+            trigger={
+              <>
+                <SelectedFilterIcon
+                  className={`mr-2 h-4 w-4 shrink-0 ${selectedFilter.color} text-white group-hover:text-white`}
+                />
+                <span className="min-w-0 flex-1 truncate text-left">{selectedFilter.label}</span>
+              </>
+            }
+            color="primary"
+            fullWidth
+            menuClassName="sm:w-56"
+          >
+            {INVENTORY_FILTERS.map(({ value, label, icon: Icon, color }) => (
               <button
+                key={value}
                 type="button"
-                onClick={() => changeFilter(setCategoryFilter, "all")}
-                className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-background ${
-                  categoryFilter === "all" ? "bg-primary/5 font-semibold text-primary" : "text-text"
+                onClick={() => changeFilter(setStockFilter, value)}
+                className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors hover:bg-background ${
+                  stockFilter === value ? "bg-primary/5 font-semibold text-primary" : "text-text"
                 }`}
               >
-                <FolderOpen className="h-4 w-4" />
-                <span className="flex-1">All categories</span>
-                {categoryFilter === "all" && <Check className="h-3.5 w-3.5" />}
+                <Icon className={`h-4 w-4 shrink-0 ${color}`} />
+                <span className="flex-1">{label}</span>
+                {stockFilter === value && <Check className="h-3.5 w-3.5" />}
               </button>
-              {categories.map((category) => {
-                const { Icon, color } = getCategoryIcon(category.name);
-                return (
-                  <button
-                    key={category._id}
-                    type="button"
-                    onClick={() => changeFilter(setCategoryFilter, category._id)}
-                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-background ${
-                      categoryFilter === category._id
-                        ? "bg-primary/5 font-semibold text-primary"
-                        : "text-text"
-                    }`}
-                  >
-                    <Icon className={`h-4 w-4 ${color}`} />
-                    <span className="flex-1">{category.name}</span>
-                    {categoryFilter === category._id && <Check className="h-3.5 w-3.5" />}
-                  </button>
-                );
-              })}
-            </Dropdown>
-          </div>
+            ))}
+          </Dropdown>
         </div>
-      </section>
+
+        <div className="relative min-w-0">
+          <Dropdown
+            trigger={
+              <>
+                <SelectedCategoryIcon className="mr-2 h-4 w-4 shrink-0" />
+                <span className="min-w-0 flex-1 truncate text-left">
+                  {selectedCategory?.name || "All categories"}
+                </span>
+              </>
+            }
+            color="primary"
+            fullWidth
+            menuClassName="sm:w-60"
+          >
+            <button
+              type="button"
+              onClick={() => changeFilter(setCategoryFilter, "all")}
+              className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-background ${
+                categoryFilter === "all" ? "bg-primary/5 font-semibold text-primary" : "text-text"
+              }`}
+            >
+              <FolderOpen className="h-4 w-4" />
+              <span className="flex-1">All categories</span>
+              {categoryFilter === "all" && <Check className="h-3.5 w-3.5" />}
+            </button>
+            {categories.map((category) => {
+              const { Icon, color } = getCategoryIcon(category.name);
+              return (
+                <button
+                  key={category._id}
+                  type="button"
+                  onClick={() => changeFilter(setCategoryFilter, category._id)}
+                  className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-background ${
+                    categoryFilter === category._id
+                      ? "bg-primary/5 font-semibold text-primary"
+                      : "text-text"
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 ${color}`} />
+                  <span className="flex-1">{category.name}</span>
+                  {categoryFilter === category._id && <Check className="h-3.5 w-3.5" />}
+                </button>
+              );
+            })}
+          </Dropdown>
+        </div>
+      </AdminFilterBar>
 
       {/* Inventory list */}
       <section className="overflow-hidden rounded-[20px] border border-border/60 bg-surface shadow-sm">
-        <div className="flex flex-col gap-1 border-b border-border/60 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-          <div>
-            <h2 className="font-heading text-lg font-semibold text-text">Stock by product</h2>
-            <p className="text-xs text-text-muted">
-              Manage available quantities and record stock movements.
-            </p>
-          </div>
-          <span className="text-xs text-text-muted">
-            {meta.total.toLocaleString("en-NG")} products
-          </span>
-        </div>
+        <AdminTableHeader
+          title="Stock by product"
+          description="Manage available quantities and record stock movements."
+          total={meta.total}
+          countLabel="products"
+        />
 
         <div className="overflow-x-auto">
           {isPending ? (
@@ -353,21 +365,21 @@ const AdminInventoryPage = () => {
             />
           ) : products.length === 0 ? (
             <EmptyState
-              icon={<Warehouse className="mx-auto h-10 w-10 text-text-muted" />}
+              icon={<ClipboardList className="mx-auto h-10 w-10 text-text-muted" />}
               title="No inventory found"
               description="Try changing your search or filters. Products with no stock will still appear when you select All stock."
             />
           ) : (
-            <table className="w-full min-w-230 text-sm">
+            <table className="w-full min-w-5xl text-sm">
               <thead>
-                <tr className="border-b-2 border-primary bg-primary/95 text-xs font-semibold uppercase tracking-wider text-on-accent">
-                  <th className="px-4 py-4 text-left">Product</th>
-                  <th className="px-4 py-4 text-left">Category</th>
-                  <th className="px-4 py-4 text-right">Cost / unit</th>
-                  <th className="px-4 py-4 text-right">Selling price</th>
-                  <th className="px-4 py-4 text-center">Available stock</th>
-                  <th className="px-4 py-4 text-center">Status</th>
-                  <th className="px-4 py-4 text-right">Actions</th>
+                <tr className={ADMIN_TABLE_HEAD_ROW_CLASS}>
+                  <th className="min-w-60 px-4 py-4 text-left">Product</th>
+                  <th className="min-w-40 px-4 py-4 text-left">Category</th>
+                  <th className="w-32 whitespace-nowrap px-4 py-4 text-right">Cost / unit</th>
+                  <th className="w-32 whitespace-nowrap px-4 py-4 text-right">Selling price</th>
+                  <th className="w-36 whitespace-nowrap px-4 py-4 text-center">Available stock</th>
+                  <th className="w-32 px-4 py-4 text-center">Status</th>
+                  <th className="w-44 px-4 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border admin-table">
@@ -405,7 +417,7 @@ const AdminInventoryPage = () => {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-text-muted">
-                        <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                           <CategoryIcon className="h-3.5 w-3.5" />
                           {product.category || "—"}
                         </span>
@@ -421,10 +433,12 @@ const AdminInventoryPage = () => {
                         {formatNaira(product.price)}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <span className="font-semibold tabular-nums text-text">
-                          {Number(product.stock ?? 0).toLocaleString("en-NG")}
+                        <span className="inline-flex items-baseline gap-1 whitespace-nowrap">
+                          <span className="font-semibold tabular-nums text-text">
+                            {Number(product.stock ?? 0).toLocaleString("en-NG")}
+                          </span>
+                          <span className="text-xs text-text-muted">{product.unit}</span>
                         </span>
-                        <span className="ml-1 text-xs text-text-muted">{product.unit}</span>
                       </td>
                       <td className="px-4 py-3 text-center">
                         <StatusPill
@@ -433,7 +447,7 @@ const AdminInventoryPage = () => {
                           dot
                         />
                       </td>
-                      <td className="px-4 py-3 text-right">
+                      <td className="whitespace-nowrap px-4 py-3 text-right">
                         <div className="flex justify-end">
                           <Dropdown
                             trigger={
@@ -444,6 +458,7 @@ const AdminInventoryPage = () => {
                             }
                             color="surface"
                             noBorder
+                            triggerClassName="whitespace-nowrap"
                             align="right"
                             portal
                             menuClassName="w-48"
@@ -471,16 +486,20 @@ const AdminInventoryPage = () => {
           )}
         </div>
 
-        {!isPending && !isError && products.length > 0 && (
-          <div className="border-t border-border/60 px-4 py-3 sm:px-5">
-            <Pagination
-              page={meta.page || page}
-              total={meta.total || 0}
-              limit={meta.limit || 10}
-              onChange={setPage}
-            />
-          </div>
-        )}
+        {!isPending && !isError && products.length > 0 ? (
+          <AdminTablePagination
+            page={meta.page || page}
+            total={meta.total || 0}
+            limit={meta.limit || 10}
+            onChange={setPage}
+          />
+        ) : null}
+
+        <p className="flex items-start gap-2 border-t border-border/60 bg-background-soft/30 px-4 py-3 text-xs text-text-muted sm:px-5">
+          <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          Stock cost value uses each batch's acquisition cost, with the product's saved cost as a
+          fallback when a batch has no cost.
+        </p>
       </section>
 
       {/* Stock actions continue to use the shared stock modal and API workflow. */}
@@ -491,12 +510,6 @@ const AdminInventoryPage = () => {
           onClose={() => setStockAction(null)}
         />
       )}
-
-      <p className="flex items-start gap-2 text-xs text-text-muted">
-        <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-        Stock cost value uses each batch's acquisition cost, with the product's saved cost as a
-        fallback when a batch has no cost.
-      </p>
     </div>
   );
 };

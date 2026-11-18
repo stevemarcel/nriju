@@ -70,7 +70,9 @@ const run = async () => {
 
   console.log(`Created temporary test product: ${product.name}`);
 
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "15m",
+  });
 
   const app = express();
 
@@ -225,8 +227,10 @@ const run = async () => {
 
   assert.equal(activities.length, 6);
   assert.ok(activities.every((activity) => activity.user.toString() === user._id.toString()));
+  assert.ok(activities.every((activity) => activity.entity === "inventory"));
+  assert.ok(activities.every((activity) => activity.action.startsWith("inventory.stock_")));
 
-  pass("All six successful API mutations generated activity log records");
+  pass("All six successful API mutations generated inventory activity log records");
 
   console.log("\n========== API TEST SUMMARY ==========");
   console.log("ALL INVENTORY COSTING API TESTS PASSED.");

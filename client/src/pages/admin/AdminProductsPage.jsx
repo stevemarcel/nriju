@@ -3,9 +3,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../../services/api";
 import {
   AdminPageHeader,
+  AdminStatCard,
+  AdminFilterBar,
+  AdminSearchInput,
+  AdminTableHeader,
+  AdminTablePagination,
+  ADMIN_TABLE_HEAD_ROW_CLASS,
   TableSkeleton,
   EmptyState,
-  Pagination,
   StatusPill,
   formatNaira,
   formatDate,
@@ -22,7 +27,6 @@ import {
   Package,
   RotateCcw,
   Archive,
-  Search,
   Check,
   Loader2,
   FolderOpen,
@@ -36,8 +40,16 @@ import {
 import { toast } from "sonner";
 
 const PRODUCT_STATUS_MAP = {
-  true: { label: "Active", cls: "bg-emerald-100 text-emerald-700", dotColor: "bg-emerald-500" },
-  false: { label: "Archived", cls: "bg-rose-100 text-rose-700", dotColor: "bg-rose-500" },
+  true: {
+    label: "Active",
+    cls: "bg-emerald-100 text-emerald-700",
+    dotColor: "bg-emerald-500",
+  },
+  false: {
+    label: "Archived",
+    cls: "bg-rose-100 text-rose-700",
+    dotColor: "bg-rose-500",
+  },
 };
 
 const PRODUCT_SORT_OPTIONS = [
@@ -70,8 +82,16 @@ const AdminProductsPage = () => {
     all: { label: "All Products", Icon: Package, color: "text-text-muted" },
     active: { label: "Active", Icon: Check, color: "text-emerald-500" },
     archived: { label: "Archived", Icon: Archive, color: "text-slate-500" },
-    lowStock: { label: "Low in stock", Icon: RotateCcw, color: "text-amber-500" },
-    outOfStock: { label: "Out of stock", Icon: AlertCircle, color: "text-rose-500" },
+    lowStock: {
+      label: "Low in stock",
+      Icon: RotateCcw,
+      color: "text-amber-500",
+    },
+    outOfStock: {
+      label: "Out of stock",
+      Icon: AlertCircle,
+      color: "text-rose-500",
+    },
   };
 
   // --- Query helpers ---
@@ -137,7 +157,7 @@ const AdminProductsPage = () => {
     },
   });
 
-  const { data: statsData } = useQuery({
+  const { data: statsData, isPending: statsPending } = useQuery({
     queryKey: ["admin", "products", "stats", statusFilter, categoryFilter, search],
     queryFn: async () => {
       const res = await api.get(`/products/stats?${buildParams({ search }).toString()}`);
@@ -145,7 +165,12 @@ const AdminProductsPage = () => {
     },
   });
 
-  const stats = statsData?.data ?? { total: 0, active: 0, lowStock: 0, outOfStock: 0 };
+  const stats = statsData?.data ?? {
+    total: 0,
+    active: 0,
+    lowStock: 0,
+    outOfStock: 0,
+  };
   const products = data?.data ?? [];
   const meta = data?.meta ?? { total: 0, limit: 20 };
 
@@ -155,7 +180,7 @@ const AdminProductsPage = () => {
         label: "Total Products",
         value: stats.total,
         icon: Box,
-        iconColor: "text-rose-600",
+        tone: "danger",
         pct: 0,
         trend: "neutral",
       },
@@ -163,7 +188,7 @@ const AdminProductsPage = () => {
         label: "Active",
         value: stats.active,
         icon: Check,
-        iconColor: "text-emerald-600",
+        tone: "success",
         pct: stats.total > 0 ? Math.round((stats.active / stats.total) * 100) : 0,
         trend: stats.total > 0 ? (stats.active / stats.total >= 0.8 ? "up" : "down") : "neutral",
       },
@@ -171,7 +196,7 @@ const AdminProductsPage = () => {
         label: "Low Stock",
         value: stats.lowStock,
         icon: RotateCcw,
-        iconColor: "text-amber-600",
+        tone: "warning",
         pct: stats.total > 0 ? Math.round((stats.lowStock / stats.total) * 100) : 0,
         trend: stats.lowStock === 0 ? "up" : stats.lowStock <= 2 ? "neutral" : "down",
       },
@@ -179,7 +204,7 @@ const AdminProductsPage = () => {
         label: "Out of Stock",
         value: stats.outOfStock,
         icon: AlertCircle,
-        iconColor: "text-rose-600",
+        tone: "danger",
         pct: stats.total > 0 ? Math.round((stats.outOfStock / stats.total) * 100) : 0,
         trend: stats.outOfStock === 0 ? "up" : "down",
       },
@@ -377,7 +402,7 @@ const AdminProductsPage = () => {
   const toggleModal = (v) => setModal(v);
 
   return (
-    <div>
+    <div className="space-y-6">
       <AdminPageHeader
         title="Products"
         subtitle="Manage product details, pricing, availability and visibility."
@@ -390,23 +415,55 @@ const AdminProductsPage = () => {
           </button>
         }
       />
+
+      {/* Stats row */}
+      <section
+        aria-label="Product overview"
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4"
+      >
+        {statsCards.map((s) => (
+          <AdminStatCard
+            key={s.label}
+            label={s.label}
+            value={s.value}
+            icon={s.icon}
+            tone={s.tone}
+            loading={statsPending}
+            meta={
+              statsPending ? null : (
+                <span
+                  className={`flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${
+                    s.pct === 0 || s.pct === null
+                      ? "bg-background-soft text-text-muted"
+                      : s.trend === "up"
+                        ? "bg-emerald-50 text-emerald-600"
+                        : "bg-rose-50 text-rose-600"
+                  }`}
+                >
+                  {trendPct(s)}
+                </span>
+              )
+            }
+          />
+        ))}
+      </section>
+
       {/* Filter bar */}
-      <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[minmax(190px,1.4fr)_repeat(3,minmax(135px,1fr))] gap-3">
-        {/* Search */}
-        <div className="relative min-w-0 sm:col-span-2 lg:col-span-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-          <input
-            type="text"
+      <AdminFilterBar
+        filterCount={3}
+        ariaLabel="Product filters"
+        search={
+          <AdminSearchInput
             value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
+            onChange={(value) => {
+              setSearch(value);
               setPage(1);
             }}
             placeholder="Search products..."
-            className="w-full pl-9 pr-4 py-2 bg-primary/5 border border-border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm"
+            ariaLabel="Search products"
           />
-        </div>
-
+        }
+      >
         {/* Status Filter */}
         <div className="relative w-full min-w-0">
           <Dropdown
@@ -542,56 +599,17 @@ const AdminProductsPage = () => {
             ))}
           </Dropdown>
         </div>
-      </div>
-
-      {/* Stats row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        {statsCards.map((s) => (
-          <div
-            key={s.label}
-            className="relative bg-surface rounded-[20px] p-5 shadow-sm border border-border/60 overflow-hidden"
-          >
-            <div className="flex justify-between items-start mb-3">
-              <div
-                className={`p-2 rounded-lg ${
-                  s.iconColor === "text-emerald-600"
-                    ? "bg-emerald-50"
-                    : s.iconColor === "text-amber-600"
-                      ? "bg-amber-50"
-                      : "bg-rose-50"
-                }`}
-              >
-                <s.icon className={`w-5 h-5 ${s.iconColor}`} />
-              </div>
-              <div
-                className={`px-2 py-0.5 rounded-md text-xs font-medium flex items-center gap-1 ${
-                  s.pct === 0 || s.pct === null
-                    ? "bg-background-soft text-text-muted"
-                    : s.trend === "up"
-                      ? "bg-emerald-50 text-emerald-600"
-                      : "bg-rose-50 text-rose-600"
-                }`}
-              >
-                {trendPct(s)}
-              </div>
-            </div>
-            <div className="text-sm font-medium text-text-muted">{s.label}</div>
-            <div className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</div>
-            {/* Background SVG shape */}
-            <svg
-              className="absolute -bottom-2 -right-2 w-20 h-20 text-primary/5 pointer-events-none"
-              viewBox="0 0 100 100"
-              fill="currentColor"
-            >
-              <path d="M100 0C44.77 0 0 44.77 0 100h100V0z" />
-            </svg>
-          </div>
-        ))}
-      </div>
+      </AdminFilterBar>
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 overflow-hidden">
+        <AdminTableHeader
+          title="Product catalogue"
+          description="Review product details, pricing and availability."
+          total={meta.total}
+          countLabel="products"
+        />
         {/* Bulk Actions */}
         {selectedIds.size > 0 && (
-          <div className="bg-surface border border-border/60 p-4 mb-4 rounded-[20px] flex items-center justify-between shadow-sm">
+          <div className="flex items-center justify-between border-b border-border/60 bg-background-soft/30 p-4">
             <span className="text-sm font-medium">{selectedIds.size} selected</span>
             <div className="flex gap-2">
               {hasActive && (
@@ -631,7 +649,7 @@ const AdminProductsPage = () => {
           ) : (
             <table className="w-full text-sm min-w-max">
               <thead>
-                <tr className="bg-primary/95 text-on-accent text-xs uppercase tracking-wider font-semibold border-b-2 border-primary">
+                <tr className={ADMIN_TABLE_HEAD_ROW_CLASS}>
                   <th className="py-4 px-4 w-10">
                     <button
                       onClick={toggleAll}
@@ -759,21 +777,36 @@ const AdminProductsPage = () => {
                                 <Plus className="w-3.5 h-3.5 text-emerald-500" /> Add Stock
                               </button>
                               <button
-                                onClick={() => setStockModal({ product: p, action: "remove" })}
+                                onClick={() =>
+                                  setStockModal({
+                                    product: p,
+                                    action: "remove",
+                                  })
+                                }
                                 disabled={isProcessing(p._id)}
                                 className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 hover:bg-background transition-colors disabled:opacity-50"
                               >
                                 <Minus className="w-3.5 h-3.5 text-rose-500" /> Remove Stock
                               </button>
                               <button
-                                onClick={() => setStockModal({ product: p, action: "adjust" })}
+                                onClick={() =>
+                                  setStockModal({
+                                    product: p,
+                                    action: "adjust",
+                                  })
+                                }
                                 disabled={isProcessing(p._id)}
                                 className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 hover:bg-background transition-colors disabled:opacity-50"
                               >
                                 <Edit3 className="w-3.5 h-3.5 text-amber-500" /> Adjust Stock
                               </button>
                               <button
-                                onClick={() => setStockModal({ product: p, action: "damage" })}
+                                onClick={() =>
+                                  setStockModal({
+                                    product: p,
+                                    action: "damage",
+                                  })
+                                }
                                 disabled={isProcessing(p._id)}
                                 className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 hover:bg-background transition-colors disabled:opacity-50"
                               >
@@ -781,7 +814,12 @@ const AdminProductsPage = () => {
                                 Damage
                               </button>
                               <button
-                                onClick={() => setStockModal({ product: p, action: "return" })}
+                                onClick={() =>
+                                  setStockModal({
+                                    product: p,
+                                    action: "return",
+                                  })
+                                }
                                 disabled={isProcessing(p._id)}
                                 className="w-full text-left px-3 py-2 text-xs flex items-center gap-2 hover:bg-background transition-colors disabled:opacity-50"
                               >
@@ -822,8 +860,15 @@ const AdminProductsPage = () => {
             </table>
           )}
         </div>
+        {!isPending && products.length > 0 ? (
+          <AdminTablePagination
+            page={page}
+            total={meta.total}
+            limit={meta.limit}
+            onChange={setPage}
+          />
+        ) : null}
       </div>
-      <Pagination page={page} total={meta.total} limit={meta.limit} onChange={setPage} />
 
       {/* Create / Edit Modal */}
       {modal && (
@@ -870,13 +915,13 @@ const AdminProductsPage = () => {
           confirmTarget?.ids ? (
             confirmTarget.action === "bulk-archive" ? (
               <>
-                Archive {confirmTarget.ids.length} product{confirmTarget.ids.length > 1 ? "s" : ""}?
-                They will be removed from the store.
+                Archive {confirmTarget.ids.length} product
+                {confirmTarget.ids.length > 1 ? "s" : ""}? They will be removed from the store.
               </>
             ) : confirmTarget.action === "bulk-restore" ? (
               <>
-                Restore {confirmTarget.ids.length} product{confirmTarget.ids.length > 1 ? "s" : ""}?
-                They will be back in the store.
+                Restore {confirmTarget.ids.length} product
+                {confirmTarget.ids.length > 1 ? "s" : ""}? They will be back in the store.
               </>
             ) : (
               <>

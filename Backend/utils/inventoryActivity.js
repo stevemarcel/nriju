@@ -9,18 +9,7 @@ const pluralUnit = (quantity, unit = "unit") =>
  */
 export const recordInventoryActivity = (
   req,
-  {
-    action,
-    product,
-    before,
-    after,
-    quantity,
-    reason,
-    batch,
-    unitCost,
-    supplier,
-    location,
-  }
+  { action, product, before, after, quantity, reason, batch, unitCost, supplier, location },
 ) => {
   if (!product?._id || !action) return;
 
@@ -56,7 +45,7 @@ export const recordInventoryActivity = (
 
   recordActivity(req, {
     action: `inventory.${action}`,
-    entity: "product",
+    entity: "inventory",
     entityId: product._id,
     entityName: product.name,
     actionType: "update",
