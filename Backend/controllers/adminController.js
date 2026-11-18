@@ -5,6 +5,8 @@ import Product from "../models/Product.js";
 import User from "../models/User.js";
 import Review from "../models/Review.js";
 import ActivityLog from "../models/ActivityLog.js";
+import Coupon from "../models/Coupon.js";
+import Inventory from "../models/Inventory.js";
 import {
   uploadAvatarToCloudinary,
   deleteFromCloudinary,
@@ -12,6 +14,7 @@ import {
 } from "../utils/cloudinaryUtils.js";
 import { buildAddressChanges, setUserActivity } from "../utils/userActivity.js";
 import { skipActivityLog } from "../utils/activityUtils.js";
+import { LOW_STOCK_THRESHOLD } from "../utils/inventoryConstants.js";
 
 const USER_ROLES = ["customer", "admin", "superAdmin"];
 const USER_UPDATE_FIELDS = [
@@ -28,6 +31,11 @@ const ROLE_LABELS = {
   customer: "Customer",
   admin: "Admin",
   superAdmin: "Super Admin",
+};
+
+const percentageChange = (current, previous) => {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return Number((((current - previous) / previous) * 100).toFixed(1));
 };
 
 const USER_FIELD_LABELS = {
@@ -125,18 +133,150 @@ const sanitizeAddresses = (addresses, res) => {
 // @ROUTE       GET /api/v1/admin/stats
 // @ACCESS      Admin
 const getStats = asyncHandler(async (_req, res) => {
-  const [totalOrders, totalProducts, totalUsers, pendingReviews, recentOrders, revenueAgg] =
-    await Promise.all([
-      Order.countDocuments(),
-      Product.countDocuments(),
-      User.countDocuments({ role: "customer" }),
-      Review.countDocuments({ status: "pending" }),
-      Order.find().sort("-createdAt").limit(5).populate("user", "name email"),
-      Order.aggregate([
-        { $match: { status: { $nin: ["pending", "cancelled", "refunded"] } } },
-        { $group: { _id: null, total: { $sum: "$total" } } },
-      ]),
-    ]);
+  const now = new Date();
+  const currentPeriodStart = new Date(now);
+  currentPeriodStart.setUTCDate(currentPeriodStart.getUTCDate() - 29);
+  currentPeriodStart.setUTCHours(0, 0, 0, 0);
+
+  const previousPeriodStart = new Date(currentPeriodStart);
+  previousPeriodStart.setUTCDate(previousPeriodStart.getUTCDate() - 30);
+
+  const revenueStatusFilter = { $nin: ["pending", "cancelled", "refunded"] };
+  const activeCouponFilter = {
+    isActive: true,
+    expiryDate: { $gte: now },
+    $or: [
+      { usageLimit: null },
+      { $expr: { $lt: ["$usedCount", "$usageLimit"] } },
+    ],
+  };
+
+  const [
+    totalOrders,
+    totalProducts,
+    activeProducts,
+    totalUsers,
+    pendingReviews,
+    recentOrders,
+    revenueAgg,
+    currentPeriodAgg,
+    previousPeriodAgg,
+    salesOverview,
+    stockValueAgg,
+    lowStock,
+    lowStockProducts,
+    recentActivity,
+    userRoleCounts,
+    totalCoupons,
+    activeCoupons,
+    totalReviews,
+    reviewSummary,
+  ] = await Promise.all([
+    Order.countDocuments(),
+    Product.countDocuments(),
+    Product.countDocuments({ isActive: true }),
+    User.countDocuments({ role: "customer" }),
+    Review.countDocuments({ status: "pending" }),
+    Order.find().sort("-createdAt").limit(5).populate("user", "name email"),
+    Order.aggregate([
+      { $match: { status: revenueStatusFilter } },
+      { $group: { _id: null, total: { $sum: "$total" } } },
+    ]),
+    Order.aggregate([
+      { $match: { createdAt: { $gte: currentPeriodStart }, status: revenueStatusFilter } },
+      { $group: { _id: null, revenue: { $sum: "$total" }, orders: { $sum: 1 } } },
+    ]),
+    Order.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: previousPeriodStart, $lt: currentPeriodStart },
+          status: revenueStatusFilter,
+        },
+      },
+      { $group: { _id: null, revenue: { $sum: "$total" }, orders: { $sum: 1 } } },
+    ]),
+    Order.aggregate([
+      { $match: { createdAt: { $gte: currentPeriodStart }, status: revenueStatusFilter } },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt",
+              timezone: "Africa/Lagos",
+            },
+          },
+          revenue: { $sum: "$total" },
+          orders: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]),
+    Inventory.aggregate([
+      { $match: { isActive: true, quantity: { $gt: 0 } } },
+      {
+        $lookup: {
+          from: Product.collection.name,
+          localField: "product",
+          foreignField: "_id",
+          as: "productDoc",
+        },
+      },
+      { $unwind: "$productDoc" },
+      {
+        $addFields: {
+          effectiveUnitCost: {
+            $cond: [
+              { $ne: ["$unitCost", null] },
+              "$unitCost",
+              "$productDoc.costPrice",
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: {
+            $sum: {
+              $cond: [
+                { $ne: ["$effectiveUnitCost", null] },
+                { $multiply: ["$quantity", "$effectiveUnitCost"] },
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]),
+    Product.countDocuments({
+      isActive: true,
+      stock: { $gt: 0, $lte: LOW_STOCK_THRESHOLD },
+    }),
+    Product.find({
+      isActive: true,
+      stock: { $gt: 0, $lte: LOW_STOCK_THRESHOLD },
+    })
+      .select("name stock unit images")
+      .sort({ stock: 1, name: 1 })
+      .limit(5),
+    ActivityLog.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .populate("user", "name role"),
+    User.aggregate([{ $group: { _id: "$role", count: { $sum: 1 } } }]),
+    Coupon.countDocuments(),
+    Coupon.countDocuments(activeCouponFilter),
+    Review.countDocuments(),
+    Review.aggregate([
+      { $match: { status: "approved" } },
+      { $group: { _id: null, averageRating: { $avg: "$rating" }, approved: { $sum: 1 } } },
+    ]),
+  ]);
+
+  const currentPeriod = currentPeriodAgg[0] || { revenue: 0, orders: 0 };
+  const previousPeriod = previousPeriodAgg[0] || { revenue: 0, orders: 0 };
+  const usersByRole = Object.fromEntries(userRoleCounts.map(({ _id, count }) => [_id, count]));
 
   res.json({
     success: true,
@@ -144,11 +284,40 @@ const getStats = asyncHandler(async (_req, res) => {
       counts: {
         orders: totalOrders,
         products: totalProducts,
+        activeProducts,
         customers: totalUsers,
         pendingReviews,
+        lowStock,
       },
       revenue: revenueAgg[0]?.total ?? 0, // integer kobo
       recentOrders,
+      salesOverview: salesOverview.map(({ _id, revenue, orders }) => ({
+        date: _id,
+        revenue,
+        orders,
+      })),
+      period: {
+        revenue: currentPeriod.revenue,
+        orders: currentPeriod.orders,
+        revenueChange: percentageChange(currentPeriod.revenue, previousPeriod.revenue),
+        ordersChange: percentageChange(currentPeriod.orders, previousPeriod.orders),
+      },
+      inventory: {
+        stockValue: stockValueAgg[0]?.total ?? 0,
+        lowStockProducts,
+      },
+      recentActivity,
+      usersByRole: {
+        customers: usersByRole.customer || 0,
+        admins: usersByRole.admin || 0,
+        superAdmins: usersByRole.superAdmin || 0,
+      },
+      coupons: { active: activeCoupons, total: totalCoupons },
+      reviews: {
+        averageRating: Number((reviewSummary[0]?.averageRating || 0).toFixed(1)),
+        approved: reviewSummary[0]?.approved || 0,
+        total: totalReviews,
+      },
     },
   });
 });
