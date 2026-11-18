@@ -67,8 +67,7 @@ const AdminTableHeader = ({ title, description, total, countLabel = "items" }) =
   </div>
 );
 
-// Colour-coded status pill. Statuses are domain-specific, so callers pass a map.
-// `dot` renders a 1.5px dot instead of an icon — used for binary on/off states.
+// Colour-coded status pill; callers pass a status→style map, with an optional dot mode for binary states.
 const StatusPill = ({ status, map, dot = false }) => {
   const cfg = map[status] || {
     label: status,
@@ -113,9 +112,7 @@ const EmptyState = ({ icon, title, description, action }) => (
   </div>
 );
 
-// Pagination controls. `total` and `limit` drive the page count.
-// Renders a pill of numbered pages (active page filled with primary) with
-// prev/next chevrons on either side, matching the reference pagination UI.
+// Pagination controls; `total` and `limit` drive the page count.
 const Pagination = ({ page, total, limit, onChange }) => {
   const pages = Math.max(1, Math.ceil(total / limit));
   if (pages <= 1) return null;
