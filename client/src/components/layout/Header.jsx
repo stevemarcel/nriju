@@ -72,6 +72,17 @@ const Header = () => {
     navigate(`/shop${params.toString() ? `?${params}` : ""}`);
   };
 
+  const handleWishlistClick = () => {
+    const wishlistPath = "/account/wishlist";
+
+    if (user) {
+      navigate(wishlistPath);
+      return;
+    }
+
+    navigate("/login", { state: { from: { pathname: wishlistPath } } });
+  };
+
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
@@ -311,12 +322,8 @@ const Header = () => {
 
               {/* Wishlist */}
               <button
-                onClick={() =>
-                  navigate(
-                    user ? "/account/wishlist" : "/login",
-                    user ? null : { state: { from: { pathname: "/account/wishlist" } } },
-                  )
-                }
+                type="button"
+                onClick={handleWishlistClick}
                 className="hidden md:flex items-center gap-1.5 px-2 py-1.5 rounded-full hover:bg-background transition-colors"
                 aria-label="Wishlist"
               >
