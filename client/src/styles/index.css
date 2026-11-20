@@ -19,6 +19,12 @@
   --color-error: #991b1b;
   --color-error-soft: #fef2f2;
   --color-error-border: #fca5a5;
+  --color-success: #15803d;
+  --color-success-soft: #dcfce7;
+
+  /* Motion */
+  --motion-duration-standard: 240ms;
+  --motion-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
 
   /* Typography */
   --font-heading: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
@@ -100,6 +106,32 @@
 }
 @utility rounded-chip {
   border-radius: var(--radius-chip);
+}
+
+@utility aspect-hero {
+  aspect-ratio: 2172 / 724;
+}
+
+@keyframes product-image-enter {
+  from {
+    opacity: 0.35;
+    transform: scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@utility animate-product-image-enter {
+  animation: product-image-enter var(--motion-duration-standard)
+    var(--motion-ease-standard);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-product-image-enter {
+    animation: none;
+  }
 }
 
 /* NR-05 surface tokens as Tailwind utilities */
