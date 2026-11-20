@@ -1,4 +1,6 @@
 import { ChevronLeft, ChevronRight, Loader2, Search } from "lucide-react";
+import { getPaginationItems } from "../../utils/pagination";
+import Dropdown from "../ui/Dropdown";
 
 const ADMIN_TABLE_HEAD_ROW_CLASS =
   "border-b-2 border-primary bg-primary/95 text-xs font-semibold uppercase tracking-wider text-on-accent";
@@ -113,61 +115,90 @@ const EmptyState = ({ icon, title, description, action }) => (
 );
 
 // Pagination controls; `total` and `limit` drive the page count.
+const PaginationGap = ({ pages, position, onSelect }) => {
+  const firstPage = pages[0];
+  const lastPage = pages[pages.length - 1];
+
+  return (
+    <Dropdown
+      trigger={<span aria-hidden="true">...</span>}
+      color="surface"
+      noChevron
+      noBorder
+      portal
+      openOnHover={false}
+      direction="up"
+      align={position === "before" ? "left" : "right"}
+      ariaLabel={`Choose a page from ${firstPage} to ${lastPage}`}
+      menuRole="menu"
+      menuClassName="max-h-60 min-w-24 overflow-y-auto overscroll-contain p-1"
+      triggerClassName="h-7 w-7 shrink-0 justify-center rounded-full p-0 text-sm font-semibold text-text-secondary hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:h-8 sm:w-8"
+    >
+      {pages.map((hiddenPage) => (
+        <button
+          key={hiddenPage}
+          type="button"
+          role="menuitem"
+          onClick={() => onSelect(hiddenPage)}
+          aria-label={`Go to page ${hiddenPage}`}
+          className="flex min-h-8 w-full items-center justify-center rounded-lg px-3 text-sm font-semibold text-text-secondary transition-colors hover:bg-background-soft hover:text-primary focus-visible:bg-background-soft focus-visible:text-primary focus-visible:outline-none"
+        >
+          {hiddenPage}
+        </button>
+      ))}
+    </Dropdown>
+  );
+};
+
 const Pagination = ({ page, total, limit, onChange }) => {
   const pages = Math.max(1, Math.ceil(total / limit));
   if (pages <= 1) return null;
 
   const go = (p) => onChange(Math.min(Math.max(1, p), pages));
 
-  // Build the visible page range: show up to 5 consecutive pages, then an
-  // ellipsis, then the last page — similar to the reference pagination.
-  const visible = [];
-  const maxVisible = 5;
-  if (pages <= maxVisible + 2) {
-    for (let i = 1; i <= pages; i++) visible.push(i);
-  } else {
-    const start = Math.max(1, Math.min(page - 2, pages - maxVisible + 1));
-    for (let i = start; i < start + maxVisible; i++) visible.push(i);
-    if (visible[visible.length - 1] !== pages) visible.push(pages);
-  }
+  const items = getPaginationItems(page, pages);
 
   return (
-    <nav aria-label="Table pagination" className="flex items-center justify-center gap-3">
+    <nav aria-label="Table pagination" className="flex items-center justify-center gap-1 sm:gap-3">
       <button
         type="button"
         onClick={() => go(page - 1)}
         disabled={page === 1}
         aria-label="Previous page"
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-primary/30 hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-primary/30 hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
       >
         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
       </button>
 
-      <div className="flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-1">
-        {visible.map((p, idx) => {
-          const isLast = idx === visible.length - 1;
-          const showEllipsis = !isLast && p !== pages - 1 && visible[idx + 1] === pages;
-          if (showEllipsis) {
+      <div className="flex min-w-0 items-center gap-1 rounded-full border border-border bg-surface px-1 py-1 sm:px-2">
+        {items.map((item) => {
+          if (item.type === "gap") {
             return (
-              <span key="ellipsis" className="select-none px-1.5 text-sm text-text-secondary">
-                ...
-              </span>
+              <PaginationGap
+                key={`gap-${item.position}-${item.pages[0]}`}
+                pages={item.pages}
+                position={item.position}
+                onSelect={go}
+              />
             );
           }
+
+          const pageNumber = item.value;
+
           return (
             <button
               type="button"
-              key={p}
-              onClick={() => go(p)}
-              aria-label={`Page ${p}`}
-              aria-current={p === page ? "page" : undefined}
-              className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
-                p === page
+              key={pageNumber}
+              onClick={() => go(pageNumber)}
+              aria-label={`Page ${pageNumber}`}
+              aria-current={pageNumber === page ? "page" : undefined}
+              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:h-8 sm:w-8 ${
+                pageNumber === page
                   ? "bg-primary text-on-accent"
                   : "text-text-secondary hover:bg-background-soft hover:text-primary"
               }`}
             >
-              {p}
+              {pageNumber}
             </button>
           );
         })}
@@ -178,7 +209,7 @@ const Pagination = ({ page, total, limit, onChange }) => {
         onClick={() => go(page + 1)}
         disabled={page === pages}
         aria-label="Next page"
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-primary/30 hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-primary/30 hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
       >
         <ChevronRight className="h-4 w-4" aria-hidden="true" />
       </button>

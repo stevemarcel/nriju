@@ -62,6 +62,7 @@ const Dropdown = ({
   noBorder = false,
   direction = "down",
   portal = false,
+  openOnHover = true,
   triggerClassName = "",
   triggerId,
   ariaLabel,
@@ -214,9 +215,9 @@ const Dropdown = ({
   return (
     <div
       ref={wrapperRef}
-      onMouseEnter={portal ? () => setOpen(true) : undefined}
+      onMouseEnter={portal && openOnHover ? () => setOpen(true) : undefined}
       onMouseLeave={
-        portal
+        portal && openOnHover
           ? (e) => {
               if (!portalRef.current?.contains(e.relatedTarget)) {
                 setOpen(false);
@@ -270,12 +271,16 @@ const Dropdown = ({
         createPortal(
           <div
             ref={portalRef}
-            onMouseEnter={() => setOpen(true)}
-            onMouseLeave={(e) => {
-              if (!wrapperRef.current?.contains(e.relatedTarget)) {
-                setOpen(false);
-              }
-            }}
+            onMouseEnter={openOnHover ? () => setOpen(true) : undefined}
+            onMouseLeave={
+              openOnHover
+                ? (e) => {
+                    if (!wrapperRef.current?.contains(e.relatedTarget)) {
+                      setOpen(false);
+                    }
+                  }
+                : undefined
+            }
             className="fixed z-9999"
             style={{
               top: menuPosition?.top ?? 0,
