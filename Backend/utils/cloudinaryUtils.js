@@ -18,6 +18,15 @@ const productTransform = {
   fetch_format: "auto",
 };
 
+const categoryTransform = {
+  width: 1200,
+  height: 900,
+  crop: "fill",
+  gravity: "auto",
+  quality: "auto",
+  fetch_format: "auto",
+};
+
 /** Upload a buffer and return the Cloudinary result. */
 export const uploadBuffer = (buffer, folder) =>
   new Promise((resolve, reject) => {
@@ -59,6 +68,48 @@ export const uploadProductToCloudinary = async (buffer, publicId) => {
     url: cloudinary.url(result.public_id, productTransform),
     publicId: result.public_id,
   };
+};
+
+export const uploadCategoryToCloudinary = async (buffer) => {
+  const result = await uploadBuffer(buffer, "nriju/categories");
+  return {
+    url: cloudinary.url(result.public_id, categoryTransform),
+    publicId: result.public_id,
+  };
+};
+
+export const getCloudinaryPublicIdFromUrl = (url) => {
+  if (!url || typeof url !== "string") return null;
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname !== "res.cloudinary.com") return null;
+
+    const marker = "/upload/";
+    const markerIndex = parsed.pathname.indexOf(marker);
+    if (markerIndex === -1) return null;
+
+    let segments = parsed.pathname
+      .slice(markerIndex + marker.length)
+      .split("/")
+      .filter(Boolean);
+
+    const versionIndex = segments.findIndex((segment) => /^v\d+$/.test(segment));
+    if (versionIndex >= 0) {
+      segments = segments.slice(versionIndex + 1);
+    } else if (segments[0]?.includes(",")) {
+      segments = segments.slice(1);
+    }
+
+    if (!segments.length) return null;
+
+    const last = segments[segments.length - 1];
+    segments[segments.length - 1] = last.replace(/\.[a-zA-Z0-9]{2,6}$/, "");
+
+    return segments.join("/") || null;
+  } catch {
+    return null;
+  }
 };
 
 /**

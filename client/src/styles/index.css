@@ -14,6 +14,11 @@
   --color-border-soft: #f3eded;
   --color-accent-soft: rgba(154, 43, 33, 0.12);
   --color-on-accent: #ffffff;
+  --color-destructive: #b91c1c;
+  --color-destructive-hover: #991b1b;
+  --color-error: #991b1b;
+  --color-error-soft: #fef2f2;
+  --color-error-border: #fca5a5;
 
   /* Typography */
   --font-heading: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;

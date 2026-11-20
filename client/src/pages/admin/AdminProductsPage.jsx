@@ -17,6 +17,7 @@ import { formatNaira } from "../../utils/formatMoney";
 import { formatDate } from "../../utils/formatDate";
 import ProductFormModal from "../../components/admin/ProductFormModal";
 import StockActionModal from "../../components/admin/StockActionModal";
+import CategoryManagerModal from "../../components/admin/CategoryManagerModal";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import Dropdown from "../../components/ui/Dropdown";
 import { getCategoryIcon } from "../../utils/categoryIcons";
@@ -73,6 +74,7 @@ const AdminProductsPage = () => {
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState(null);
   const [stockModal, setStockModal] = useState(null);
+  const [categoryManagerOpen, setCategoryManagerOpen] = useState(false);
   const [confirmTarget, setConfirmTarget] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [processingIds, setProcessingIds] = useState(new Set());
@@ -407,12 +409,24 @@ const AdminProductsPage = () => {
         title="Products"
         subtitle="Manage product details, pricing, availability and visibility."
         action={
-          <button
-            onClick={() => toggleModal("create")}
-            className="w-full sm:w-auto px-4 py-2 bg-primary text-white font-medium rounded-lg inline-flex items-center justify-center gap-2 hover:bg-primary/95 transition-colors"
-          >
-            <Plus className="w-4 h-4" /> Add Product
-          </button>
+          <div className="grid w-full gap-2 sm:flex sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setCategoryManagerOpen(true)}
+              className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-background-soft hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 sm:w-auto"
+            >
+              <FolderOpen className="h-4 w-4" aria-hidden="true" />
+              Manage categories
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleModal("create")}
+              className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-on-accent transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:w-auto"
+            >
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              Add product
+            </button>
+          </div>
         }
       />
 
@@ -893,6 +907,19 @@ const AdminProductsPage = () => {
           onClose={() => setStockModal(null)}
         />
       )}
+
+      {categoryManagerOpen ? (
+        <CategoryManagerModal
+          categories={categories}
+          onClose={() => setCategoryManagerOpen(false)}
+          onCategoryRemoved={(categoryId) => {
+            if (categoryFilter === categoryId) {
+              setCategoryFilter("all");
+              setPage(1);
+            }
+          }}
+        />
+      ) : null}
 
       {/* Archive / Permanent Delete Confirmation */}
       <ConfirmModal

@@ -28,3 +28,9 @@ export const uploadProductImageFiles = multer({
   fileFilter,
   limits: { fileSize: 10 * 1024 * 1024 },
 }).array("images", 10);
+
+export const uploadCategoryImageFiles = multer({
+  storage,
+  fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 },
+}).array("images", 1);

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { ImagePlus, LoaderCircle, Trash2, X } from "lucide-react";
+import { ImagePlus, Trash2, X } from "lucide-react";
 import api from "../../services/api";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -11,6 +11,8 @@ const ImageUpload = ({
   maxImages = 10,
   disabled = false,
   onUpload,
+  uploadEndpoint = "/products/images",
+  imageLabel = "Product image",
 }) => {
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -52,10 +54,11 @@ const ImageUpload = ({
       const formData = new FormData();
       toUpload.forEach((file) => formData.append("images", file));
 
-      const res = await api.post("/products/images", formData, {
+      const res = await api.post(uploadEndpoint, formData, {
         headers: { "Content-Type": "multipart/form-data" },
         withCredentials: true,
         onUploadProgress: (progressEvent) => {
+          if (!progressEvent.total) return;
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           setProgress(percentCompleted);
         },
@@ -83,14 +86,15 @@ const ImageUpload = ({
           <div key={url + index} className="relative">
             <img
               src={url}
-              alt={`Product image ${index + 1}`}
+              alt={`${imageLabel} ${index + 1}`}
               className="h-24 w-24 rounded-lg object-cover border border-border"
             />
             <button
               type="button"
               onClick={() => handleRemove(index)}
-              className="absolute -top-2 -right-2 rounded-full bg-red-500 p-1 text-white hover:bg-red-600"
-              aria-label={`Remove image ${index + 1}`}
+              disabled={disabled || uploading}
+              className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-on-accent transition-colors hover:bg-destructive-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30 disabled:cursor-not-allowed disabled:opacity-60"
+              aria-label={`Remove ${imageLabel.toLowerCase()} ${index + 1}`}
             >
               <Trash2 className="h-3 w-3" />
             </button>
@@ -98,7 +102,7 @@ const ImageUpload = ({
         ))}
 
         {initialImages.length < maxImages && (
-          <label className="flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border text-text-muted hover:border-primary hover:text-primary relative">
+          <label className="relative flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border text-text-muted transition-colors hover:border-primary hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
             {uploading ? (
               <>
                 <svg className="h-10 w-10 -rotate-90" viewBox="0 0 40 40">
@@ -135,8 +139,9 @@ const ImageUpload = ({
               ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              multiple
-              className="hidden"
+              multiple={maxImages > 1}
+              disabled={disabled || uploading}
+              className="sr-only"
               onChange={(event) => {
                 handleFiles(event.target.files);
                 event.target.value = "";
@@ -147,7 +152,7 @@ const ImageUpload = ({
       </div>
 
       {error && (
-        <p className="flex items-center gap-1 text-xs text-red-500">
+        <p role="alert" className="flex items-center gap-1 text-xs text-error">
           <X className="h-3 w-3" /> {error}
         </p>
       )}
