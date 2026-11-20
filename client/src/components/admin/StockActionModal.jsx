@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus, Minus, Edit3, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import api from "../../services/api";
+import usePageScrollLock from "../../hooks/usePageScrollLock";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import {
   ADMIN_FIELD_CLASS,
@@ -43,6 +44,8 @@ const ACTION_CONFIG = {
 };
 
 const StockActionModal = ({ product, action, onClose }) => {
+  usePageScrollLock(true);
+
   const qc = useQueryClient();
 
   const [quantity, setQuantity] = useState("");
@@ -142,7 +145,7 @@ const StockActionModal = ({ product, action, onClose }) => {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden overscroll-none bg-black/60 p-4 backdrop-blur-sm">
         <div
           role="dialog"
           aria-modal="true"
@@ -150,7 +153,7 @@ const StockActionModal = ({ product, action, onClose }) => {
           onKeyDown={(event) => {
             if (event.key === "Escape" && !saveMutation.isPending) onClose();
           }}
-          className="w-full max-w-md overflow-hidden rounded-[20px] border border-border/60 bg-background text-text shadow-soft"
+          className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-[20px] border border-border/60 bg-background text-text shadow-soft"
         >
           <AdminModalHeader
             icon={Icon}
@@ -162,7 +165,7 @@ const StockActionModal = ({ product, action, onClose }) => {
             closeDisabled={saveMutation.isPending}
           />
 
-          <div className="p-5 space-y-4">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-5">
             {/* Current stock */}
             <div className="bg-background-soft/70 rounded-xl p-4 border border-border/60">
               <div className="flex justify-between text-sm">

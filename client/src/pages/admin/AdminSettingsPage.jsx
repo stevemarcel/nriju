@@ -321,10 +321,11 @@ const AdminSettingsPage = () => {
 
       return (
         <Dropdown
-          color="surface"
+          color="muted"
           fullWidth
           portal
           menuRole="listbox"
+          triggerClassName="min-h-10 rounded-xl border-primary/20 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
           trigger={
             <span className="flex min-w-0 items-center justify-between gap-2 truncate text-left">
               <span>{enabled ? "Enabled" : "Disabled"}</span>

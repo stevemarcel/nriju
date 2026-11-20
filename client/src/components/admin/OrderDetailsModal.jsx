@@ -17,6 +17,7 @@ import {
 import Dropdown from "../ui/Dropdown";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import api from "../../services/api";
+import usePageScrollLock from "../../hooks/usePageScrollLock";
 import {
   ADMIN_FIELD_CLASS,
   ADMIN_PRIMARY_BUTTON_CLASS,
@@ -44,6 +45,8 @@ const formatNaira = (amount) => {
 };
 
 const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
+  usePageScrollLock(Boolean(order));
+
   const [status, setStatus] = useState(order.status);
   const [trackingCode, setTrackingCode] = useState(order.trackingCode || order.orderNumber || "");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -63,7 +66,7 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
 
   return (
     <>
-      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden overscroll-none bg-black/60 p-4 backdrop-blur-sm">
         <div
           role="dialog"
           aria-modal="true"
@@ -82,7 +85,7 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
             closeLabel="Close order details"
             closeDisabled={updateMutation.isPending}
           />
-          <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
+          <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5 space-y-5">
             {/* Customer + Shipping row */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* Customer info card */}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../../services/api";
+import usePageScrollLock from "../../hooks/usePageScrollLock";
 import {
   AdminPageHeader,
   AdminFilterBar,
@@ -350,6 +351,8 @@ const AdminActivitiesPage = () => {
 };
 
 const ActivityDetailsModal = ({ activity, onClose }) => {
+  usePageScrollLock(Boolean(activity));
+
   const formatTimestamp = (isoStr) => {
     if (!isoStr) return "—";
     const date = new Date(isoStr);
@@ -365,7 +368,7 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden overscroll-none bg-black/60 p-4 backdrop-blur-sm">
       <div
         role="dialog"
         aria-modal="true"
@@ -386,7 +389,7 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
         />
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-5">
+        <div className="flex-1 overflow-y-auto overscroll-contain p-6 space-y-5">
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="bg-surface rounded-xl p-4 border border-border/60">

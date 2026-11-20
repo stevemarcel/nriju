@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { X, AlertCircle, AlertTriangle, CheckCircle } from "lucide-react";
+import usePageScrollLock from "../../hooks/usePageScrollLock";
 
 const ICON_MAP = {
   destructive: AlertTriangle,
@@ -72,6 +73,8 @@ export const ConfirmModal = ({
   onConfirm,
   onCancel,
 }) => {
+  usePageScrollLock(open);
+
   const [visible, setVisible] = useState(false);
   const ref = useRef(null);
 
@@ -108,7 +111,7 @@ export const ConfirmModal = ({
 
   return (
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/40 backdrop-blur-[2px]"
+      className="fixed inset-0 z-100 flex items-center justify-center overflow-hidden overscroll-none p-4 bg-black/40 backdrop-blur-[2px]"
       ref={ref}
       onTransitionEnd={handleTransitionEnd}
     >

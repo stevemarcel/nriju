@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 
 export const ADMIN_FIELD_CLASS =
-  "min-h-10 w-full rounded-xl border border-border bg-surface px-3 py-2 text-sm text-text transition-colors focus:border-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60";
+  "min-h-10 w-full rounded-xl border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-text transition-colors placeholder:text-text-muted/80 hover:border-primary/30 hover:bg-primary/10 focus:border-primary/40 focus:bg-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60";
 
 export const ADMIN_LABEL_CLASS = "mb-1.5 block text-sm font-semibold text-text";
 

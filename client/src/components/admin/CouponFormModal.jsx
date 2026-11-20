@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { Check, Save, Ticket } from "lucide-react";
 import api from "../../services/api";
+import usePageScrollLock from "../../hooks/usePageScrollLock";
 import { toKobo } from "../../utils/formatMoney";
 import Dropdown from "../ui/Dropdown";
 import {
@@ -20,6 +21,8 @@ const COUPON_TYPE_OPTIONS = [
 ];
 
 const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
+  usePageScrollLock(Boolean(mode));
+
   const [form, setForm] = useState(() => {
     if (mode === "edit" && coupon) {
       return {
@@ -80,7 +83,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
     "We could not save this coupon. Check the details and try again.";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden overscroll-none bg-black/60 p-4 backdrop-blur-sm">
       <div
         role="dialog"
         aria-modal="true"
@@ -102,7 +105,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
         <form
           onSubmit={(e) => saveMutation.mutate(e)}
           aria-busy={saveMutation.isPending}
-          className="flex-1 space-y-5 overflow-y-auto p-5"
+          className="flex-1 space-y-5 overflow-y-auto overscroll-contain p-5"
         >
           {saveMutation.isError && (
             <div

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
+import usePageScrollLock from "../../hooks/usePageScrollLock";
 import {
   AlertTriangle,
   Check,
@@ -70,6 +71,8 @@ const CropAvatar = ({
 
   const busy = processing || isSaving || isDeleting;
   const visibleError = error || localError;
+
+  usePageScrollLock(editOpen || deleteOpen);
 
   useEffect(() => {
     setDisplayImageFailed(false);
@@ -302,7 +305,7 @@ const CropAvatar = ({
 
       {editOpen && (
         <div
-          className="fixed inset-0 z-100 flex items-center justify-center overflow-y-auto bg-black/60 p-4"
+          className="fixed inset-0 z-100 flex items-center justify-center overflow-y-auto overscroll-contain bg-black/60 p-4"
           role="presentation"
         >
           <section
@@ -424,7 +427,7 @@ const CropAvatar = ({
 
       {deleteOpen && (
         <div
-          className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-100 flex items-center justify-center overflow-hidden overscroll-none bg-black/60 p-4"
           role="presentation"
         >
           <section

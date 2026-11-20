@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Check, FolderOpen, Package, Save } from "lucide-react";
 import { toast } from "sonner";
+import usePageScrollLock from "../../hooks/usePageScrollLock";
 import api from "../../services/api";
 import { getCategoryIcon } from "../../utils/categoryIcons";
 import { toKobo } from "../../utils/formatMoney";
@@ -161,6 +162,8 @@ const DropdownOption = ({ selected, onSelect, leading, children }) => (
 );
 
 const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
+  usePageScrollLock(true);
+
   const [uploading, setUploading] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [unitOpen, setUnitOpen] = useState(false);
@@ -186,15 +189,6 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
 
     return { ...initialForm };
   });
-
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, []);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -263,7 +257,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
   const isBusy = uploading || saveMutation.isPending;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/60 p-4 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden overscroll-none bg-black/60 p-4 backdrop-blur-sm">
       <div
         role="dialog"
         aria-modal="true"
