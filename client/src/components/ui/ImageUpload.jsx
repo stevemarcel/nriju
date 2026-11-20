@@ -102,7 +102,7 @@ const ImageUpload = ({
         ))}
 
         {initialImages.length < maxImages && (
-          <label className="relative flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border text-text-muted transition-colors hover:border-primary hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-60">
+          <label className="relative flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border text-text-muted transition-colors hover:border-primary hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 has-disabled:cursor-not-allowed has-disabled:opacity-60">
             {uploading ? (
               <>
                 <svg className="h-10 w-10 -rotate-90" viewBox="0 0 40 40">

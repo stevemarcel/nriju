@@ -413,7 +413,7 @@ const AdminProductsPage = () => {
             <button
               type="button"
               onClick={() => setCategoryManagerOpen(true)}
-              className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 py-2 text-sm font-semibold text-text-secondary transition-colors hover:bg-background-soft hover:text-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 sm:w-auto"
+              className="inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-primary bg-background px-4 py-2 text-sm font-semibold text-primary transition-colors hover:bg-accent-soft/60 hover:text-text hover:border-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 sm:w-auto"
             >
               <FolderOpen className="h-4 w-4" aria-hidden="true" />
               Manage categories
