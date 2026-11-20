@@ -132,7 +132,7 @@ const PaginationGap = ({ pages, position, onSelect }) => {
       ariaLabel={`Choose a page from ${firstPage} to ${lastPage}`}
       menuRole="menu"
       menuClassName="max-h-60 min-w-24 overflow-y-auto overscroll-contain p-1"
-      triggerClassName="h-7 w-7 shrink-0 justify-center rounded-full p-0 text-sm font-semibold text-text-secondary hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:h-8 sm:w-8"
+      triggerClassName="h-6 w-6 shrink-0 justify-center rounded-full p-0 text-xs font-semibold text-text-secondary hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:h-8 sm:w-8 sm:text-sm"
     >
       {pages.map((hiddenPage) => (
         <button
@@ -159,18 +159,21 @@ const Pagination = ({ page, total, limit, onChange }) => {
   const items = getPaginationItems(page, pages);
 
   return (
-    <nav aria-label="Table pagination" className="flex items-center justify-center gap-1 sm:gap-3">
+    <nav
+      aria-label="Table pagination"
+      className="flex w-full min-w-0 items-center justify-center gap-0.5 sm:gap-3"
+    >
       <button
         type="button"
         onClick={() => go(page - 1)}
         disabled={page === 1}
         aria-label="Previous page"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-primary/30 hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-primary/30 hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
       >
         <ChevronLeft className="h-4 w-4" aria-hidden="true" />
       </button>
 
-      <div className="flex min-w-0 items-center gap-1 rounded-full border border-border bg-surface px-1 py-1 sm:px-2">
+      <div className="flex min-w-0 items-center gap-0.5 rounded-full border border-border bg-surface px-1 py-1 sm:gap-1 sm:px-2">
         {items.map((item) => {
           if (item.type === "gap") {
             return (
@@ -192,7 +195,7 @@ const Pagination = ({ page, total, limit, onChange }) => {
               onClick={() => go(pageNumber)}
               aria-label={`Page ${pageNumber}`}
               aria-current={pageNumber === page ? "page" : undefined}
-              className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:h-8 sm:w-8 ${
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:h-8 sm:w-8 sm:text-sm ${
                 pageNumber === page
                   ? "bg-primary text-on-accent"
                   : "text-text-secondary hover:bg-background-soft hover:text-primary"
@@ -209,7 +212,7 @@ const Pagination = ({ page, total, limit, onChange }) => {
         onClick={() => go(page + 1)}
         disabled={page === pages}
         aria-label="Next page"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-primary/30 hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-text-secondary transition-colors hover:border-primary/30 hover:bg-background-soft hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9"
       >
         <ChevronRight className="h-4 w-4" aria-hidden="true" />
       </button>
@@ -222,7 +225,7 @@ const AdminTablePagination = (props) => {
   if (pages <= 1) return null;
 
   return (
-    <div className="border-t border-border/60 px-4 py-3 sm:px-5">
+    <div className="border-t border-border/60 px-2 py-3 sm:px-5">
       <Pagination {...props} />
     </div>
   );

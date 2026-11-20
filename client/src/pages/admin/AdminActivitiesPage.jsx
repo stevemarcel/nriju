@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../../services/api";
-import usePageScrollLock from "../../hooks/usePageScrollLock";
+import ActivityDetailsModal, { ACTION_TYPE_MAP } from "../../components/admin/ActivityDetailsModal";
 import {
   AdminPageHeader,
   AdminFilterBar,
@@ -15,10 +15,6 @@ import {
 } from "../../components/admin/AdminPrimitives";
 import { formatDate } from "../../utils/formatDate";
 import Dropdown from "../../components/ui/Dropdown";
-import {
-  ADMIN_SECONDARY_BUTTON_CLASS,
-  AdminModalHeader,
-} from "../../components/admin/AdminModalPrimitives";
 import {
   Shield,
   ShieldCheck,
@@ -90,34 +86,6 @@ const ROLE_ICON_MAP = {
   superAdmin: <ShieldCheck className="w-4 h-4 text-amber-400" />,
   admin: <Shield className="w-4 h-4 text-blue-500" />,
   customer: <User className="w-4 h-4 text-text-muted" />,
-};
-
-const ACTION_TYPE_MAP = {
-  create: {
-    label: "Created",
-    cls: "bg-emerald-100 text-emerald-700",
-    dotColor: "bg-emerald-500",
-  },
-  update: {
-    label: "Updated",
-    cls: "bg-amber-100 text-amber-700",
-    dotColor: "bg-amber-500",
-  },
-  delete: {
-    label: "Deleted",
-    cls: "bg-rose-100 text-rose-700",
-    dotColor: "bg-rose-500",
-  },
-  role_change: {
-    label: "Role Change",
-    cls: "bg-blue-100 text-blue-700",
-    dotColor: "bg-blue-500",
-  },
-  status_toggle: {
-    label: "Status Change",
-    cls: "bg-violet-100 text-violet-700",
-    dotColor: "bg-violet-500",
-  },
 };
 
 const AdminActivitiesPage = () => {
@@ -346,172 +314,6 @@ const AdminActivitiesPage = () => {
           onClose={() => setSelectedActivity(null)}
         />
       )}
-    </div>
-  );
-};
-
-const ActivityDetailsModal = ({ activity, onClose }) => {
-  usePageScrollLock(Boolean(activity));
-
-  const formatTimestamp = (isoStr) => {
-    if (!isoStr) return "—";
-    const date = new Date(isoStr);
-    return date.toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: true,
-    });
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden overscroll-none bg-black/60 p-4 backdrop-blur-sm">
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="activity-details-title"
-        onKeyDown={(event) => {
-          if (event.key === "Escape") onClose();
-        }}
-        className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[20px] border border-border/60 bg-background text-text shadow-soft"
-      >
-        {/* Header */}
-        <AdminModalHeader
-          icon={Clock}
-          eyebrow="Audit log"
-          title="Activity Details"
-          titleId="activity-details-title"
-          onClose={onClose}
-          closeLabel="Close activity details"
-        />
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto overscroll-contain p-6 space-y-5">
-          {/* Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-surface rounded-xl p-4 border border-border/60">
-              <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Date & Time
-              </span>
-              <p className="mt-1 text-sm font-medium text-text">
-                {formatTimestamp(activity.createdAt)}
-              </p>
-            </div>
-            <div className="bg-surface rounded-xl p-4 border border-border/60">
-              <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Performer
-              </span>
-              <p className="mt-1 text-sm font-medium text-text">
-                {activity.user?.name || "Unknown"}{" "}
-                {activity.user?.role && (
-                  <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary/10 text-primary capitalize">
-                    {activity.user.role.replace(/([A-Z])/g, " $1").trim()}
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="bg-surface rounded-xl p-4 border border-border/60">
-              <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Action Type
-              </span>
-              <p className="mt-1 text-sm font-medium text-text">
-                {ACTION_TYPE_MAP[activity.actionType]?.label || activity.action}
-              </p>
-            </div>
-            <div className="bg-surface rounded-xl p-4 border border-border/60">
-              <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Entity
-              </span>
-              <p className="mt-1 text-sm font-medium text-text">
-                {activity.entityName || activity.entity || "—"}
-              </p>
-            </div>
-          </div>
-
-          {/* Description */}
-          {activity.description && (
-            <div className="bg-surface rounded-xl p-4 border border-border/60">
-              <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Description
-              </span>
-              <p className="mt-2 text-sm text-text leading-relaxed">{activity.description}</p>
-            </div>
-          )}
-
-          {/* Changes */}
-          {activity.changes && activity.changes.length > 0 && (
-            <div className="bg-surface rounded-xl p-4 border border-border/60">
-              <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Changes Made
-              </span>
-              <div className="mt-3 space-y-2">
-                {activity.changes.map((change, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-3 p-3 bg-background-soft rounded-lg"
-                  >
-                    <span className="text-xs font-medium text-text-muted w-24 shrink-0 capitalize">
-                      {change.field}
-                    </span>
-                    <span className="text-sm text-text-muted line-through flex-1">
-                      {change.from}
-                    </span>
-                    <span className="text-text shrink-0">→</span>
-                    <span className="text-sm font-medium text-emerald-600 flex-1 text-right">
-                      {change.to}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Additional Info */}
-          {(activity.ip || activity.userAgent) && (
-            <div className="bg-surface rounded-xl p-4 border border-border/60">
-              <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Additional Info
-              </span>
-              <div className="mt-3 space-y-2 text-sm">
-                {activity.ip && (
-                  <div className="flex gap-2">
-                    <span className="text-text-muted">IP:</span>
-                    <span className="font-mono text-text">{activity.ip}</span>
-                  </div>
-                )}
-                {activity.userAgent && (
-                  <div className="flex gap-2">
-                    <span className="text-text-muted">Browser:</span>
-                    <span className="text-text truncate">{activity.userAgent}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Metadata */}
-          {activity.metadata && Object.keys(activity.metadata).length > 0 && (
-            <div className="bg-surface rounded-xl p-4 border border-border/60">
-              <span className="text-xs font-medium text-text-muted uppercase tracking-wide">
-                Metadata
-              </span>
-              <pre className="mt-2 text-xs font-mono text-text-muted bg-background p-3 rounded-lg overflow-x-auto">
-                {JSON.stringify(activity.metadata, null, 2)}
-              </pre>
-            </div>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex justify-end border-t border-border/60 bg-background px-6 py-4">
-          <button type="button" onClick={onClose} className={ADMIN_SECONDARY_BUTTON_CLASS}>
-            Close
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

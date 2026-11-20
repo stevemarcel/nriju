@@ -808,7 +808,7 @@ const AdminUserDetailPage = () => {
       <form onSubmit={handleSave} className="space-y-6">
         {/* ── Identity and profile ─────────────────────────────── */}
         <section className="rounded-[20px] border border-border/60 bg-surface p-4 shadow-sm sm:p-6">
-          <div className="flex flex-col items-start gap-6 sm:flex-row">
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start">
             <div className="flex flex-col items-center gap-2">
               <CropAvatar
                 key={avatarSrc || "no-avatar"}
@@ -955,7 +955,7 @@ const AdminUserDetailPage = () => {
 
         {/* ── Shipping addresses ───────────────────────────────── */}
         <section className="rounded-[20px] border border-border/60 bg-surface p-4 shadow-sm sm:p-6">
-          <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="mb-4 flex flex-col items-stretch justify-between gap-3 sm:flex-row sm:items-center">
             <h2 className="flex items-center gap-2 font-heading text-lg font-semibold text-text">
               <MapPin className="h-5 w-5 text-primary" />
               Shipping addresses
@@ -965,7 +965,7 @@ const AdminUserDetailPage = () => {
               onClick={newAddress}
               disabled={saving || Boolean(addressDraft)}
               title={addressDraft ? "Save or cancel the current address first" : "Add address"}
-              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50 sm:px-4"
             >
               <Plus className="h-4 w-4" />
               Add address
