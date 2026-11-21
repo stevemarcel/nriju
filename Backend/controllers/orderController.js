@@ -8,6 +8,7 @@ import {
   deductStockFIFO,
   restoreStockAllocations,
 } from "../services/inventoryService.js";
+import { syncOrderProductSales } from "../services/productSalesService.js";
 import { recordActivity } from "../utils/activityUtils.js";
 
 const ORDER_STATUSES = [
@@ -74,7 +75,10 @@ const normalizeItems = (items) => {
     merged.set(productId, (merged.get(productId) || 0) + quantity);
   }
 
-  return [...merged.entries()].map(([productId, quantity]) => ({ productId, quantity }));
+  return [...merged.entries()].map(([productId, quantity]) => ({
+    productId,
+    quantity,
+  }));
 };
 
 const calculateCostOfGoodsSold = (allocations) => {
@@ -343,7 +347,22 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       }
 
       order.stockRestoredAt = new Date();
-      changes.push({ field: "Inventory reservation", from: "Reserved", to: "Released" });
+      changes.push({
+        field: "Inventory reservation",
+        from: "Reserved",
+        to: "Released",
+      });
+    }
+
+    const salesUpdate = await syncOrderProductSales(order, nextStatus, session);
+    if (salesUpdate === "counted") {
+      changes.push({
+        field: "Product sales",
+        from: "Not counted",
+        to: "Counted",
+      });
+    } else if (salesUpdate === "reversed") {
+      changes.push({ field: "Product sales", from: "Counted", to: "Reversed" });
     }
 
     order.status = nextStatus;
@@ -363,6 +382,11 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       }
       if (change.field === "Tracking code") {
         return `updated the tracking code for order #${orderNumber} from "${change.from}" to "${change.to}"`;
+      }
+      if (change.field === "Product sales") {
+        return change.to === "Counted"
+          ? `counted fulfilled quantities from order #${orderNumber} in product sales`
+          : `reversed product sales quantities for refunded order #${orderNumber}`;
       }
       return `released inventory reserved for order #${orderNumber}`;
     });

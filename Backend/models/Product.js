@@ -102,7 +102,7 @@ const productSchema = new mongoose.Schema(
     isActive: { type: Boolean, default: true, index: true },
     isFeatured: { type: Boolean, default: false, index: true },
     notifyOnOutOfStock: { type: Boolean, default: false },
-    salesCount: { type: Number, default: 0, index: true },
+    salesCount: { type: Number, default: 0, min: 0, index: true },
     averageRating: { type: Number, default: 0 },
     reviewCount: { type: Number, default: 0 },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

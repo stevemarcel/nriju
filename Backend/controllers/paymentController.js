@@ -83,7 +83,9 @@ const initializePayment = asyncHandler(async (req, res) => {
 const verifyPayment = asyncHandler(async (req, res) => {
   const { reference } = req.params;
 
-  const payment = await Payment.findOne({ paystackRef: reference }).populate("order");
+  const payment = await Payment.findOne({ paystackRef: reference }).populate(
+    "order",
+  );
   if (!payment) {
     res.status(404);
     throw new Error("Payment not found");
@@ -126,10 +128,10 @@ const verifyPayment = asyncHandler(async (req, res) => {
   if (paystackData.status === "success") {
     payment.status = "success";
 
-    // Update order status to paid
+    // A successful online payment confirms the order for fulfilment.
     const order = await Order.findById(payment.order._id);
     if (order) {
-      order.status = "paid";
+      if (order.status === "pending") order.status = "confirmed";
       order.paymentRef = reference;
       await order.save();
     }
@@ -157,16 +159,20 @@ const handleWebhook = asyncHandler(async (req, res) => {
   // using HMAC-SHA512 with the secret key.
 
   if (event.event === "charge.success") {
-    const payment = await Payment.findOne({ paystackRef: event.data.reference });
-    if (payment && payment.status !== "success") {
-      payment.status = "success";
-      payment.channel = event.data.channel;
-      payment.paidAt = new Date(event.data.paid_at);
-      await payment.save();
+    const payment = await Payment.findOne({
+      paystackRef: event.data.reference,
+    });
+    if (payment) {
+      if (payment.status !== "success") {
+        payment.status = "success";
+        payment.channel = event.data.channel;
+        payment.paidAt = new Date(event.data.paid_at);
+        await payment.save();
+      }
 
       const order = await Order.findById(payment.order);
-      if (order && order.status !== "paid") {
-        order.status = "paid";
+      if (order) {
+        if (order.status === "pending") order.status = "confirmed";
         order.paymentRef = event.data.reference;
         await order.save();
       }

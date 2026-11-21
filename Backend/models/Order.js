@@ -13,13 +13,17 @@ const stockAllocationSchema = new mongoose.Schema(
     // Cost snapshot in integer kobo; null means the batch cost was unknown.
     unitCost: { ...integerKobo(false), default: null },
   },
-  { _id: false }
+  { _id: false },
 );
 
 // Embedded order item snapshots selling price and batch cost at order time.
 const orderItemSchema = new mongoose.Schema(
   {
-    product: { type: mongoose.Schema.Types.ObjectId, ref: "Product", required: true },
+    product: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Product",
+      required: true,
+    },
     name: { type: String, required: true },
     price: integerKobo(true),
     quantity: { type: Number, required: true, min: 1 },
@@ -28,7 +32,7 @@ const orderItemSchema = new mongoose.Schema(
     // Null if one or more allocated batches had unknown acquisition cost.
     costOfGoodsSold: { ...integerKobo(false), default: null },
   },
-  { _id: true }
+  { _id: true },
 );
 
 const orderSchema = new mongoose.Schema(
@@ -80,8 +84,11 @@ const orderSchema = new mongoose.Schema(
     notes: { type: String, default: "" },
     // Idempotency guard: stock can only be restored once for a cancellation.
     stockRestoredAt: { type: Date, default: null },
+    // Idempotency guards for denormalized Product.salesCount updates.
+    salesCountedAt: { type: Date, default: null },
+    salesCountReversedAt: { type: Date, default: null },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Generate order number if not provided. The unique index remains the final

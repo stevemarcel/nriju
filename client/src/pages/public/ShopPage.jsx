@@ -37,7 +37,10 @@ const ShopPage = () => {
   const recommendationsRef = useRef(null);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    const timer = window.setTimeout(
+      () => setDebouncedSearch(search.trim()),
+      300,
+    );
     return () => window.clearTimeout(timer);
   }, [search]);
 
@@ -70,7 +73,7 @@ const ShopPage = () => {
     queryKey: ["products", "shop-recommendations"],
     queryFn: async () => {
       const response = await api.get("/products", {
-        params: { sort: "popular", limit: 12 },
+        params: { sort: "popular", limit: 24 },
       });
       return response.data.data;
     },
@@ -81,15 +84,28 @@ const ShopPage = () => {
   const currentCategory = searchParams.get("category") || "all";
   const currentSort = searchParams.get("sort") || "newest";
   const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
-  const pageCount = Math.max(1, Math.ceil((meta?.total || 0) / (meta?.limit || PAGE_SIZE)));
-  const activeSort = SORT_OPTIONS.find((option) => option.value === currentSort) || SORT_OPTIONS[0];
+  const pageCount = Math.max(
+    1,
+    Math.ceil((meta?.total || 0) / (meta?.limit || PAGE_SIZE)),
+  );
+  const activeSort =
+    SORT_OPTIONS.find((option) => option.value === currentSort) ||
+    SORT_OPTIONS[0];
   const ActiveSortIcon = activeSort.Icon;
-  const recommendations = recommendedProducts.slice(0, 8);
+  const visibleProductIds = new Set(products.map((product) => product._id));
+  const recommendations = recommendedProducts
+    .filter((product) => !visibleProductIds.has(product._id))
+    .slice(0, 8);
 
   const updateParams = (updates, { replace = false } = {}) => {
     const nextParams = new URLSearchParams(searchParams);
     Object.entries(updates).forEach(([key, value]) => {
-      if (value === undefined || value === null || value === "" || value === "all") {
+      if (
+        value === undefined ||
+        value === null ||
+        value === "" ||
+        value === "all"
+      ) {
         nextParams.delete(key);
       } else {
         nextParams.set(key, String(value));
@@ -98,7 +114,8 @@ const ShopPage = () => {
     setSearchParams(nextParams, { replace });
   };
 
-  const handleCategoryChange = (slug) => updateParams({ category: slug, page: 1 });
+  const handleCategoryChange = (slug) =>
+    updateParams({ category: slug, page: 1 });
 
   const handleSortChange = (sort) => {
     updateParams({ sort, page: 1 });
@@ -129,13 +146,15 @@ const ShopPage = () => {
       <div className="mx-auto w-full max-w-screen-2xl">
         <header className="grid gap-5 border-b border-border pb-6 lg:grid-cols-[minmax(0,1fr)_minmax(20rem,32rem)] lg:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary">Nriju shop</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-primary">
+              Nriju shop
+            </p>
             <h1 className="mt-2 max-w-3xl font-heading text-3xl font-bold leading-tight text-text sm:text-4xl">
               Nigerian favourites for every table
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-text-secondary">
-              Browse freshly prepared dishes, pantry staples, drinks, snacks, and everyday
-              essentials.
+              Browse freshly prepared dishes, pantry staples, drinks, snacks,
+              and everyday essentials.
             </p>
           </div>
 
@@ -156,7 +175,8 @@ const ShopPage = () => {
               value={search}
               onChange={(event) => {
                 setSearch(event.target.value);
-                if (currentPage !== 1) updateParams({ page: 1 }, { replace: true });
+                if (currentPage !== 1)
+                  updateParams({ page: 1 }, { replace: true });
               }}
               placeholder="Search products"
               aria-label="Search products"
@@ -165,7 +185,10 @@ const ShopPage = () => {
           </form>
         </header>
 
-        <div className="mt-6 flex gap-2 overflow-x-auto pb-2 lg:hidden" aria-label="Categories">
+        <div
+          className="mt-6 flex gap-2 overflow-x-auto pb-2 lg:hidden"
+          aria-label="Categories"
+        >
           <ShopCategoryButton
             compact
             selected={currentCategory === "all"}
@@ -188,7 +211,9 @@ const ShopPage = () => {
             aria-label="Shop filters"
           >
             <div className="border-b border-border pb-5">
-              <h2 className="font-heading text-base font-bold text-text">Category</h2>
+              <h2 className="font-heading text-base font-bold text-text">
+                Category
+              </h2>
               <div className="mt-3 space-y-1">
                 <ShopCategoryButton
                   selected={currentCategory === "all"}
@@ -206,7 +231,9 @@ const ShopPage = () => {
             </div>
 
             <div className="pt-5">
-              <h2 className="font-heading text-base font-bold text-text">Browse by</h2>
+              <h2 className="font-heading text-base font-bold text-text">
+                Browse by
+              </h2>
               <div className="mt-3 space-y-1">
                 {SORT_OPTIONS.slice(0, 3).map(({ value, label, Icon }) => {
                   const selected = currentSort === value;
@@ -234,7 +261,10 @@ const ShopPage = () => {
           <section className="min-w-0" aria-labelledby="shop-results-heading">
             <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 id="shop-results-heading" className="font-heading text-xl font-bold text-text">
+                <h2
+                  id="shop-results-heading"
+                  className="font-heading text-xl font-bold text-text"
+                >
                   Products
                 </h2>
                 <p className="mt-1 text-xs text-text-muted" aria-live="polite">
@@ -247,7 +277,10 @@ const ShopPage = () => {
               <Dropdown
                 trigger={
                   <span className="inline-flex min-w-0 items-center gap-2">
-                    <ActiveSortIcon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                    <ActiveSortIcon
+                      className="h-4 w-4 shrink-0"
+                      aria-hidden="true"
+                    />
                     <span className="truncate">{activeSort.label}</span>
                   </span>
                 }
@@ -270,7 +303,9 @@ const ShopPage = () => {
                     aria-checked={currentSort === value}
                     onClick={() => handleSortChange(value)}
                     className={`flex min-h-10 w-full items-center gap-3 px-4 text-left text-sm transition-colors hover:bg-background focus-visible:bg-background focus-visible:outline-none ${
-                      currentSort === value ? "font-semibold text-primary" : "text-text"
+                      currentSort === value
+                        ? "font-semibold text-primary"
+                        : "text-text"
                     }`}
                   >
                     <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -287,7 +322,10 @@ const ShopPage = () => {
               <ProductGridSkeleton />
             ) : isError ? (
               <div className="flex min-h-72 flex-col items-center justify-center rounded-card border border-border bg-surface px-6 text-center">
-                <PackageSearch className="h-9 w-9 text-primary" aria-hidden="true" />
+                <PackageSearch
+                  className="h-9 w-9 text-primary"
+                  aria-hidden="true"
+                />
                 <h3 className="mt-4 font-heading text-lg font-bold text-text">
                   Products could not be loaded
                 </h3>
@@ -297,8 +335,13 @@ const ShopPage = () => {
               </div>
             ) : products.length === 0 ? (
               <div className="flex min-h-72 flex-col items-center justify-center rounded-card border border-border bg-surface px-6 text-center">
-                <PackageSearch className="h-9 w-9 text-primary" aria-hidden="true" />
-                <h3 className="mt-4 font-heading text-lg font-bold text-text">No products found</h3>
+                <PackageSearch
+                  className="h-9 w-9 text-primary"
+                  aria-hidden="true"
+                />
+                <h3 className="mt-4 font-heading text-lg font-bold text-text">
+                  No products found
+                </h3>
                 <p className="mt-2 max-w-md text-sm leading-6 text-text-secondary">
                   Try another search term or clear the current filters.
                 </p>
