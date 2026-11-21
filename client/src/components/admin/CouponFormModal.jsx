@@ -14,21 +14,27 @@ import {
   AdminModalHeader,
 } from "./AdminModalPrimitives";
 
+// * Options list for the coupon-type Dropdown input.
 const COUPON_TYPE_OPTIONS = [
   { value: "percent", label: "Percent (%)" },
   { value: "flat", label: "Flat amount" },
   { value: "freeship", label: "Free shipping" },
 ];
 
+// ? Renders a create/edit modal form for managing promotional coupons.
+// Handles naira-to-kobo money conversion on submit and kobo-to-naira on edit initialization.
 const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
+  // * Locks body scroll while the modal is open.
   usePageScrollLock(Boolean(mode));
 
+  // * Form state lazy initializer — converts kobo values from DB to display naira for edit mode.
   const [form, setForm] = useState(() => {
     if (mode === "edit" && coupon) {
       return {
         code: coupon.code ?? "",
         type: coupon.type ?? "percent",
         value: coupon.value ?? "",
+        // ! Min order and max discount are stored in kobo; divide by 100 for naira form input.
         minOrder: coupon.minOrder ? coupon.minOrder / 100 : "",
         maxDiscount: coupon.maxDiscount ? coupon.maxDiscount / 100 : "",
         expiryDate: coupon.expiryDate ? coupon.expiryDate.slice(0, 10) : "",
@@ -48,11 +54,15 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
     };
   });
 
+  // * QueryClient instance to invalidate admin coupons query on save.
   const queryClient = useQueryClient();
 
+  // * Mutation for creating or updating a coupon record via API.
   const saveMutation = useMutation({
+    // ? Form submission handler — converts naira form inputs to integer kobo before payload submission.
     mutationFn: (e) => {
       e.preventDefault();
+      // ! Percent value stays a raw number; flat amounts and thresholds are converted to kobo via toKobo().
       const payload = {
         code: form.code,
         type: form.type,
@@ -74,25 +84,32 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
     },
   });
 
+  // * Short-circuit if modal mode is falsy.
   if (!mode) return null;
 
+  // * DOM element ID for ARIA title association.
   const titleId = "coupon-form-title";
+  // * Human-readable error message derived from mutation error response with fallback.
   const errorMessage =
     saveMutation.error?.response?.data?.message ||
     saveMutation.error?.message ||
     "We could not save this coupon. Check the details and try again.";
 
   return (
+    // * Backdrop overlay — fixed inset with blur background.
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden overscroll-none bg-black/60 p-4 backdrop-blur-sm">
+      {/* Dialog container root */}
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         onKeyDown={(event) => {
+          // ! Escape closes modal only when save operation is not pending.
           if (event.key === "Escape" && !saveMutation.isPending) onClose();
         }}
         className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-[20px] border border-border/60 bg-background text-text shadow-soft"
       >
+        {/* Modal Header */}
         <AdminModalHeader
           icon={Ticket}
           eyebrow="Coupon details"
@@ -102,11 +119,13 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
           closeLabel="Close coupon form"
           closeDisabled={saveMutation.isPending}
         />
+        {/* Form Body */}
         <form
           onSubmit={(e) => saveMutation.mutate(e)}
           aria-busy={saveMutation.isPending}
           className="flex-1 space-y-5 overflow-y-auto overscroll-contain p-5"
         >
+          {/* Validation/API error banner */}
           {saveMutation.isError && (
             <div
               role="alert"
@@ -116,7 +135,9 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
             </div>
           )}
 
+          {/* Form fields grid */}
           <div className="grid gap-4 sm:grid-cols-2">
+            {/* Coupon Code input */}
             <div className="sm:col-span-2">
               <label htmlFor="coupon-code" className={ADMIN_LABEL_CLASS}>
                 Code *
@@ -133,6 +154,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
               />
             </div>
 
+            {/* Coupon Type dropdown */}
             <div>
               <label htmlFor="coupon-type" className={ADMIN_LABEL_CLASS}>
                 Type *
@@ -174,6 +196,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
                 ))}
               </Dropdown>
             </div>
+            {/* Discount Value input */}
             <div>
               <label htmlFor="coupon-value" className={ADMIN_LABEL_CLASS}>
                 {form.type === "percent" ? "Percent value *" : "Flat amount (₦) *"}
@@ -190,6 +213,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
               />
             </div>
 
+            {/* Min Order input */}
             <div>
               <label htmlFor="coupon-min-order" className={ADMIN_LABEL_CLASS}>
                 Min Order (₦)
@@ -204,6 +228,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
                 className={ADMIN_FIELD_CLASS}
               />
             </div>
+            {/* Max Discount input */}
             <div>
               <label htmlFor="coupon-max-discount" className={ADMIN_LABEL_CLASS}>
                 Max Discount (₦)
@@ -219,6 +244,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
               />
             </div>
 
+            {/* Expiry Date input */}
             <div>
               <label htmlFor="coupon-expiry" className={ADMIN_LABEL_CLASS}>
                 Expiry Date *
@@ -233,6 +259,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
                 className={ADMIN_FIELD_CLASS}
               />
             </div>
+            {/* Usage Limit input */}
             <div>
               <label htmlFor="coupon-usage-limit" className={ADMIN_LABEL_CLASS}>
                 Usage Limit
@@ -251,6 +278,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
               />
             </div>
 
+            {/* Active status checkbox */}
             <div className="flex items-center gap-3 sm:col-span-2">
               <AdminCircleCheckbox
                 checked={form.isActive}
@@ -262,6 +290,7 @@ const CouponFormModal = ({ mode, coupon, onClose, onSaved }) => {
             </div>
           </div>
 
+          {/* Form Actions Footer */}
           <div className="flex justify-end gap-3 border-t border-border/60 pt-4">
             <button
               type="button"

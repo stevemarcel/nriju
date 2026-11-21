@@ -16,6 +16,7 @@ import {
   AdminModalHeader,
 } from "./AdminModalPrimitives";
 
+// * Product units available for selection
 const PRODUCT_UNITS = [
   "portion",
   "bowl",
@@ -32,12 +33,14 @@ const PRODUCT_UNITS = [
   "500g",
 ];
 
+// * Product type options with display labels
 const PRODUCT_TYPES = [
   { value: "cooked", label: "Cooked" },
   { value: "packaged", label: "Packaged" },
   { value: "fresh", label: "Fresh" },
 ];
 
+// ? Generates user-friendly error messages based on API error status and mode
 const getProductSaveErrorMessage = (error, mode) => {
   const status = error?.response?.status;
   const rawMessage = error?.response?.data?.message;
@@ -104,6 +107,7 @@ const getProductSaveErrorMessage = (error, mode) => {
   return `We couldn't ${action} the product. Try again.`;
 };
 
+// * Default empty form state for new products
 const initialForm = {
   name: "",
   description: "",
@@ -121,6 +125,7 @@ const initialForm = {
   notifyOnOutOfStock: false,
 };
 
+// ? Renders form section with title and optional divider
 const FormSection = ({ title, children, last = false }) => (
   <section>
     <h2 className="font-heading text-xs font-semibold uppercase tracking-wide text-text-secondary">
@@ -131,6 +136,7 @@ const FormSection = ({ title, children, last = false }) => (
   </section>
 );
 
+// ? Renders a labeled form field with optional hint text
 const FormField = ({ id, label, hint, children, className = "", labelIsHeading = false }) => (
   <div className={`min-w-0 ${className}`}>
     {labelIsHeading ? (
@@ -149,6 +155,7 @@ const FormField = ({ id, label, hint, children, className = "", labelIsHeading =
   </div>
 );
 
+// ? Renders a dropdown option button with radio selection styling
 const DropdownOption = ({ selected, onSelect, leading, children }) => (
   <button
     type="button"
@@ -166,12 +173,18 @@ const DropdownOption = ({ selected, onSelect, leading, children }) => (
 );
 
 const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
+  // * Lock page scroll when modal is open
   usePageScrollLock(true);
 
-  const [uploading, setUploading] = useState(false);
+  // * Controls visibility of dropdown menus
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [unitOpen, setUnitOpen] = useState(false);
   const [typeOpen, setTypeOpen] = useState(false);
+
+  // * Tracks image upload progress
+  const [uploading, setUploading] = useState(false);
+
+  // * Form state with lazy initialization from product or empty defaults
   const [form, setForm] = useState(() => {
     if (mode === "edit" && product) {
       return {
@@ -194,6 +207,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
     return { ...initialForm };
   });
 
+  // * Mutation for creating/updating product via API
   const saveMutation = useMutation({
     mutationFn: async () => {
       const existingImages = (form.images || []).filter((image) => typeof image === "string");
@@ -252,12 +266,14 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
       if (err?.code === "PRODUCT_IMAGES_NOT_SAVED") onSaved();
     },
 
+    // ? Shows success toast and triggers callback
     onSuccess: () => {
       toast.success(mode === "create" ? "Product added." : "Product updated.");
       onSaved();
     },
   });
 
+  // ? Updates form state with new values
   const handleChange = (key, value) => {
     setForm((current) => ({
       ...current,
@@ -265,6 +281,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
     }));
   };
 
+  // ? Handles form submission with category validation
   const handleSubmit = (event) => {
     event.preventDefault();
 
@@ -276,7 +293,10 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
     saveMutation.mutate();
   };
 
+  // * Accessible title ID for modal dialog
   const titleId = "product-form-title";
+
+  // * Combined state for controlling button/form disabled state
   const isBusy = uploading || saveMutation.isPending;
 
   return (

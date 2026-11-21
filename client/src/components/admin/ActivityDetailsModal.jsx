@@ -2,6 +2,9 @@ import { Clock } from "lucide-react";
 import usePageScrollLock from "../../hooks/usePageScrollLock";
 import { ADMIN_SECONDARY_BUTTON_CLASS, AdminModalHeader } from "./AdminModalPrimitives";
 
+// * Action-type labels and colours mapped to activity.actionType values.
+// Falls back to raw activity.action when missing, so the UI never breaks
+// on an unknown type from the backend.
 export const ACTION_TYPE_MAP = {
   create: {
     label: "Created",
@@ -30,6 +33,9 @@ export const ACTION_TYPE_MAP = {
   },
 };
 
+// ? Formats an ISO timestamp into a human-readable datetime string.
+// Returns "N/A" when given a falsy value — the caller must null-check
+// because activity.createdAt can be absent on older entries.
 const formatTimestamp = (isoString) => {
   if (!isoString) return "N/A";
 
@@ -44,6 +50,9 @@ const formatTimestamp = (isoString) => {
   });
 };
 
+// ? Normalises a change-field value for display. Status fields are un-underscored
+// ("account_status" → "account status"); everything else is rendered verbatim.
+// Null/undefined/empty values show as "N/A".
 const formatChangeValue = (field, value) => {
   if (value === null || value === undefined || value === "") return "N/A";
 
@@ -51,7 +60,11 @@ const formatChangeValue = (field, value) => {
   return String(field).toLowerCase().includes("status") ? text.replaceAll("_", " ") : text;
 };
 
+// ? Renders a full audit-log entry for a single activity record.
+// Shows performer info, action type, entity name, description, field-level
+// changes (from→to), IP/browser metadata, and raw JSON metadata when present.
 const ActivityDetailsModal = ({ activity, onClose }) => {
+  // * Lock page scroll while the modal is open; unlocked as soon as the activity prop drops.
   usePageScrollLock(Boolean(activity));
 
   return (
@@ -65,6 +78,7 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
         }}
         className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[20px] border border-border/60 bg-background text-text shadow-soft"
       >
+        {/* Modal Header */}
         <AdminModalHeader
           icon={Clock}
           eyebrow="Audit log"
@@ -75,6 +89,7 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
         />
 
         <div className="flex-1 space-y-5 overflow-y-auto overscroll-contain p-6">
+          {/* Info grid — date/time, performer, action type, entity */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-border/60 bg-surface p-4">
               <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
@@ -115,6 +130,7 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
             </div>
           </div>
 
+          {/* Description — human-readable summary of what happened */}
           {activity.description && (
             <div className="rounded-xl border border-border/60 bg-surface p-4">
               <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
@@ -124,6 +140,7 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
             </div>
           )}
 
+          {/* Changes made — field-level from/to diff list */}
           {activity.changes && activity.changes.length > 0 && (
             <div className="rounded-xl border border-border/60 bg-surface p-4">
               <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
@@ -153,6 +170,7 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
             </div>
           )}
 
+          {/* Additional info — IP address and browser user-agent */}
           {(activity.ip || activity.userAgent) && (
             <div className="rounded-xl border border-border/60 bg-surface p-4">
               <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
@@ -175,6 +193,7 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
             </div>
           )}
 
+          {/* Metadata — raw JSON payload for debugging or deep inspection */}
           {activity.metadata && Object.keys(activity.metadata).length > 0 && (
             <div className="rounded-xl border border-border/60 bg-surface p-4">
               <span className="text-xs font-medium uppercase tracking-wide text-text-muted">
@@ -187,6 +206,7 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
           )}
         </div>
 
+        {/* Footer — close button aligned to the right */}
         <div className="flex justify-end border-t border-border/60 bg-background px-6 py-4">
           <button type="button" onClick={onClose} className={ADMIN_SECONDARY_BUTTON_CLASS}>
             Close

@@ -1,19 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import {
-  Clock,
-  CheckCircle,
-  X,
-  RotateCcw,
-  Save,
-  Check,
-  Package,
-  Truck,
-  MapPin,
-  CreditCard,
-  User,
-  ClipboardList,
-} from "lucide-react";
+import { Clock, Save, Check, Package, MapPin, CreditCard, User, ClipboardList } from "lucide-react";
 import Dropdown from "../ui/Dropdown";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import api from "../../services/api";
@@ -24,44 +11,37 @@ import {
   ADMIN_SECONDARY_BUTTON_CLASS,
   AdminModalHeader,
 } from "./AdminModalPrimitives";
-
-const STATUS_OPTIONS = [
-  { value: "pending", label: "Pending", Icon: Clock, color: "text-amber-500" },
-  { value: "confirmed", label: "Confirmed", Icon: CheckCircle, color: "text-blue-500" },
-  { value: "preparing", label: "Preparing", Icon: Package, color: "text-violet-500" },
-  { value: "ready_for_pickup", label: "Ready", Icon: Truck, color: "text-cyan-500" },
-  { value: "on_the_way", label: "On the way", Icon: Truck, color: "text-indigo-500" },
-  { value: "delivered", label: "Delivered", Icon: CheckCircle, color: "text-emerald-500" },
-  { value: "picked_up", label: "Picked up", Icon: CheckCircle, color: "text-emerald-500" },
-  { value: "cancelled", label: "Cancelled", Icon: X, color: "text-rose-500" },
-  { value: "refunded", label: "Refunded", Icon: RotateCcw, color: "text-slate-500" },
-];
-
-const formatNaira = (amount) => {
-  return new Intl.NumberFormat("en-NG", {
-    style: "currency",
-    currency: "NGN",
-  }).format(amount || 0);
-};
+import { formatNaira } from "../../utils/formatMoney";
 
 const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
+  // * Lock page scroll when modal is open
   usePageScrollLock(Boolean(order));
 
+  // * Current order status (local copy for editing)
   const [status, setStatus] = useState(order.status);
+
+  // * Tracking code for shipment (local editable copy)
   const [trackingCode, setTrackingCode] = useState(order.trackingCode || order.orderNumber || "");
+
+  // * Controls visibility of confirmation modal
   const [confirmOpen, setConfirmOpen] = useState(false);
+
+  // * Mutation for updating order status via API
   const updateMutation = useMutation({
     mutationFn: (updates) => api.patch(`/orders/${order._id}/status`, updates),
     onSuccess: onUpdated,
   });
 
+  // ? Triggers confirmation modal before saving status changes
   const handleSave = () => setConfirmOpen(true);
 
+  // ? Confirms and persists the status update via API mutation
   const handleConfirm = () => {
     setConfirmOpen(false);
     updateMutation.mutate({ status, trackingCode });
   };
 
+  // * Accessible title ID for modal dialog
   const titleId = "order-details-title";
 
   return (

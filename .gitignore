@@ -22,3 +22,7 @@ Thumbs.db
 
 # Local UX/UI agent kit
 /.ux-ui-agent-skills/
+
+# Claude Code config
+/.claude/
+/CLAUDE.md

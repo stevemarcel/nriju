@@ -13,6 +13,7 @@ import {
   AdminModalHeader,
 } from "./AdminModalPrimitives";
 
+// * Configuration object for different stock action types
 const ACTION_CONFIG = {
   add: {
     label: "Add Stock",
@@ -44,23 +45,38 @@ const ACTION_CONFIG = {
 };
 
 const StockActionModal = ({ product, action, onClose }) => {
+  // * Lock page scroll when modal is open
   usePageScrollLock(true);
 
+  // * Query client for invalidating queries after mutation
   const qc = useQueryClient();
 
+  // * Current quantity input value
   const [quantity, setQuantity] = useState("");
+
+  // * Reason/notes for the adjustment
   const [reason, setReason] = useState("");
+
+  // * Unit cost for new stock batch (in Naira)
   const [unitCost, setUnitCost] = useState("");
+
+  // * Whether unit cost should be unknown/null
   const [costUnknown, setCostUnknown] = useState(false);
+
+  // * Controls visibility of confirmation modal
   const [confirmOpen, setConfirmOpen] = useState(false);
 
+  // * Action configuration for current action type
   const cfg = ACTION_CONFIG[action];
   const Icon = cfg.icon;
 
+  // * Whether this is an adjustment increasing stock beyond current
   const isStockIncrease = action === "adjust" && Number(quantity) > Number(product?.stock ?? 0);
 
+  // * Whether the action type supports entering unit cost
   const supportsUnitCost = action === "add" || isStockIncrease;
 
+  // ? Builds the request body based on form inputs and action type
   const getRequestBody = () => {
     const body = {
       quantity: Number(quantity),
@@ -91,12 +107,14 @@ const StockActionModal = ({ product, action, onClose }) => {
     return body;
   };
 
+  // ? Performs the API mutation for the stock action
   const mutationFn = () => {
     const body = getRequestBody();
 
     return api.post(`/inventory/${product._id}/${action}`, body);
   };
 
+  // * Mutation for performing the stock action
   const saveMutation = useMutation({
     mutationFn,
     onSuccess: async () => {
@@ -111,6 +129,7 @@ const StockActionModal = ({ product, action, onClose }) => {
     onError: (err) => toast.error(err?.response?.data?.message || err.message || "Failed to save."),
   });
 
+  // ? Validates input and opens confirmation modal
   const handleSubmit = () => {
     const qty = Number(quantity);
 
@@ -136,11 +155,13 @@ const StockActionModal = ({ product, action, onClose }) => {
     setConfirmOpen(true);
   };
 
+  // ? Executes the mutation after user confirmation
   const handleConfirm = () => {
     setConfirmOpen(false);
     saveMutation.mutate();
   };
 
+  // * Accessible title ID for modal dialog
   const titleId = "stock-action-title";
 
   return (
