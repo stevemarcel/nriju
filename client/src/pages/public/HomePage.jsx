@@ -83,10 +83,7 @@ const ProductShelf = ({ id, title, products }) => {
   if (!products?.length) return null;
 
   return (
-    <section
-      aria-labelledby={id}
-      className="bg-background px-3 py-6 sm:px-4 sm:py-8"
-    >
+    <section aria-labelledby={id} className="bg-background px-3 py-6 sm:px-4 sm:py-8">
       <div className="mx-auto w-full max-w-screen-2xl">
         <div className="mb-6 flex items-center justify-between gap-4">
           <h2 id={id} className="font-heading text-2xl font-bold">
@@ -96,10 +93,7 @@ const ProductShelf = ({ id, title, products }) => {
         </div>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {products.slice(0, 5).map((product, index) => (
-            <div
-              key={product._id}
-              className={index === 4 ? "hidden h-full md:block" : "h-full"}
-            >
+            <div key={product._id} className={index === 4 ? "hidden h-full md:block" : "h-full"}>
               <ProductCard product={product} />
             </div>
           ))}
@@ -167,8 +161,7 @@ const HeroCarousel = () => {
         onMouseLeave={() => setInteractionPaused(false)}
         onFocusCapture={() => setInteractionPaused(true)}
         onBlurCapture={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget))
-            setInteractionPaused(false);
+          if (!event.currentTarget.contains(event.relatedTarget)) setInteractionPaused(false);
         }}
         onKeyDown={(event) => {
           if (event.key === "ArrowLeft") {
@@ -257,9 +250,7 @@ const HeroCarousel = () => {
               aria-label={`Show banner ${index + 1}`}
               aria-current={activeIndex === index ? "true" : undefined}
               className={`h-3 w-3 rounded-full border border-on-accent/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-on-accent focus-visible:ring-offset-2 focus-visible:ring-offset-text ${
-                activeIndex === index
-                  ? "bg-on-accent"
-                  : "bg-on-accent/35 hover:bg-on-accent/70"
+                activeIndex === index ? "bg-on-accent" : "bg-on-accent/35 hover:bg-on-accent/70"
               }`}
             />
           ))}
@@ -269,9 +260,7 @@ const HeroCarousel = () => {
               setHasInteracted(true);
               setUserPaused((current) => !current);
             }}
-            aria-label={
-              userPaused ? "Resume banner rotation" : "Pause banner rotation"
-            }
+            aria-label={userPaused ? "Resume banner rotation" : "Pause banner rotation"}
             aria-pressed={userPaused}
             className="ml-1 flex h-7 w-7 items-center justify-center rounded-full text-on-accent transition-colors hover:bg-on-accent/15 active:bg-on-accent/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-on-accent"
           >
@@ -329,10 +318,7 @@ const HomePage = () => {
       <HeroCarousel />
 
       {categories && categories.length > 0 && (
-        <section
-          id="categories"
-          className="scroll-mt-6 bg-background px-3 py-8 sm:px-4 sm:py-10"
-        >
+        <section id="categories" className="scroll-mt-6 bg-background px-3 py-8 sm:px-4 sm:py-10">
           <div className="mx-auto w-full max-w-screen-2xl">
             <div className="mb-6 flex items-center justify-between">
               <h2 className="font-heading text-2xl font-bold">Categories</h2>
@@ -355,7 +341,7 @@ const HomePage = () => {
                           alt={category.name}
                           width="1200"
                           height="900"
-                          className="h-full w-full object-contain"
+                          className="h-full w-full object-contain transition-transform duration-500 ease-out motion-safe:group-hover:scale-105 motion-safe:group-focus-visible:scale-105 motion-reduce:transition-none"
                           loading="lazy"
                         />
                       ) : (
@@ -377,29 +363,19 @@ const HomePage = () => {
         </section>
       )}
 
-      <section
-        aria-label="Why shop with Nriju"
-        className="bg-background px-3 py-5 sm:px-4 sm:py-6"
-      >
+      <section aria-label="Why shop with Nriju" className="bg-background px-3 py-5 sm:px-4 sm:py-6">
         <div className="mx-auto w-full max-w-screen-2xl overflow-hidden rounded-card border border-border bg-surface shadow-soft">
           <ul className="grid grid-cols-1 divide-y divide-border lg:grid-cols-5 lg:divide-x lg:divide-y-0">
             {TRUST_ITEMS.map(({ Icon, title, description }) => (
-              <li
-                key={title}
-                className="flex min-h-24 items-start gap-3 px-5 py-5"
-              >
+              <li key={title} className="flex min-h-24 items-start gap-3 px-5 py-5">
                 <Icon
                   className="mt-0.5 h-7 w-7 shrink-0 text-primary"
                   strokeWidth={1.75}
                   aria-hidden="true"
                 />
                 <div>
-                  <p className="text-sm font-bold leading-snug text-text">
-                    {title}
-                  </p>
-                  <p className="mt-1 text-xs leading-relaxed text-text-muted">
-                    {description}
-                  </p>
+                  <p className="text-sm font-bold leading-snug text-text">{title}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-text-muted">{description}</p>
                 </div>
               </li>
             ))}
@@ -407,27 +383,13 @@ const HomePage = () => {
         </div>
       </section>
 
-      <ProductShelf
-        id="featured-products"
-        title="Featured Products"
-        products={featured}
-      />
-      <ProductShelf
-        id="new-arrivals"
-        title="New Arrivals"
-        products={newArrivals}
-      />
-      <ProductShelf
-        id="best-sellers"
-        title="Best Sellers"
-        products={bestSellers}
-      />
+      <ProductShelf id="featured-products" title="Featured Products" products={featured} />
+      <ProductShelf id="new-arrivals" title="New Arrivals" products={newArrivals} />
+      <ProductShelf id="best-sellers" title="Best Sellers" products={bestSellers} />
 
       <section className="bg-background py-16">
         <div className="container mx-auto max-w-xl px-4 text-center">
-          <h2 className="mb-3 font-heading text-3xl font-bold">
-            Craving something special?
-          </h2>
+          <h2 className="mb-3 font-heading text-3xl font-bold">Craving something special?</h2>
           <p className="caption-text mb-6">
             Explore our full menu of swallows, soups, proteins, and snacks.
           </p>
