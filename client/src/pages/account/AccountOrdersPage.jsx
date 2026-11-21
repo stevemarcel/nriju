@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
-import { Breadcrumb } from "../../components/shared/Navigation";
+import { Breadcrumb } from "../../components/ui/Navigation";
 import { Package, Search, Filter } from "lucide-react";
 import { useState } from "react";
 import { formatNaira } from "../../utils/formatMoney";
@@ -10,7 +10,10 @@ const STATUS_MAP = {
   pending: { label: "Pending", cls: "bg-amber-100 text-amber-700" },
   confirmed: { label: "Confirmed", cls: "bg-blue-100 text-blue-700" },
   preparing: { label: "Preparing", cls: "bg-violet-100 text-violet-700" },
-  ready_for_pickup: { label: "Ready for Pickup", cls: "bg-cyan-100 text-cyan-700" },
+  ready_for_pickup: {
+    label: "Ready for Pickup",
+    cls: "bg-cyan-100 text-cyan-700",
+  },
   on_the_way: { label: "On the Way", cls: "bg-indigo-100 text-indigo-700" },
   delivered: { label: "Delivered", cls: "bg-emerald-100 text-emerald-700" },
   picked_up: { label: "Picked Up", cls: "bg-emerald-100 text-emerald-700" },
@@ -26,7 +29,8 @@ const AccountOrdersPage = () => {
   });
 
   const orders = ordersData?.data || [];
-  const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
+  const filtered =
+    filter === "all" ? orders : orders.filter((o) => o.status === filter);
 
   const filters = [
     { value: "all", label: "All" },
@@ -43,15 +47,21 @@ const AccountOrdersPage = () => {
       {/* Top bar */}
       <div className="bg-surface border-b border-border-soft">
         <div className="container mx-auto px-4 py-4">
-          <Breadcrumb crumbs={[{ label: "Account", to: "/account" }, { label: "Orders" }]} />
+          <Breadcrumb
+            crumbs={[{ label: "Account", to: "/account" }, { label: "Orders" }]}
+          />
         </div>
       </div>
 
       <div className="container mx-auto px-4 py-8">
         {/* Page title */}
         <div className="mb-6">
-          <h1 className="font-heading text-2xl font-bold text-text sm:text-3xl">My Orders</h1>
-          <p className="text-text-muted mt-1 text-sm">Track and manage your Nriju orders.</p>
+          <h1 className="font-heading text-2xl font-bold text-text sm:text-3xl">
+            My Orders
+          </h1>
+          <p className="text-text-muted mt-1 text-sm">
+            Track and manage your Nriju orders.
+          </p>
         </div>
 
         {/* Filter bar */}
@@ -91,7 +101,9 @@ const AccountOrdersPage = () => {
             <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-background flex items-center justify-center">
               <Package className="w-7 h-7 text-text-muted opacity-50" />
             </div>
-            <h3 className="font-heading text-lg font-semibold text-text">No orders found</h3>
+            <h3 className="font-heading text-lg font-semibold text-text">
+              No orders found
+            </h3>
             <p className="text-text-muted text-sm mt-1 max-w-sm mx-auto">
               {filter === "all"
                 ? "You haven't placed any orders yet."
@@ -127,7 +139,8 @@ const AccountOrdersPage = () => {
                   </div>
                   <span
                     className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                      STATUS_MAP[o.status]?.cls || "bg-background text-text-muted"
+                      STATUS_MAP[o.status]?.cls ||
+                      "bg-background text-text-muted"
                     }`}
                   >
                     {STATUS_MAP[o.status]?.label || o.status}
@@ -155,7 +168,9 @@ const AccountOrdersPage = () => {
 
                 <div className="flex items-center justify-between pt-4 border-t border-border-soft">
                   <div>
-                    <div className="font-heading font-bold text-text">{formatNaira(o.total)}</div>
+                    <div className="font-heading font-bold text-text">
+                      {formatNaira(o.total)}
+                    </div>
                     <div className="text-xs text-text-muted capitalize">
                       {o.deliveryMethod} delivery
                     </div>

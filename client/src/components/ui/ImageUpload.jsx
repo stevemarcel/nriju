@@ -6,11 +6,16 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const ImagePreview = ({ image, alt, aspect }) => {
-  const [src, setSrc] = useState(typeof image === "string" ? image : "");
+  const [src, setSrc] = useState(() => (typeof image === "string" && image.trim() ? image : null));
 
   useEffect(() => {
     if (typeof image === "string") {
-      setSrc(image);
+      setSrc(image.trim() ? image : null);
+      return undefined;
+    }
+
+    if (!(image instanceof Blob)) {
+      setSrc(null);
       return undefined;
     }
 
@@ -18,6 +23,18 @@ const ImagePreview = ({ image, alt, aspect }) => {
     setSrc(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [image]);
+
+  if (!src) {
+    return (
+      <div
+        role="img"
+        aria-label={`${alt} preview loading`}
+        aria-busy="true"
+        style={{ aspectRatio: String(aspect) }}
+        className="w-28 animate-pulse rounded-lg border border-border bg-background-soft motion-reduce:animate-none"
+      />
+    );
+  }
 
   return (
     <img

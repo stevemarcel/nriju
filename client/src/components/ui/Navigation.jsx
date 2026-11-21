@@ -1,9 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ChevronRight, Home } from "lucide-react";
 
-// One-step-back button. Falls back to `to` when there is no history to
-// step back through (direct access, first load) — otherwise the browser's
-// back button would do nothing and the user would be stuck.
 const BackButton = ({ to, label = "Back" }) => {
   const navigate = useNavigate();
 
@@ -27,7 +24,6 @@ const BackButton = ({ to, label = "Back" }) => {
   );
 };
 
-// Breadcrumb trail, e.g. <Breadcrumb crumbs={[{label:"Account",to:"/account"},{label:"Orders"}]} />
 const Breadcrumb = ({ crumbs }) => {
   if (!crumbs?.length) return null;
 

@@ -18,10 +18,11 @@ export const productSummary = (product) => ({
   compareAtPrice: product.compareAtPrice,
   unit: product.unit,
   productType: product.productType,
+  prepLeadTime: product.prepLeadTime,
+  maxDailyQty: product.maxDailyQty,
   stock: product.stock,
   // Preserve the populated category object rather than collapsing it to its ID.
   category: product.category?._id ? product.category : product.category,
-  region: product.region,
   images: product.images,
   tags: product.tags,
   isActive: product.isActive,

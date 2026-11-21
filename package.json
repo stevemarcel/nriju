@@ -12,7 +12,8 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "seed": "node Backend/seed/runSeed.js",
     "seed:settings": "node Backend/scripts/seedSettings.js",
-    "repair:settings-delivery-fees": "node Backend/scripts/repairInflatedDeliveryFees.js"
+    "repair:settings-delivery-fees": "node Backend/scripts/repairInflatedDeliveryFees.js",
+    "migrate:remove-product-region": "node Backend/scripts/removeProductRegion.js"
   },
   "keywords": [],
   "author": "",

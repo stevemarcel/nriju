@@ -38,7 +38,11 @@ export const fetchCart = createAsyncThunk("cart/fetch", async (_, { rejectWithVa
 export const addToCart = createAsyncThunk(
   "cart/add",
   async ({ productId, quantity = 1, categoryId }, { rejectWithValue }) => {
-    const res = await api.post("/cart/items", { productId, quantity, categoryId });
+    const res = await api.post("/cart/items", {
+      productId,
+      quantity,
+      categoryId,
+    });
     return res.data.data;
   },
 );
@@ -104,7 +108,15 @@ const cartSlice = createSlice({
       if (existing) {
         existing.quantity += quantity;
       } else {
-        state.items.push({ product: productId, name, price, image, unit, categoryId, quantity });
+        state.items.push({
+          product: productId,
+          name,
+          price,
+          image,
+          unit,
+          categoryId,
+          quantity,
+        });
       }
       saveCart(state.items);
     },
@@ -180,16 +192,16 @@ export const { addLocal, updateLocal, removeLocal, clearLocal } = cartSlice.acti
 export const addItem = (item) => (dispatch, getState) => {
   const { source } = getState().cart;
   if (source === "server") {
-    dispatch(
+    return dispatch(
       addToCart({
         productId: item.productId,
         quantity: item.quantity,
         categoryId: item.categoryId,
       }),
     );
-  } else {
-    dispatch(addLocal(item));
   }
+
+  return dispatch(addLocal(item));
 };
 
 export const changeQuantity = (productId, quantity) => (dispatch, getState) => {

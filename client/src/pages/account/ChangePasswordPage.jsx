@@ -3,8 +3,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
 import api from "../../services/api";
-import { Breadcrumb } from "../../components/shared/Navigation";
-import { Lock, Eye, EyeOff, Save, CheckCircle, AlertCircle } from "lucide-react";
+import { Breadcrumb } from "../../components/ui/Navigation";
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  Save,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 
 const ChangePasswordPage = () => {
   const navigate = useNavigate();
@@ -75,8 +82,12 @@ const ChangePasswordPage = () => {
       <div className="container mx-auto px-4 py-8 max-w-lg">
         {/* Page title */}
         <div className="mb-8">
-          <h1 className="font-heading text-2xl font-bold text-text">Change Password</h1>
-          <p className="text-text-muted mt-1 text-sm">Update your account password.</p>
+          <h1 className="font-heading text-2xl font-bold text-text">
+            Change Password
+          </h1>
+          <p className="text-text-muted mt-1 text-sm">
+            Update your account password.
+          </p>
         </div>
 
         <div className="bg-surface rounded-xl border border-border-soft p-6">
@@ -96,7 +107,9 @@ const ChangePasswordPage = () => {
 
             {/* Current Password */}
             <div>
-              <label className="block text-sm font-medium text-text mb-2">Current Password</label>
+              <label className="block text-sm font-medium text-text mb-2">
+                Current Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                 <input
@@ -114,14 +127,20 @@ const ChangePasswordPage = () => {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text"
                   aria-label={showCurrent ? "Hide password" : "Show password"}
                 >
-                  {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showCurrent ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
 
             {/* New Password */}
             <div>
-              <label className="block text-sm font-medium text-text mb-2">New Password</label>
+              <label className="block text-sm font-medium text-text mb-2">
+                New Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
                 <input
@@ -140,7 +159,11 @@ const ChangePasswordPage = () => {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text"
                   aria-label={showNew ? "Hide password" : "Show password"}
                 >
-                  {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showNew ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -160,7 +183,8 @@ const ChangePasswordPage = () => {
                   required
                   minLength={6}
                   className={`w-full pl-10 pr-10 py-2.5 bg-background border rounded-lg focus:outline-none focus:border-primary transition-colors text-sm ${
-                    form.confirmPassword && form.newPassword !== form.confirmPassword
+                    form.confirmPassword &&
+                    form.newPassword !== form.confirmPassword
                       ? "border-red-400"
                       : "border-border-soft"
                   }`}
@@ -172,12 +196,19 @@ const ChangePasswordPage = () => {
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text"
                   aria-label={showConfirm ? "Hide password" : "Show password"}
                 >
-                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showConfirm ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
-              {form.confirmPassword && form.newPassword !== form.confirmPassword && (
-                <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
-              )}
+              {form.confirmPassword &&
+                form.newPassword !== form.confirmPassword && (
+                  <p className="text-red-500 text-xs mt-1">
+                    Passwords do not match
+                  </p>
+                )}
             </div>
 
             <div className="pt-2 flex items-center gap-3">

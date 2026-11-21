@@ -10,17 +10,15 @@ import { auth, admin } from "../middleware/auth.js";
 
 const router = Router();
 
-// Admin moderation routes (must come before /:productId)
-router.use(auth);
-router.use(admin);
-router.get("/all", getAllReviews);
-router.patch("/:id/moderate", moderateReview);
+// Admin moderation routes must come before the public /:productId route.
+router.get("/all", auth, admin, getAllReviews);
+router.patch("/:id/moderate", auth, admin, moderateReview);
 
-// Auth required for submissions and edits
-router.post("/", submitReview);
-router.patch("/:id", updateReview);
+// Auth is required for review submissions and owner edits.
+router.post("/", auth, submitReview);
+router.patch("/:id", auth, updateReview);
 
-// Product review listing is public
+// Approved product reviews are public.
 router.get("/:productId", getProductReviews);
 
 export default router;

@@ -2,7 +2,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header";
 import Footer from "./Footer";
 import MobileTabBar from "./MobileTabBar";
-import CartDrawer from "../shared/CartDrawer";
+import CartDrawer from "../ui/CartDrawer";
 
 const MainLayout = () => {
   const location = useLocation();

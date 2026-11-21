@@ -13,7 +13,6 @@ const CartDrawer = () => {
 
   const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
 
-  // Close drawer on Escape key
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") dispatch(setCartDrawer(false));
@@ -24,22 +23,17 @@ const CartDrawer = () => {
 
   if (!cartDrawerOpen) return null;
 
-  // Resolve the product id regardless of whether it's a populated
-  // object (from server) or a bare ObjectId string (from localStorage).
   const resolveProductId = (product) =>
     typeof product === "object" && product ? product._id : product;
 
   return (
     <>
-      {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/40 z-40"
         onClick={() => dispatch(setCartDrawer(false))}
       />
 
-      {/* Drawer */}
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-surface z-50 flex flex-col shadow-xl">
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="font-heading text-lg font-semibold flex items-center gap-2">
             <ShoppingBag className="w-5 h-5" /> Your Cart
@@ -52,7 +46,6 @@ const CartDrawer = () => {
           </button>
         </div>
 
-        {/* Items */}
         <div className="flex-1 overflow-y-auto p-4">
           {items.length === 0 ? (
             <div className="text-center py-12">
@@ -80,7 +73,7 @@ const CartDrawer = () => {
                           className="w-full h-full object-cover rounded-lg"
                         />
                       ) : (
-                        <span className="text-2xl">🍲</span>
+                        <ShoppingBag className="h-6 w-6 text-text-muted" aria-hidden="true" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -119,7 +112,6 @@ const CartDrawer = () => {
           )}
         </div>
 
-        {/* Footer */}
         {items.length > 0 && (
           <div className="border-t border-border p-4 space-y-3">
             <div className="flex items-center justify-between">

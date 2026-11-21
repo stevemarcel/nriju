@@ -35,8 +35,6 @@ const PRODUCT_UNITS = [
   "250g",
   "500g",
 ];
-const PRODUCT_REGIONS = ["Western", "Eastern", "South-South", "Northern", "Cross-regional"];
-
 const ADMIN_PRODUCT_SORT_OPTIONS = {
   name_asc: { name: 1, _id: 1 },
   name_desc: { name: -1, _id: 1 },
@@ -501,7 +499,6 @@ const createProduct = asyncHandler(async (req, res) => {
     tags,
     isFeatured,
     images,
-    region,
     prepLeadTime,
     maxDailyQty,
     costPrice,
@@ -526,11 +523,6 @@ const createProduct = asyncHandler(async (req, res) => {
   if (unit !== undefined && !PRODUCT_UNITS.includes(unit)) {
     res.status(400);
     throw new Error("Invalid product unit.");
-  }
-
-  if (region !== undefined && !PRODUCT_REGIONS.includes(region)) {
-    res.status(400);
-    throw new Error("Invalid product region.");
   }
 
   const existingImages = parseImageList(images) || [];
@@ -578,7 +570,6 @@ const createProduct = asyncHandler(async (req, res) => {
     isActive: parsedActive,
     isFeatured: parsedFeatured,
     notifyOnOutOfStock: parsedNotify,
-    region,
     prepLeadTime: parsedPrepLeadTime,
     maxDailyQty: parsedMaxDailyQty,
     stock: 0,
@@ -655,7 +646,7 @@ const updateProduct = asyncHandler(async (req, res) => {
 
   const updates = {};
 
-  const stringFields = ["name", "description", "unit", "productType", "region"];
+  const stringFields = ["name", "description", "unit", "productType"];
   for (const field of stringFields) {
     if (body[field] !== undefined) {
       if (typeof body[field] !== "string") {
@@ -710,11 +701,6 @@ const updateProduct = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Invalid product unit.");
   }
-  if (updates.region !== undefined && !PRODUCT_REGIONS.includes(updates.region)) {
-    res.status(400);
-    throw new Error("Invalid product region.");
-  }
-
   const uploadedImages = await uploadProductFiles(files);
   if (body.images !== undefined || uploadedImages.length) {
     updates.images = [...existingImages, ...uploadedImages.map((item) => item.url)];
@@ -737,7 +723,6 @@ const updateProduct = asyncHandler(async (req, res) => {
     "costPrice",
     "unit",
     "productType",
-    "region",
     "prepLeadTime",
     "maxDailyQty",
     "category",
@@ -958,7 +943,10 @@ const getProductStats = asyncHandler(async (req, res) => {
   const [total, active, lowStock, outOfStock] = await Promise.all([
     Product.countDocuments(query),
     Product.countDocuments({ ...query, isActive: true }),
-    Product.countDocuments({ ...query, stock: { $gt: 0, $lte: LOW_STOCK_THRESHOLD } }),
+    Product.countDocuments({
+      ...query,
+      stock: { $gt: 0, $lte: LOW_STOCK_THRESHOLD },
+    }),
     Product.countDocuments({ ...query, stock: 0 }),
   ]);
 

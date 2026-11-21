@@ -1,8 +1,4 @@
-import {
-  recordActivity,
-  formatNairaFromKobo,
-  formatActivityList,
-} from "./activityUtils.js";
+import { recordActivity, formatNairaFromKobo, formatActivityList } from "./activityUtils.js";
 
 const FIELD_LABELS = {
   name: "product name",
@@ -17,7 +13,6 @@ const FIELD_LABELS = {
   isActive: "availability",
   isFeatured: "featured status",
   notifyOnOutOfStock: "out-of-stock notifications",
-  region: "region",
   prepLeadTime: "preparation lead time",
   maxDailyQty: "maximum daily quantity",
   images: "product images",
@@ -44,9 +39,7 @@ const describeChange = (change, productName, compact = false) => {
 
   if (field === "isActive") {
     const active = change.to === true || change.to === "Active";
-    return active
-      ? `restored product "${productName}"`
-      : `archived product "${productName}"`;
+    return active ? `restored product "${productName}"` : `archived product "${productName}"`;
   }
 
   if (field === "isFeatured") {
@@ -91,8 +84,7 @@ export const recordProductUpdated = (req, product, changes = []) => {
   const activeChange = changes.find((change) => change.field === "isActive");
   const isSingleStatusChange = changes.length === 1 && activeChange;
 
-  const isRestored =
-    activeChange?.to === true || activeChange?.to === "Active";
+  const isRestored = activeChange?.to === true || activeChange?.to === "Active";
   const actionType = isSingleStatusChange ? "status_toggle" : "update";
   const action = isSingleStatusChange
     ? isRestored
@@ -101,7 +93,7 @@ export const recordProductUpdated = (req, product, changes = []) => {
     : "product.updated";
 
   const descriptions = changes.map((change) =>
-    describeChange(change, product.name, changes.length === 1)
+    describeChange(change, product.name, changes.length === 1),
   );
 
   const description =

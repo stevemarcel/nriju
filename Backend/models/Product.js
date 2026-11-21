@@ -31,7 +31,11 @@ const productSchema = new mongoose.Schema(
       lowercase: true,
       trim: true,
     },
-    description: { type: String, required: [true, "Description is required"], default: "" },
+    description: {
+      type: String,
+      required: [true, "Description is required"],
+      default: "",
+    },
 
     // ── money: integer kobo ──────────────────────────────────
     price: integerKobo(true),
@@ -84,12 +88,6 @@ const productSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
       required: true,
-      index: true,
-    },
-    region: {
-      type: String,
-      enum: ["Western", "Eastern", "South-South", "Northern", "Cross-regional"],
-      default: "Cross-regional",
       index: true,
     },
     images: {

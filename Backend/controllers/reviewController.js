@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import Review from "../models/Review.js";
 import Product from "../models/Product.js";
+import Order from "../models/Order.js";
 
 // @DESCRIPTION List approved reviews for a product
 // @ROUTE       GET /api/v1/reviews/:productId
@@ -20,12 +21,29 @@ const getProductReviews = asyncHandler(async (req, res) => {
 // @ROUTE       POST /api/v1/reviews
 // @ACCESS      Authenticated
 const submitReview = asyncHandler(async (req, res) => {
-  const { productId, rating, title, comment } = req.body;
+  const { productId, rating, title = "", comment = "", description = "" } = req.body;
+  const parsedRating = Number(rating);
+
+  if (!Number.isInteger(parsedRating) || parsedRating < 1 || parsedRating > 5) {
+    res.status(400);
+    throw new Error("Choose a star rating from 1 to 5.");
+  }
 
   const product = await Product.findById(productId);
   if (!product) {
     res.status(404);
     throw new Error("Product not found");
+  }
+
+  const completedPurchase = await Order.exists({
+    user: req.user._id,
+    status: { $in: ["delivered", "picked_up"] },
+    "items.product": productId,
+  });
+
+  if (!completedPurchase) {
+    res.status(403);
+    throw new Error("You can review this product after a completed purchase.");
   }
 
   // Check if user already reviewed this product
@@ -42,10 +60,11 @@ const submitReview = asyncHandler(async (req, res) => {
   const review = await Review.create({
     product: productId,
     user: req.user._id,
-    rating: Number(rating),
+    rating: parsedRating,
     title,
-    comment,
+    comment: comment || description,
     status: "pending",
+    isVerifiedPurchase: true,
   });
 
   req.activity = {
@@ -54,8 +73,8 @@ const submitReview = asyncHandler(async (req, res) => {
     entityId: review._id,
     entityName: `${title} on ${product?.name || productId}`,
     actionType: "create",
-    changes: [{ field: "rating", from: null, to: rating }],
-    description: `${req.user.name} reviewed "${product?.name}" with ${rating} star${rating > 1 ? "s" : ""}`,
+    changes: [{ field: "rating", from: null, to: parsedRating }],
+    description: `${req.user.name} reviewed "${product?.name}" with ${parsedRating} star${parsedRating > 1 ? "s" : ""}`,
   };
 
   res.status(201).json({

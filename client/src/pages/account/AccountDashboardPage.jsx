@@ -3,7 +3,7 @@ import { useAppSelector, useAppDispatch } from "../../store/store";
 import { useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
 import { clearAuth } from "../../slices/authSlice";
-import { Breadcrumb } from "../../components/shared/Navigation";
+import { Breadcrumb } from "../../components/ui/Navigation";
 import {
   Package,
   Heart,

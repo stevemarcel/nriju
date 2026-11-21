@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { toggleWishlist } from "../../slices/wishlistSlice";
-import { Breadcrumb } from "../../components/shared/Navigation";
+import { Breadcrumb } from "../../components/ui/Navigation";
 import { Heart, ShoppingBag, Trash2, Package, Star } from "lucide-react";
 import { formatNaira } from "../../utils/formatMoney";
 

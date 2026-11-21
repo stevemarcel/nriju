@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import CropAvatar from "../../components/ui/CropAvatar";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import formatTimeAgo from "../../utils/formatTimeAgo";
-import { Breadcrumb } from "../../components/shared/Navigation";
+import { Breadcrumb } from "../../components/ui/Navigation";
 import {
   AlertCircle,
   Building2,
@@ -50,7 +50,10 @@ const AccountProfilePage = () => {
   const [deletingAddress, setDeletingAddress] = useState(false);
 
   const handleChange = (event) =>
-    setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+    setForm((current) => ({
+      ...current,
+      [event.target.name]: event.target.value,
+    }));
 
   const handleSave = async (event) => {
     event.preventDefault();
@@ -62,7 +65,9 @@ const AccountProfilePage = () => {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (requestError) {
-      setError(requestError.response?.data?.message || "Failed to save changes.");
+      setError(
+        requestError.response?.data?.message || "Failed to save changes.",
+      );
     } finally {
       setSaving(false);
     }
@@ -84,7 +89,9 @@ const AccountProfilePage = () => {
       toast.success("Profile photo updated successfully.");
       return true;
     } catch (requestError) {
-      const message = requestError.response?.data?.message || "Failed to upload profile photo.";
+      const message =
+        requestError.response?.data?.message ||
+        "Failed to upload profile photo.";
       setAvatarError(message);
       toast.error(message);
       return false;
@@ -102,7 +109,9 @@ const AccountProfilePage = () => {
       toast.success("Profile photo deleted.");
       return true;
     } catch (requestError) {
-      const message = requestError.response?.data?.message || "Failed to delete profile photo.";
+      const message =
+        requestError.response?.data?.message ||
+        "Failed to delete profile photo.";
       setAvatarError(message);
       toast.error(message);
       return false;
@@ -115,11 +124,15 @@ const AccountProfilePage = () => {
     if (!addressToDelete) return;
     setDeletingAddress(true);
     try {
-      const response = await api.delete(`/auth/me/addresses/${addressToDelete._id}`);
+      const response = await api.delete(
+        `/auth/me/addresses/${addressToDelete._id}`,
+      );
       dispatch(setUser(response.data.data));
       toast.success("Address removed.");
     } catch (requestError) {
-      toast.error(requestError.response?.data?.message || "Failed to remove address.");
+      toast.error(
+        requestError.response?.data?.message || "Failed to remove address.",
+      );
     } finally {
       setDeletingAddress(false);
       setAddressToDelete(null);
@@ -130,7 +143,12 @@ const AccountProfilePage = () => {
     <div className="min-h-screen bg-background-soft">
       <div className="border-b border-border-soft bg-surface">
         <div className="container mx-auto px-4 py-4">
-          <Breadcrumb crumbs={[{ label: "Account", to: "/account" }, { label: "Profile" }]} />
+          <Breadcrumb
+            crumbs={[
+              { label: "Account", to: "/account" },
+              { label: "Profile" },
+            ]}
+          />
         </div>
       </div>
       <main className="container mx-auto max-w-3xl px-4 py-8">
@@ -158,7 +176,9 @@ const AccountProfilePage = () => {
               </div>
             )}
             <div>
-              <h2 className="font-heading text-lg font-bold text-text">{user?.name}</h2>
+              <h2 className="font-heading text-lg font-bold text-text">
+                {user?.name}
+              </h2>
               <p className="text-sm text-text-muted">{user?.email}</p>
             </div>
           </div>
@@ -183,7 +203,11 @@ const AccountProfilePage = () => {
         <section className="rounded-xl border border-border-soft bg-surface p-6">
           <form onSubmit={handleSave} className="space-y-5">
             {error && (
-              <Notice icon={AlertCircle} className="bg-red-50 text-red-600" message={error} />
+              <Notice
+                icon={AlertCircle}
+                className="bg-red-50 text-red-600"
+                message={error}
+              />
             )}
             {saved && (
               <Notice
@@ -243,7 +267,9 @@ const AccountProfilePage = () => {
                 {saving ? "Saving..." : "Save Changes"}
               </button>
               <span className="text-xs text-text-muted">
-                {saving ? "Saving..." : `Last saved: ${formatTimeAgo(user?.updatedAt)}`}
+                {saving
+                  ? "Saving..."
+                  : `Last saved: ${formatTimeAgo(user?.updatedAt)}`}
               </span>
             </div>
           </form>
@@ -255,7 +281,9 @@ const AccountProfilePage = () => {
                 <MapPin className="h-5 w-5 text-primary" aria-hidden="true" />
                 Shipping Addresses
               </h2>
-              <p className="mt-1 text-sm text-text-muted">Manage your saved delivery details.</p>
+              <p className="mt-1 text-sm text-text-muted">
+                Manage your saved delivery details.
+              </p>
             </div>
             <Link
               to="/account/addresses"
@@ -268,7 +296,10 @@ const AccountProfilePage = () => {
           </div>
           {addresses.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border-soft bg-surface p-8 text-center">
-              <MapPin className="mx-auto mb-3 h-6 w-6 text-text-muted" aria-hidden="true" />
+              <MapPin
+                className="mx-auto mb-3 h-6 w-6 text-text-muted"
+                aria-hidden="true"
+              />
               <p className="text-sm font-medium text-text">No addresses yet</p>
               <p className="mt-1 text-xs text-text-muted">
                 Add your first address to speed up checkout.
@@ -277,7 +308,11 @@ const AccountProfilePage = () => {
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               {addresses.map((address) => (
-                <AddressCard key={address._id} address={address} onDelete={setAddressToDelete} />
+                <AddressCard
+                  key={address._id}
+                  address={address}
+                  onDelete={setAddressToDelete}
+                />
               ))}
             </div>
           )}
@@ -297,7 +332,10 @@ const AccountProfilePage = () => {
 };
 
 const Notice = ({ icon: Icon, className, message }) => (
-  <div className={`flex items-center gap-2 rounded-lg p-3 text-sm ${className}`} role="status">
+  <div
+    className={`flex items-center gap-2 rounded-lg p-3 text-sm ${className}`}
+    role="status"
+  >
     <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
     {message}
   </div>
@@ -313,7 +351,10 @@ const ProfileField = ({
   required = false,
 }) => (
   <div>
-    <label htmlFor={`profile-${name}`} className="mb-2 block text-sm font-medium text-text">
+    <label
+      htmlFor={`profile-${name}`}
+      className="mb-2 block text-sm font-medium text-text"
+    >
       {label}
     </label>
     <div className="relative">
