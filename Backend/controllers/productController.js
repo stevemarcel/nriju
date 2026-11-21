@@ -57,6 +57,26 @@ const SORT_OPTIONS = {
   popular: "-salesCount -_id",
 };
 
+const parseFormPayload = (req, res) => {
+  if (req.body?.payload === undefined) return req.body || {};
+
+  try {
+    const payload = JSON.parse(req.body.payload);
+    if (!payload || Array.isArray(payload) || typeof payload !== "object") {
+      throw new Error("Invalid product form payload.");
+    }
+    req.body = payload;
+    return payload;
+  } catch (error) {
+    res.status(400);
+    throw new Error(
+      error?.message === "Invalid product form payload."
+        ? error.message
+        : "Product form data is not valid JSON.",
+    );
+  }
+};
+
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 const getPagination = (req, res, defaultLimit = 20) => {
@@ -260,6 +280,27 @@ const cleanupCloudinaryImages = async (urls = []) => {
   });
 };
 
+const uploadProductFiles = async (files = []) => {
+  if (!files.length) return [];
+
+  const results = await Promise.allSettled(
+    files.map((file) => uploadProductToCloudinary(file.buffer)),
+  );
+  const uploaded = results
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value);
+  const failed = results.find((result) => result.status === "rejected");
+
+  if (failed) {
+    await Promise.allSettled(
+      uploaded.filter((item) => item.publicId).map((item) => deleteFromCloudinary(item.publicId)),
+    );
+    throw failed.reason;
+  }
+
+  return uploaded;
+};
+
 const buildAdminProductQuery = async (req, res) => {
   const { isActive, category, stockFilter, search } = req.query;
   const query = {};
@@ -379,42 +420,6 @@ const buildPublicProductQuery = async (req, res) => {
   };
 };
 
-// @DESCRIPTION Upload product images and return their Cloudinary URLs.
-// This is a staging endpoint; it does not create or update a product.
-// @ROUTE       POST /api/v1/products/images
-// @ACCESS      Admin
-const uploadProductImagesController = asyncHandler(async (req, res) => {
-  // Prevent the activity middleware from recording this as product creation.
-  skipActivityLog(req);
-
-  const files = Array.isArray(req.files) ? req.files : [];
-  if (!files.length) {
-    return res.json({ success: true, data: { images: [] } });
-  }
-
-  const results = await Promise.allSettled(
-    files.map((file) => uploadProductToCloudinary(file.buffer)),
-  );
-
-  const uploaded = results
-    .filter((result) => result.status === "fulfilled")
-    .map((result) => result.value);
-
-  const failed = results.find((result) => result.status === "rejected");
-
-  if (failed) {
-    await Promise.allSettled(
-      uploaded.filter((item) => item.publicId).map((item) => deleteFromCloudinary(item.publicId)),
-    );
-    throw failed.reason;
-  }
-
-  res.json({
-    success: true,
-    data: { images: uploaded.map((item) => item.url) },
-  });
-});
-
 // @DESCRIPTION List active products with filters, search, sort and pagination.
 // @ROUTE       GET /api/v1/products
 // @ACCESS      Public
@@ -484,6 +489,7 @@ const getProductBySlug = asyncHandler(async (req, res) => {
 // @ROUTE       POST /api/v1/products
 // @ACCESS      Admin
 const createProduct = asyncHandler(async (req, res) => {
+  const body = parseFormPayload(req, res);
   const {
     name,
     description,
@@ -502,7 +508,7 @@ const createProduct = asyncHandler(async (req, res) => {
     stock,
     isActive,
     notifyOnOutOfStock,
-  } = req.body;
+  } = body;
 
   const categoryDocument = await assertCategoryExists(category, res);
   const parsedPrice = parseNonNegativeInteger(price, "Price");
@@ -527,7 +533,12 @@ const createProduct = asyncHandler(async (req, res) => {
     throw new Error("Invalid product region.");
   }
 
-  const parsedImages = parseImageList(images) || [];
+  const existingImages = parseImageList(images) || [];
+  const files = Array.isArray(req.files) ? req.files : [];
+  if (existingImages.length + files.length > MAX_PRODUCT_IMAGES) {
+    res.status(400);
+    throw new Error(`A product can have up to ${MAX_PRODUCT_IMAGES} images.`);
+  }
   const parsedFeatured = parseOptionalBoolean(isFeatured, "isFeatured") ?? false;
   const parsedActive = parseOptionalBoolean(isActive, "isActive") ?? true;
   const parsedNotify = parseOptionalBoolean(notifyOnOutOfStock, "notifyOnOutOfStock") ?? false;
@@ -536,27 +547,40 @@ const createProduct = asyncHandler(async (req, res) => {
     defaultValue: null,
   });
   const parsedOpeningStock = parseOptionalNonNegativeInteger(stock, "Opening stock", 0);
+  const parsedCompareAtPrice = parseNonNegativeInteger(compareAtPrice, "Compare-at price", {
+    nullable: true,
+    defaultValue: null,
+  });
+  const parsedTags = parseTags(tags);
+  const parsedPrepLeadTime = parseOptionalNonNegativeInteger(
+    prepLeadTime,
+    "Preparation lead time",
+    0,
+  );
+  const parsedMaxDailyQty = parseOptionalNonNegativeInteger(
+    maxDailyQty,
+    "Maximum daily quantity",
+    0,
+  );
 
+  const uploadedImages = await uploadProductFiles(files);
   const productData = {
     name,
     description,
     price: parsedPrice,
-    compareAtPrice: parseNonNegativeInteger(compareAtPrice, "Compare-at price", {
-      nullable: true,
-      defaultValue: null,
-    }),
+    compareAtPrice: parsedCompareAtPrice,
     costPrice: parsedCostPrice,
     unit,
     productType,
     category: categoryDocument._id,
-    tags: parseTags(tags),
-    images: parsedImages,
+    tags: parsedTags,
+    images: [...existingImages, ...uploadedImages.map((item) => item.url)],
     isActive: parsedActive,
     isFeatured: parsedFeatured,
     notifyOnOutOfStock: parsedNotify,
     region,
-    prepLeadTime: parseOptionalNonNegativeInteger(prepLeadTime, "Preparation lead time", 0),
-    maxDailyQty: parseOptionalNonNegativeInteger(maxDailyQty, "Maximum daily quantity", 0),
+    prepLeadTime: parsedPrepLeadTime,
+    maxDailyQty: parsedMaxDailyQty,
     stock: 0,
     createdBy: req.user._id,
     updatedBy: req.user._id,
@@ -564,32 +588,37 @@ const createProduct = asyncHandler(async (req, res) => {
 
   let product;
 
-  if (parsedOpeningStock > 0) {
-    const session = await mongoose.startSession();
-    let productId;
+  try {
+    if (parsedOpeningStock > 0) {
+      const session = await mongoose.startSession();
+      let productId;
 
-    try {
-      await session.withTransaction(async () => {
-        const [createdProduct] = await Product.create([productData], {
-          session,
-        });
-        productId = createdProduct._id;
+      try {
+        await session.withTransaction(async () => {
+          const [createdProduct] = await Product.create([productData], {
+            session,
+          });
+          productId = createdProduct._id;
 
-        await addStockBatch({
-          productId,
-          quantity: parsedOpeningStock,
-          reason: "Opening stock added during product creation",
-          performedBy: req.user._id,
-          session,
+          await addStockBatch({
+            productId,
+            quantity: parsedOpeningStock,
+            reason: "Opening stock added during product creation",
+            performedBy: req.user._id,
+            session,
+          });
         });
-      });
-    } finally {
-      await session.endSession();
+      } finally {
+        await session.endSession();
+      }
+
+      product = await Product.findById(productId);
+    } else {
+      product = await Product.create(productData);
     }
-
-    product = await Product.findById(productId);
-  } else {
-    product = await Product.create(productData);
+  } catch (error) {
+    await Promise.allSettled(uploadedImages.map((item) => deleteFromCloudinary(item.publicId)));
+    throw error;
   }
 
   await product.populate("category");
@@ -605,6 +634,7 @@ const createProduct = asyncHandler(async (req, res) => {
 // @ROUTE       PUT /api/v1/products/:id
 // @ACCESS      Admin
 const updateProduct = asyncHandler(async (req, res) => {
+  const body = parseFormPayload(req, res);
   if (!mongoose.isValidObjectId(req.params.id)) {
     res.status(400);
     throw new Error("Invalid product ID.");
@@ -627,41 +657,47 @@ const updateProduct = asyncHandler(async (req, res) => {
 
   const stringFields = ["name", "description", "unit", "productType", "region"];
   for (const field of stringFields) {
-    if (req.body[field] !== undefined) {
-      if (typeof req.body[field] !== "string") {
+    if (body[field] !== undefined) {
+      if (typeof body[field] !== "string") {
         res.status(400);
         throw new Error(`${field} must be a string.`);
       }
-      updates[field] = req.body[field].trim();
+      updates[field] = body[field].trim();
     }
   }
 
   for (const field of ["price", "compareAtPrice", "costPrice"]) {
-    if (req.body[field] !== undefined) {
-      updates[field] = parseNonNegativeInteger(req.body[field], field, {
+    if (body[field] !== undefined) {
+      updates[field] = parseNonNegativeInteger(body[field], field, {
         nullable: field === "compareAtPrice" || field === "costPrice",
       });
     }
   }
 
   for (const field of ["prepLeadTime", "maxDailyQty"]) {
-    if (req.body[field] !== undefined) {
-      updates[field] = parseOptionalNonNegativeInteger(req.body[field], field, 0);
+    if (body[field] !== undefined) {
+      updates[field] = parseOptionalNonNegativeInteger(body[field], field, 0);
     }
   }
 
   for (const field of ["isActive", "isFeatured", "notifyOnOutOfStock"]) {
-    if (req.body[field] !== undefined) {
-      updates[field] = parseBoolean(req.body[field], field);
+    if (body[field] !== undefined) {
+      updates[field] = parseBoolean(body[field], field);
     }
   }
 
-  if (req.body.tags !== undefined) updates.tags = parseTags(req.body.tags);
-  if (req.body.images !== undefined) updates.images = parseImageList(req.body.images);
+  if (body.tags !== undefined) updates.tags = parseTags(body.tags);
+
+  const files = Array.isArray(req.files) ? req.files : [];
+  const existingImages = body.images !== undefined ? parseImageList(body.images) : previousImages;
+  if (existingImages.length + files.length > MAX_PRODUCT_IMAGES) {
+    res.status(400);
+    throw new Error(`A product can have up to ${MAX_PRODUCT_IMAGES} images.`);
+  }
 
   let newCategoryName = oldCategoryName;
-  if (req.body.category !== undefined) {
-    const categoryDocument = await assertCategoryExists(req.body.category, res);
+  if (body.category !== undefined) {
+    const categoryDocument = await assertCategoryExists(body.category, res);
     updates.category = categoryDocument._id;
     newCategoryName = categoryDocument.name || "—";
   }
@@ -677,6 +713,11 @@ const updateProduct = asyncHandler(async (req, res) => {
   if (updates.region !== undefined && !PRODUCT_REGIONS.includes(updates.region)) {
     res.status(400);
     throw new Error("Invalid product region.");
+  }
+
+  const uploadedImages = await uploadProductFiles(files);
+  if (body.images !== undefined || uploadedImages.length) {
+    updates.images = [...existingImages, ...uploadedImages.map((item) => item.url)];
   }
 
   const currentValue = (field) => {
@@ -749,7 +790,12 @@ const updateProduct = asyncHandler(async (req, res) => {
   }
 
   product.updatedBy = req.user._id;
-  await product.save();
+  try {
+    await product.save();
+  } catch (error) {
+    await Promise.allSettled(uploadedImages.map((item) => deleteFromCloudinary(item.publicId)));
+    throw error;
+  }
 
   // Remove old image assets only after the product update commits successfully.
   const nextImages = product.images || [];
@@ -930,6 +976,5 @@ export {
   updateProduct,
   deleteProduct,
   getAllProducts,
-  uploadProductImagesController,
   getProductStats,
 };

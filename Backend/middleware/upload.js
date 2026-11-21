@@ -15,14 +15,8 @@ export const uploadAvatar = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 }).single("avatar");
 
-export const uploadProductImages = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 },
-}).array("images", 10);
-
-// Standalone image upload for the product form — uploads the files and returns
-// their Cloudinary URLs without creating a product record.
+// Parse product files from the same multipart request that saves the record.
+// The controller removes newly uploaded assets if the database write fails.
 export const uploadProductImageFiles = multer({
   storage,
   fileFilter,

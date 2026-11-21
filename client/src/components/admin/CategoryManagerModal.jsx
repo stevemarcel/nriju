@@ -81,14 +81,18 @@ const CategoryManagerModal = ({ categories, onClose, onCategoryRemoved }) => {
   }, []);
 
   const saveMutation = useMutation({
-    mutationFn: async (payload) => {
+    mutationFn: async ({ payload, imageFile }) => {
+      const requestData = new FormData();
+      requestData.append("payload", JSON.stringify(payload));
+      if (imageFile) requestData.append("images", imageFile);
+
       if (editor?.mode === "edit") {
-        return api.put(`/categories/${editor.category._id}`, payload, {
+        return api.put(`/categories/${editor.category._id}`, requestData, {
           skipGlobalErrorToast: true,
         });
       }
 
-      return api.post("/categories", payload, { skipGlobalErrorToast: true });
+      return api.post("/categories", requestData, { skipGlobalErrorToast: true });
     },
     onSuccess: (response) => {
       const savedCategory = response.data.data;
@@ -163,11 +167,15 @@ const CategoryManagerModal = ({ categories, onClose, onCategoryRemoved }) => {
     }
 
     setFormError("");
+    const imageFile = form.image instanceof File ? form.image : null;
     saveMutation.mutate({
-      name,
-      description: form.description.trim(),
-      image: form.image.trim(),
-      sortOrder,
+      payload: {
+        name,
+        description: form.description.trim(),
+        image: typeof form.image === "string" ? form.image.trim() : "",
+        sortOrder,
+      },
+      imageFile,
     });
   };
 
@@ -381,8 +389,8 @@ const CategoryManagerModal = ({ categories, onClose, onCategoryRemoved }) => {
                     maxImages={1}
                     disabled={isBusy}
                     onUpload={setUploading}
-                    uploadEndpoint="/categories/images"
                     imageLabel="Category image"
+                    cropAspect={4 / 3}
                   />
                   <p className="mt-1.5 text-xs text-text-secondary">
                     Upload one JPG, PNG, or WebP image up to 10 MB.

@@ -1,7 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import ReactCrop, { centerCrop, makeAspectCrop } from "react-image-crop";
+import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import usePageScrollLock from "../../hooks/usePageScrollLock";
+import {
+  createCroppedImageFile,
+  makeMaxAspectCrop,
+  percentCropToPixels,
+} from "../../utils/imageCrop";
 import {
   AlertTriangle,
   Check,
@@ -27,10 +32,6 @@ function blobToDataUrl(blob) {
 
 function fileToDataUrl(file) {
   return blobToDataUrl(file);
-}
-
-function makeCenteredSquareCrop(width, height) {
-  return centerCrop(makeAspectCrop({ unit: "%", width: 90 }, 1, width, height), width, height);
 }
 
 function getInitials(name = "") {
@@ -182,45 +183,7 @@ const CropAvatar = ({
     setProcessing(true);
 
     try {
-      const scaleX = image.naturalWidth / image.width;
-      const scaleY = image.naturalHeight / image.height;
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(completedCrop.width * scaleX));
-      canvas.height = Math.max(1, Math.round(completedCrop.height * scaleY));
-
-      const context = canvas.getContext("2d");
-      if (!context) throw new Error("Your browser could not prepare the cropped image.");
-
-      context.drawImage(
-        image,
-        completedCrop.x * scaleX,
-        completedCrop.y * scaleY,
-        completedCrop.width * scaleX,
-        completedCrop.height * scaleY,
-        0,
-        0,
-        canvas.width,
-        canvas.height,
-      );
-
-      const blob = await new Promise((resolve, reject) => {
-        try {
-          canvas.toBlob(
-            (result) =>
-              result
-                ? resolve(result)
-                : reject(new Error("The cropped image could not be generated.")),
-            "image/webp",
-            0.92,
-          );
-        } catch (err) {
-          reject(err);
-        }
-      });
-
-      const file = new File([blob], `avatar-${Date.now()}.webp`, {
-        type: blob.type || "image/webp",
-      });
+      const file = await createCroppedImageFile(image, completedCrop, `avatar-${Date.now()}.webp`);
       const success = await onCropped(file);
 
       // The parent returns false if the API request failed, leaving the user's
@@ -254,8 +217,9 @@ const CropAvatar = ({
 
   function handleImageLoad(event) {
     const image = event.currentTarget;
-    setCrop(makeCenteredSquareCrop(image.width, image.height));
-    setCompletedCrop(null);
+    const initialCrop = makeMaxAspectCrop(image.width, image.height, 1);
+    setCrop(initialCrop);
+    setCompletedCrop(percentCropToPixels(initialCrop, image.width, image.height));
     setImageLoaded(true);
   }
 

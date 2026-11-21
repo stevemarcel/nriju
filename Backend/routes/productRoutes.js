@@ -7,7 +7,6 @@ import {
   updateProduct,
   deleteProduct,
   getAllProducts,
-  uploadProductImagesController,
   getProductStats,
 } from "../controllers/productController.js";
 import { auth, admin } from "../middleware/auth.js";
@@ -26,10 +25,10 @@ router.get("/stats", auth, admin, getProductStats);
 // Public product detail. Keep this outside the admin middleware.
 router.get("/:slug", getProductBySlug);
 
-// Admin product mutations and image staging.
-router.post("/images", auth, admin, uploadProductImageFiles, uploadProductImagesController);
-router.post("/", auth, admin, createProduct);
-router.put("/:id", auth, admin, updateProduct);
+// Admin product mutations. Images travel with the form request so an upload
+// cannot be permanently committed without a matching database save.
+router.post("/", auth, admin, uploadProductImageFiles, createProduct);
+router.put("/:id", auth, admin, uploadProductImageFiles, updateProduct);
 router.delete("/:id", auth, admin, deleteProduct);
 
 export default router;

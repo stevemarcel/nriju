@@ -192,6 +192,8 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const existingImages = (form.images || []).filter((image) => typeof image === "string");
+      const newImages = (form.images || []).filter((image) => image instanceof File);
       const payload = {
         name: form.name,
         description: form.description,
@@ -201,7 +203,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
         unit: form.unit,
         productType: form.productType,
         category: form.category,
-        images: form.images || [],
+        images: existingImages,
         tags: form.tags
           .split(",")
           .map((tag) => tag.trim())
@@ -211,18 +213,17 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
         notifyOnOutOfStock: form.notifyOnOutOfStock,
       };
 
+      if (mode !== "edit") payload.stock = form.stock === "" ? 0 : Number(form.stock);
+
+      const requestData = new FormData();
+      requestData.append("payload", JSON.stringify(payload));
+      newImages.forEach((image) => requestData.append("images", image));
+
       if (mode === "edit" && product) {
-        return api.put(`/products/${product._id}`, payload, { skipGlobalErrorToast: true });
+        return api.put(`/products/${product._id}`, requestData, { skipGlobalErrorToast: true });
       }
 
-      return api.post(
-        "/products",
-        {
-          ...payload,
-          stock: form.stock === "" ? 0 : Number(form.stock),
-        },
-        { skipGlobalErrorToast: true },
-      );
+      return api.post("/products", requestData, { skipGlobalErrorToast: true });
     },
 
     onError: (err) => {
@@ -520,6 +521,7 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
                     maxImages={10}
                     disabled={isBusy}
                     onUpload={(busy) => setUploading(busy)}
+                    cropAspect={1}
                   />
                 </div>
               </FormField>

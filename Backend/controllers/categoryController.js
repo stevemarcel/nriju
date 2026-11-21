@@ -5,7 +5,26 @@ import {
   getCloudinaryPublicIdFromUrl,
   uploadCategoryToCloudinary,
 } from "../utils/cloudinaryUtils.js";
-import { skipActivityLog } from "../utils/activityUtils.js";
+
+const parseFormPayload = (req, res) => {
+  if (req.body?.payload === undefined) return req.body || {};
+
+  try {
+    const payload = JSON.parse(req.body.payload);
+    if (!payload || Array.isArray(payload) || typeof payload !== "object") {
+      throw new Error("Invalid category form payload.");
+    }
+    req.body = payload;
+    return payload;
+  } catch (error) {
+    res.status(400);
+    throw new Error(
+      error?.message === "Invalid category form payload."
+        ? error.message
+        : "Category form data is not valid JSON.",
+    );
+  }
+};
 
 // @DESCRIPTION List all active categories
 // @ROUTE       GET /api/v1/categories
@@ -27,37 +46,36 @@ const getCategoryBySlug = asyncHandler(async (req, res) => {
   res.json({ success: true, data: category });
 });
 
-// @DESCRIPTION Upload one category image and return its Cloudinary URL
-// @ROUTE       POST /api/v1/categories/images
-// @ACCESS      Admin
-const uploadCategoryImage = asyncHandler(async (req, res) => {
-  skipActivityLog(req);
-
-  const file = Array.isArray(req.files) ? req.files[0] : null;
-  if (!file?.buffer) {
-    res.status(400);
-    throw new Error("Select a category image to upload.");
-  }
-
-  const uploaded = await uploadCategoryToCloudinary(file.buffer);
-  res.json({ success: true, data: { images: [uploaded.url] } });
-});
-
 // @DESCRIPTION Create a category (admin)
 // @ROUTE       POST /api/v1/categories
 // @ACCESS      Admin
 const createCategory = asyncHandler(async (req, res) => {
-  const { name, description, image, isActive, sortOrder } = req.body;
+  const body = parseFormPayload(req, res);
+  const { name, description, image, isActive, sortOrder } = body;
+  const file = Array.isArray(req.files) ? req.files[0] : null;
+  let uploadedImage = null;
 
-  const category = await Category.create({
-    name,
-    description,
-    image,
-    isActive,
-    sortOrder,
-    createdBy: req.user._id,
-    updatedBy: req.user._id,
-  });
+  if (file?.buffer) uploadedImage = await uploadCategoryToCloudinary(file.buffer);
+
+  let category;
+  try {
+    category = await Category.create({
+      name,
+      description,
+      image: uploadedImage?.url || image || "",
+      isActive,
+      sortOrder,
+      createdBy: req.user._id,
+      updatedBy: req.user._id,
+    });
+  } catch (error) {
+    if (uploadedImage?.publicId) {
+      await deleteFromCloudinary(uploadedImage.publicId).catch((cleanupError) => {
+        console.error("Could not clean up category image after failed save:", cleanupError.message);
+      });
+    }
+    throw error;
+  }
 
   res.status(201).json({ success: true, data: category });
 });
@@ -66,28 +84,47 @@ const createCategory = asyncHandler(async (req, res) => {
 // @ROUTE       PUT /api/v1/categories/:id
 // @ACCESS      Admin
 const updateCategory = asyncHandler(async (req, res) => {
+  const body = parseFormPayload(req, res);
   const category = await Category.findById(req.params.id);
   if (!category) {
     res.status(404);
     throw new Error("Category not found");
   }
 
+  const file = Array.isArray(req.files) ? req.files[0] : null;
+  let uploadedImage = null;
+  if (file?.buffer) uploadedImage = await uploadCategoryToCloudinary(file.buffer);
+
   let previousImage = null;
   const allowed = ["name", "description", "image", "isActive", "sortOrder"];
   for (const key of allowed) {
-    if (req.body[key] !== undefined) {
+    if (body[key] !== undefined) {
       if (key === "image") {
-        const newImage = req.body[key];
+        const newImage = uploadedImage?.url || body[key];
         if (category.image && category.image !== newImage) previousImage = category.image;
         category[key] = newImage;
       } else {
-        category[key] = req.body[key];
+        category[key] = body[key];
       }
     }
   }
+
+  if (uploadedImage && body.image === undefined) {
+    if (category.image && category.image !== uploadedImage.url) previousImage = category.image;
+    category.image = uploadedImage.url;
+  }
   category.updatedBy = req.user._id;
 
-  await category.save();
+  try {
+    await category.save();
+  } catch (error) {
+    if (uploadedImage?.publicId) {
+      await deleteFromCloudinary(uploadedImage.publicId).catch((cleanupError) => {
+        console.error("Could not clean up category image after failed save:", cleanupError.message);
+      });
+    }
+    throw error;
+  }
 
   if (previousImage) {
     const publicId = getCloudinaryPublicIdFromUrl(previousImage);
@@ -115,11 +152,4 @@ const deleteCategory = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Category archived" });
 });
 
-export {
-  getCategories,
-  getCategoryBySlug,
-  uploadCategoryImage,
-  createCategory,
-  updateCategory,
-  deleteCategory,
-};
+export { getCategories, getCategoryBySlug, createCategory, updateCategory, deleteCategory };

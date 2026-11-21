@@ -1,9 +1,33 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ImagePlus, Trash2, X } from "lucide-react";
-import api from "../../services/api";
+import ImageCropDialog from "./ImageCropDialog";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+const ImagePreview = ({ image, alt, aspect }) => {
+  const [src, setSrc] = useState(typeof image === "string" ? image : "");
+
+  useEffect(() => {
+    if (typeof image === "string") {
+      setSrc(image);
+      return undefined;
+    }
+
+    const objectUrl = URL.createObjectURL(image);
+    setSrc(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [image]);
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      style={{ aspectRatio: String(aspect) }}
+      className="w-28 rounded-lg border border-border object-cover"
+    />
+  );
+};
 
 const ImageUpload = ({
   initialImages = [],
@@ -11,136 +35,99 @@ const ImageUpload = ({
   maxImages = 10,
   disabled = false,
   onUpload,
-  uploadEndpoint = "/products/images",
   imageLabel = "Product image",
+  cropAspect = 1,
 }) => {
-  const [uploading, setUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
+  const [cropQueue, setCropQueue] = useState([]);
   const [error, setError] = useState("");
   const fileInputRef = useRef(null);
+  const currentFile = cropQueue[0] || null;
 
-  const emit = (next) => {
-    onChange?.(next);
+  const emit = (next) => onChange?.(next);
+
+  const finishCurrentCrop = () => {
+    const hasAnotherCrop = cropQueue.length > 1;
+    setCropQueue((current) => current.slice(1));
+    if (!hasAnotherCrop) onUpload?.(false);
   };
 
-  const handleFiles = async (files) => {
+  const handleFiles = (files) => {
     if (!files.length || disabled) return;
     setError("");
 
     const remaining = maxImages - initialImages.length;
     if (remaining <= 0) {
-      setError(`You can upload up to ${maxImages} images.`);
+      setError(`You can add up to ${maxImages} images.`);
       return;
     }
 
-    const accepted = Array.from(files).filter((file) => {
-      const okType = ACCEPTED_TYPES.includes(file.type);
-      const ext = file.name.split(".").pop().toLowerCase();
-      const okExt = ["jpeg", "jpg", "png", "webp"].includes(ext);
-      return okType && okExt && file.size <= MAX_FILE_SIZE;
+    const selected = Array.from(files);
+    const accepted = selected.filter((file) => {
+      const extension = file.name.split(".").pop()?.toLowerCase();
+      return (
+        ACCEPTED_TYPES.includes(file.type) &&
+        ["jpeg", "jpg", "png", "webp"].includes(extension) &&
+        file.size <= MAX_FILE_SIZE
+      );
     });
 
-    if (accepted.length < files.length) {
+    if (accepted.length < selected.length) {
       setError("Only JPG, PNG, or WebP images up to 10 MB are allowed.");
     }
     if (!accepted.length) return;
 
-    const toUpload = accepted.slice(0, remaining);
-    setUploading(true);
-    setProgress(0);
-    onUpload?.(true);
-
-    try {
-      const formData = new FormData();
-      toUpload.forEach((file) => formData.append("images", file));
-
-      const res = await api.post(uploadEndpoint, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-        onUploadProgress: (progressEvent) => {
-          if (!progressEvent.total) return;
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          setProgress(percentCompleted);
-        },
-      });
-
-      const uploaded = res?.data?.data?.images ?? [];
-      emit([...initialImages, ...uploaded]);
-    } catch (err) {
-      setError(err?.response?.data?.message || "Could not upload images.");
-    } finally {
-      setUploading(false);
-      setProgress(0);
-      onUpload?.(false);
+    const queued = accepted.slice(0, remaining);
+    if (accepted.length > remaining) {
+      setError(`Only ${remaining} more image${remaining === 1 ? "" : "s"} can be added.`);
     }
+    setCropQueue(queued);
+    onUpload?.(true);
+  };
+
+  const handleCropConfirm = (croppedFile) => {
+    emit([...initialImages, croppedFile]);
+    finishCurrentCrop();
   };
 
   const handleRemove = (index) => {
-    emit(initialImages.filter((_, i) => i !== index));
+    emit(initialImages.filter((_, imageIndex) => imageIndex !== index));
   };
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-3">
-        {initialImages.map((url, index) => (
-          <div key={url + index} className="relative">
-            <img
-              src={url}
-              alt={`${imageLabel} ${index + 1}`}
-              className="h-24 w-24 rounded-lg object-cover border border-border"
-            />
+        {initialImages.map((image, index) => (
+          <div
+            key={
+              typeof image === "string"
+                ? `${image}-${index}`
+                : `${image.name}-${image.lastModified}-${index}`
+            }
+            className="relative"
+          >
+            <ImagePreview image={image} alt={`${imageLabel} ${index + 1}`} aspect={cropAspect} />
             <button
               type="button"
               onClick={() => handleRemove(index)}
-              disabled={disabled || uploading}
+              disabled={disabled || Boolean(currentFile)}
               className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-on-accent transition-colors hover:bg-destructive-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/30 disabled:cursor-not-allowed disabled:opacity-60"
               aria-label={`Remove ${imageLabel.toLowerCase()} ${index + 1}`}
             >
-              <Trash2 className="h-3 w-3" />
+              <Trash2 className="h-3 w-3" aria-hidden="true" />
             </button>
           </div>
         ))}
 
-        {initialImages.length < maxImages && (
-          <label className="relative flex h-24 w-24 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border text-text-muted transition-colors hover:border-primary hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 has-disabled:cursor-not-allowed has-disabled:opacity-60">
-            {uploading ? (
-              <>
-                <svg className="h-10 w-10 -rotate-90" viewBox="0 0 40 40">
-                  <circle
-                    cx="20"
-                    cy="20"
-                    r="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    className="opacity-20"
-                  />
-                  <circle
-                    cx="20"
-                    cy="20"
-                    r="16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="3"
-                    strokeDasharray={`${2 * Math.PI * 16}`}
-                    strokeDashoffset={`${2 * Math.PI * 16 * (1 - progress / 100)}`}
-                    className="transition-[stroke-dashoffset] duration-300"
-                  />
-                </svg>
-                <span className="mt-1 text-xs font-medium">{progress}%</span>
-              </>
-            ) : (
-              <>
-                <ImagePlus className="h-6 w-6" />
-                <span className="mt-1 text-xs">Add image</span>
-              </>
-            )}
+        {initialImages.length < maxImages ? (
+          <label className="relative flex h-24 w-28 cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-border text-text-muted transition-colors hover:border-primary hover:text-primary focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 has-disabled:cursor-not-allowed has-disabled:opacity-60">
+            <ImagePlus className="h-6 w-6" aria-hidden="true" />
+            <span className="mt-1 text-xs">Add image</span>
             <input
               ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
               multiple={maxImages > 1}
-              disabled={disabled || uploading}
+              disabled={disabled || Boolean(currentFile)}
               className="sr-only"
               onChange={(event) => {
                 handleFiles(event.target.files);
@@ -148,14 +135,31 @@ const ImageUpload = ({
               }}
             />
           </label>
-        )}
+        ) : null}
       </div>
 
-      {error && (
+      <p className="text-xs leading-5 text-text-secondary">
+        New images stay on this device and upload only when the form is saved.
+      </p>
+
+      {error ? (
         <p role="alert" className="flex items-center gap-1 text-xs text-error">
-          <X className="h-3 w-3" /> {error}
+          <X className="h-3 w-3" aria-hidden="true" /> {error}
         </p>
-      )}
+      ) : null}
+
+      <ImageCropDialog
+        file={currentFile}
+        aspect={cropAspect}
+        title={`Crop ${imageLabel.toLowerCase()}`}
+        positionLabel={
+          cropQueue.length > 1
+            ? `Image ${initialImages.length + 1} of ${initialImages.length + cropQueue.length}`
+            : imageLabel
+        }
+        onCancel={finishCurrentCrop}
+        onConfirm={handleCropConfirm}
+      />
     </div>
   );
 };

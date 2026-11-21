@@ -416,16 +416,15 @@ Rate listeners apply to _register, login, forgot-password._
 
 ### Products Endpoints (public + admin)
 
-| Method | Endpoint             | Access | Purpose                                 |
-| ------ | -------------------- | ------ | --------------------------------------- |
-| GET    | `/products`          | Public | List (search/filter)                    |
-| GET    | `/products/featured` | Public | Featured list                           |
-| GET    | `/products/all`      | Admin  | All products                            |
-| GET    | `/products/:slug`    | Public | Detail                                  |
-| POST   | `/products`          | Admin  | Create                                  |
-| PUT    | `/products/:id`      | Admin  | Update                                  |
-| DELETE | `/products/:id`      | Admin  | Delete                                  |
-| POST   | `/products/images`   | Admin  | Upload images (returns Cloudinary URLs) |
+| Method | Endpoint             | Access | Purpose              |
+| ------ | -------------------- | ------ | -------------------- |
+| GET    | `/products`          | Public | List (search/filter) |
+| GET    | `/products/featured` | Public | Featured list        |
+| GET    | `/products/all`      | Admin  | All products         |
+| GET    | `/products/:slug`    | Public | Detail               |
+| POST   | `/products`          | Admin  | Create               |
+| PUT    | `/products/:id`      | Admin  | Update               |
+| DELETE | `/products/:id`      | Admin  | Delete               |
 
 ### Categories Endpoints
 
