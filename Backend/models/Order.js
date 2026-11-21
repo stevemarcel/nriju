@@ -87,6 +87,11 @@ const orderSchema = new mongoose.Schema(
     // Idempotency guards for denormalized Product.salesCount updates.
     salesCountedAt: { type: Date, default: null },
     salesCountReversedAt: { type: Date, default: null },
+    completedAt: { type: Date, default: null, index: true },
+    nextReviewReminderAt: { type: Date, default: null, index: true },
+    lastReviewReminderAt: { type: Date, default: null },
+    reviewReminderStoppedAt: { type: Date, default: null },
+    reviewReminderProcessingAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

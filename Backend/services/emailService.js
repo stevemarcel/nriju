@@ -47,6 +47,76 @@ const passwordResetEmail = (resetUrl, name) => ({
   text: `Reset your password: ${resetUrl}`,
 });
 
+const escapeHtml = (value) =>
+  String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+const ORDER_EMAIL_COPY = {
+  received: {
+    subject: (order) => `Order ${order.orderNumber} received`,
+    heading: "We received your order",
+    message: "We will confirm it shortly.",
+  },
+  confirmed: {
+    subject: (order) => `Payment confirmed for ${order.orderNumber}`,
+    heading: "Your order is confirmed",
+    message: "Your payment was successful. We will start preparing your order soon.",
+  },
+  ready_for_pickup: {
+    subject: (order) => `Order ${order.orderNumber} is ready for pickup`,
+    heading: "Your order is ready",
+    message: "Your order is ready for pickup.",
+  },
+  on_the_way: {
+    subject: (order) => `Order ${order.orderNumber} is on the way`,
+    heading: "Your order is on the way",
+    message: "Your order has left us and is on the way to you.",
+  },
+  delivered: {
+    subject: (order) => `Order ${order.orderNumber} was delivered`,
+    heading: "Your order was delivered",
+    message: "Your order has been delivered.",
+  },
+  picked_up: {
+    subject: (order) => `Order ${order.orderNumber} was picked up`,
+    heading: "Your order was picked up",
+    message: "Your pickup is complete.",
+  },
+  cancelled: {
+    subject: (order) => `Order ${order.orderNumber} was cancelled`,
+    heading: "Your order was cancelled",
+    message: "Your order has been cancelled. Contact us if you need help.",
+  },
+  refunded: {
+    subject: (order) => `Order ${order.orderNumber} was refunded`,
+    heading: "Your order was refunded",
+    message: "Your refund has been recorded. Your bank may need additional time to process it.",
+  },
+};
+
+const orderStatusEmail = ({ order, name, status, link, reviewItems = [] }) => {
+  const copy = ORDER_EMAIL_COPY[status] || ORDER_EMAIL_COPY.received;
+  const url = `${String(process.env.CLIENT_URL || "").replace(/\/$/, "")}${link}`;
+  const reviewCount = reviewItems.length;
+  const reviewNames = reviewItems.map((item) => item.name).join(", ");
+  const reviewHtml = reviewCount
+    ? `<p>Tell us what you thought of ${reviewCount === 1 ? `<strong>${escapeHtml(reviewNames)}</strong>` : `the ${reviewCount} products in this order`}.</p>`
+    : "";
+  const reviewText = reviewCount
+    ? ` Tell us what you thought of ${reviewCount === 1 ? reviewNames : `the ${reviewCount} products in this order`}.`
+    : "";
+
+  return {
+    subject: copy.subject(order),
+    html: `<h2>Hi ${escapeHtml(name)},</h2><h3>${escapeHtml(copy.heading)}</h3><p>${escapeHtml(copy.message)}</p><p>Order: <strong>${escapeHtml(order.orderNumber)}</strong></p>${reviewHtml}<p><a href="${escapeHtml(url)}">${reviewCount ? "Review your products" : "View your order"}</a></p>`,
+    text: `Hi ${name}. ${copy.message} Order: ${order.orderNumber}.${reviewText} ${reviewCount ? "Review your products" : "View your order"}: ${url}`,
+  };
+};
+
 const orderConfirmationEmail = (order, name) => ({
   subject: `Order ${order.orderNumber} confirmed — Nriju`,
   html: `<h2>Hi ${name},</h2><p>Your order <strong>${order.orderNumber}</strong> has been received.</p><p>Total: ₦${(order.total / 100).toLocaleString()}</p>`,
@@ -59,4 +129,5 @@ export {
   emailVerificationEmail,
   passwordResetEmail,
   orderConfirmationEmail,
+  orderStatusEmail,
 };
