@@ -10,7 +10,7 @@ import {
 } from "../../utils/imageCrop";
 
 const ImageCropDialog = ({ file, aspect, title, positionLabel, onCancel, onConfirm }) => {
-  const [src, setSrc] = useState("");
+  const [src, setSrc] = useState(null);
   const [crop, setCrop] = useState();
   const [completedCrop, setCompletedCrop] = useState(null);
   const [processing, setProcessing] = useState(false);
@@ -22,14 +22,32 @@ const ImageCropDialog = ({ file, aspect, title, positionLabel, onCancel, onConfi
   useEffect(() => {
     if (!file) return undefined;
 
-    const objectUrl = URL.createObjectURL(file);
-    setSrc(objectUrl);
+    let active = true;
+    const reader = new FileReader();
+
+    setSrc(null);
     setCrop(undefined);
     setCompletedCrop(null);
     setProcessing(false);
     setError("");
 
-    return () => URL.revokeObjectURL(objectUrl);
+    reader.addEventListener("load", () => {
+      if (!active) return;
+      if (typeof reader.result === "string") {
+        setSrc(reader.result);
+      } else {
+        setError("Could not load this image for cropping.");
+      }
+    });
+    reader.addEventListener("error", () => {
+      if (active) setError("Could not load this image for cropping.");
+    });
+    reader.readAsDataURL(file);
+
+    return () => {
+      active = false;
+      if (reader.readyState === FileReader.LOADING) reader.abort();
+    };
   }, [file]);
 
   if (!file) return null;

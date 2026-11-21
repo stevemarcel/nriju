@@ -43,6 +43,10 @@ const getProductSaveErrorMessage = (error, mode) => {
   const rawMessage = error?.response?.data?.message;
   const action = mode === "create" ? "add" : "update";
 
+  if (error?.code === "PRODUCT_IMAGES_NOT_SAVED") {
+    return "The product was saved, but the selected images were not stored. Open Edit and try adding them again.";
+  }
+
   if (error?.code === "ERR_NETWORK") {
     return `We couldn't ${action} the product. Check your connection and try again.`;
   }
@@ -219,15 +223,33 @@ const ProductFormModal = ({ mode, product, categories, onClose, onSaved }) => {
       requestData.append("payload", JSON.stringify(payload));
       newImages.forEach((image) => requestData.append("images", image));
 
-      if (mode === "edit" && product) {
-        return api.put(`/products/${product._id}`, requestData, { skipGlobalErrorToast: true });
+      const response =
+        mode === "edit" && product
+          ? await api.put(`/products/${product._id}`, requestData, {
+              skipGlobalErrorToast: true,
+            })
+          : await api.post("/products", requestData, {
+              skipGlobalErrorToast: true,
+            });
+
+      const savedImages = response.data?.data?.images;
+      const expectedImageCount = existingImages.length + newImages.length;
+
+      if (
+        newImages.length > 0 &&
+        (!Array.isArray(savedImages) || savedImages.length < expectedImageCount)
+      ) {
+        const imageError = new Error("The selected product images were not saved.");
+        imageError.code = "PRODUCT_IMAGES_NOT_SAVED";
+        throw imageError;
       }
 
-      return api.post("/products", requestData, { skipGlobalErrorToast: true });
+      return response;
     },
 
     onError: (err) => {
       toast.error(getProductSaveErrorMessage(err, mode));
+      if (err?.code === "PRODUCT_IMAGES_NOT_SAVED") onSaved();
     },
 
     onSuccess: () => {

@@ -4,9 +4,6 @@ import { toast } from "sonner";
 const api = axios.create({
   baseURL: "/api/v1",
   withCredentials: true, // send JWT cookie
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 // Request interceptor — attach access token if present

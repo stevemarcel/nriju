@@ -14,31 +14,14 @@ const ImagePreview = ({ image, alt, aspect }) => {
       return undefined;
     }
 
-    if (!(image instanceof Blob)) {
-      setSrc(null);
-      return undefined;
-    }
-
     const objectUrl = URL.createObjectURL(image);
     setSrc(objectUrl);
     return () => URL.revokeObjectURL(objectUrl);
   }, [image]);
 
-  if (!src) {
-    return (
-      <div
-        role="img"
-        aria-label={`${alt} preview loading`}
-        aria-busy="true"
-        style={{ aspectRatio: String(aspect) }}
-        className="w-28 animate-pulse rounded-lg border border-border bg-background-soft motion-reduce:animate-none"
-      />
-    );
-  }
-
   return (
     <img
-      src={src}
+      src={src ?? undefined}
       alt={alt}
       style={{ aspectRatio: String(aspect) }}
       className="w-28 rounded-lg border border-border object-cover"
