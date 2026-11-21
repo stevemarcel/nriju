@@ -269,9 +269,9 @@ const ProductDetailPage = () => {
               )}
             </div>
 
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mt-6 rounded-card border border-border bg-surface p-3 sm:flex sm:items-center sm:gap-3 sm:border-0 sm:bg-transparent sm:p-0">
               <div
-                className="flex h-12 items-center justify-between rounded-button border border-border bg-surface sm:w-36"
+                className="flex min-h-11 items-center justify-between rounded-button border border-border bg-background sm:h-12 sm:w-36 sm:bg-surface"
                 aria-label="Quantity selector"
               >
                 <button
@@ -297,30 +297,36 @@ const ProductDetailPage = () => {
                 </button>
               </div>
 
-              <button
-                type="button"
-                onClick={() => addProductToCart()}
-                disabled={soldOut}
-                className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-button bg-primary px-5 text-sm font-semibold text-on-accent transition-colors hover:bg-primary/90 active:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:bg-text-muted"
-              >
-                <ShoppingBag className="h-4 w-4" aria-hidden="true" />
-                {soldOut ? "Sold out" : "Add to cart"}
-              </button>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-0 sm:contents">
+                <button
+                  type="button"
+                  onClick={() => addProductToCart()}
+                  disabled={soldOut}
+                  className="inline-flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-button bg-primary px-3 text-xs font-semibold text-on-accent transition-colors hover:bg-primary/90 active:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:bg-text-muted sm:h-12 sm:flex-1 sm:px-5 sm:text-sm"
+                >
+                  <ShoppingBag className="h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="truncate">{soldOut ? "Sold out" : "Add to cart"}</span>
+                </button>
 
-              <button
-                type="button"
-                onClick={() => addProductToCart({ checkout: true })}
-                disabled={soldOut || buyingNow}
-                aria-busy={buyingNow}
-                className="inline-flex h-12 flex-1 items-center justify-center rounded-button bg-secondary px-5 text-sm font-bold text-text transition-colors hover:bg-secondary/85 active:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {buyingNow ? "Preparing checkout..." : "Buy now"}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => addProductToCart({ checkout: true })}
+                  disabled={soldOut || buyingNow}
+                  aria-busy={buyingNow}
+                  className="inline-flex min-h-11 min-w-0 items-center justify-center rounded-button bg-secondary px-3 text-xs font-bold text-text transition-colors hover:bg-secondary/85 active:bg-secondary/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/40 disabled:cursor-not-allowed disabled:opacity-50 sm:h-12 sm:flex-1 sm:px-5 sm:text-sm"
+                >
+                  <span className="truncate">
+                    {buyingNow ? "Preparing checkout..." : "Buy now"}
+                  </span>
+                </button>
+              </div>
             </div>
 
-            <div className="mt-7 grid gap-4 border-t border-border pt-6 sm:grid-cols-3">
-              <div className="flex gap-3">
-                <Clock className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+            <ul className="mt-7 grid overflow-hidden rounded-card border border-border bg-surface divide-y divide-border sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+              <li className="flex min-h-24 items-start gap-3 px-4 py-4">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-primary">
+                  <Clock className="h-4 w-4" aria-hidden="true" />
+                </span>
                 <div>
                   <h2 className="text-sm font-semibold text-text">Preparation</h2>
                   <p className="mt-1 text-xs leading-5 text-text-secondary">
@@ -329,26 +335,30 @@ const ProductDetailPage = () => {
                       : "Ready for dispatch"}
                   </p>
                 </div>
-              </div>
-              <div className="flex gap-3">
-                <Truck className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+              </li>
+              <li className="flex min-h-24 items-start gap-3 px-4 py-4">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-primary">
+                  <Truck className="h-4 w-4" aria-hidden="true" />
+                </span>
                 <div>
                   <h2 className="text-sm font-semibold text-text">Delivery</h2>
                   <p className="mt-1 text-xs leading-5 text-text-secondary">
                     Same-day delivery or pickup
                   </p>
                 </div>
-              </div>
-              <div className="flex gap-3">
-                <ShieldCheck className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
+              </li>
+              <li className="flex min-h-24 items-start gap-3 px-4 py-4">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent-soft text-primary">
+                  <ShieldCheck className="h-4 w-4" aria-hidden="true" />
+                </span>
                 <div>
                   <h2 className="text-sm font-semibold text-text">Quality</h2>
                   <p className="mt-1 text-xs leading-5 text-text-secondary">
                     Carefully packed for freshness
                   </p>
                 </div>
-              </div>
-            </div>
+              </li>
+            </ul>
           </section>
         </div>
 
