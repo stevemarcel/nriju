@@ -1,10 +1,11 @@
 import { Navigate } from "react-router-dom";
 import { useAppSelector } from "../../store/store";
 
-// Allows only admin / superAdmin roles. Falls back to the home page
-// for customers or unauthenticated users.
 const AdminRoute = ({ children }) => {
+  // * Authenticated user from the auth slice
   const { user } = useAppSelector((s) => s.auth);
+
+  // * True only when the user has an admin or superAdmin role
   const isAdmin = user && (user.role === "admin" || user.role === "superAdmin");
 
   if (!isAdmin) return <Navigate to="/" replace />;

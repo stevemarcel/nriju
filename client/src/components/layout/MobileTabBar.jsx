@@ -3,16 +3,25 @@ import { useAppSelector } from "../../store/store";
 import { ShoppingBag, User, Home, Search, Heart } from "lucide-react";
 
 const MobileTabBar = () => {
+  // * Current URL location for route matching
   const location = useLocation();
+
+  // * Authenticated user from Redux store
   const { user } = useAppSelector((s) => s.auth);
+
+  // * Cart items from Redux store
   const { items } = useAppSelector((s) => s.cart);
+
+  // * Wishlist items from Redux store
   const { items: wishlist } = useAppSelector((s) => s.wishlist);
+
+  // * Total quantity of items in cart
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
+
+  // * Number of items in wishlist
   const wishlistCount = wishlist.length;
 
-  // Hide tab bar on account and admin pages to avoid duplication with Header mobile menu
-  // const hideTabs =
-  //   location.pathname.startsWith("/account") || location.pathname.startsWith("/admin");
+  // * Whether to hide tab bar on admin routes
   const hideTabs = location.pathname.startsWith("/admin");
 
   // When the user is signed out, the protected tabs don't navigate to

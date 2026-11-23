@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+// * Navigation items for the admin sidebar
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/products", label: "Products", icon: Package },
@@ -32,12 +33,22 @@ const nav = [
 ];
 
 const AdminLayout = () => {
+  // * Redux dispatch for side effects
   const dispatch = useAppDispatch();
+
+  // * Router navigation helper
   const navigate = useNavigate();
+
+  // * Current URL location for redirect after login
   const location = useLocation();
+
+  // * Authenticated user from auth slice
   const { user } = useAppSelector((state) => state.auth);
+
+  // * Mobile sidebar open state
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // ? Handles logout by clearing auth state and redirecting to login
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
@@ -50,7 +61,6 @@ const AdminLayout = () => {
 
   return (
     <div className="min-h-screen bg-background lg:flex">
-      {/* Mobile top bar */}
       <div className="sticky top-0 z-30 flex h-14 items-center justify-between bg-text px-4 text-white lg:hidden">
         <Link to="/admin" className="font-heading font-bold">
           Nriju Admin
@@ -132,7 +142,6 @@ const AdminLayout = () => {
         </div>
       </aside>
 
-      {/* Mobile backdrop */}
       {sidebarOpen && (
         <button
           type="button"
@@ -142,7 +151,6 @@ const AdminLayout = () => {
         />
       )}
 
-      {/* Main content */}
       <main className="min-w-0 flex-1">
         <div className="p-4 sm:p-6 lg:p-10">
           <Outlet />

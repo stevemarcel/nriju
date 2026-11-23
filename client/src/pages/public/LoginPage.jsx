@@ -22,7 +22,7 @@ const LoginPage = () => {
   // ProtectedRoute / the auth:unauthorized handler both stash it in
   // location.state.from; resume that flow instead of always sending them
   // to the account dashboard.
-  const from = location.state?.from?.pathname || "/account";
+  const from = location.state?.from?.pathname || "/";
 
   // Redirect if already logged in
   useEffect(() => {

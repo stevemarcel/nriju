@@ -5,7 +5,10 @@ import MobileTabBar from "./MobileTabBar";
 import CartDrawer from "../ui/CartDrawer";
 
 const MainLayout = () => {
+  // * Current URL location for route-based layout decisions
   const location = useLocation();
+
+  // * Whether to hide mobile tab bar on account/admin routes
   const hideTabs =
     location.pathname.startsWith("/account") || location.pathname.startsWith("/admin");
 

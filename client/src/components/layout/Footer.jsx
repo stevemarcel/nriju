@@ -4,11 +4,16 @@ import { usePublicSettings } from "../../hooks/usePublicSettings";
 import { phoneHref, socialProfileHref, whatsappHref } from "../../utils/contactLinks";
 
 const Footer = () => {
+  // * Public settings (business info, social handles, etc.)
   const { data: settings } = usePublicSettings();
+
+  // * Contact information from settings with defaults
   const phone = settings?.business_phone || "+234 800 000 0000";
   const whatsapp = settings?.whatsapp_number || phone;
   const address = settings?.business_address || "Lagos, Nigeria";
   const hours = settings?.opening_hours || "Mon - Sat, 8am - 8pm";
+
+  // * Social media URLs from settings (defaults to base URLs)
   const instagramUrl = socialProfileHref(settings?.instagram_handle, "https://instagram.com");
   const facebookUrl = socialProfileHref(settings?.facebook_page, "https://facebook.com");
 

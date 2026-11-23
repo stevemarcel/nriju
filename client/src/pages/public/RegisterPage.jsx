@@ -15,7 +15,7 @@ const RegisterPage = () => {
   // ProtectedRoute / the auth:unauthorized handler both stash it in
   // location.state.from; resume that flow instead of always sending them
   // to the account dashboard.
-  const from = location.state?.from?.pathname || "/account";
+  const from = location.state?.from?.pathname || "/";
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -39,7 +39,7 @@ const RegisterPage = () => {
       const res = await api.post("/auth/register", { name, email, password, phone });
       dispatch(setUser(res.data.data));
       // Merge guest cart into server cart
-      await dispatch(mergeGuestCart());
+      dispatch(mergeGuestCart());
       navigate(from, { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.");

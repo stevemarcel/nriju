@@ -24,21 +24,31 @@ import {
 import { getCategoryIcon } from "../../utils/categoryIcons";
 
 const Header = () => {
-  // --- Router hooks ---
+  // * Redux dispatch for side effects
   const dispatch = useAppDispatch();
+
+  // * Router navigation helper
   const navigate = useNavigate();
+
+  // * Current URL location
   const location = useLocation();
 
-  // --- Auth ---
+  // * Auth state from Redux store
   const { user, loading } = useAppSelector((s) => s.auth);
 
-  // --- UI state ---
+  // * Search input value
   const [search, setSearch] = useState("");
+
+  // * Account dropdown open state
   const [accountOpen, setAccountOpen] = useState(false);
+
+  // * Help dropdown open state
   const [helpOpen, setHelpOpen] = useState(false);
+
+  // * Reference for click-outside handler
   const headerRef = useRef(null);
 
-  // Close both dropdowns when the user clicks outside the header.
+  // ? Closes both dropdowns when clicking outside the header
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (headerRef.current && !headerRef.current.contains(event.target)) {
@@ -50,21 +60,29 @@ const Header = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // --- Derived values ---
+  // * Cart items from Redux store
   const { items } = useAppSelector((s) => s.cart);
+
+  // * Total quantity of items in cart
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
+
+  // * Wishlist items from Redux store
   const { items: wishlistItems } = useAppSelector((s) => s.wishlist);
+
+  // * Number of items in wishlist
   const wishlistCount = wishlistItems.length;
+
+  // * True when user has admin or superAdmin role
   const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
 
-  // --- Queries ---
+  // * Categories data from API
   const { data: categories } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => (await api.get("/categories")).data.data,
     staleTime: 5 * 60 * 1000,
   });
 
-  // --- Render handlers ---
+  // ? Handles search form submission by navigating to shop with search params
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const params = new URLSearchParams();
@@ -72,6 +90,7 @@ const Header = () => {
     navigate(`/shop${params.toString() ? `?${params}` : ""}`);
   };
 
+  // ? Navigates to wishlist or redirects to login for guests
   const handleWishlistClick = () => {
     const wishlistPath = "/account/wishlist";
 
@@ -83,6 +102,7 @@ const Header = () => {
     navigate("/login", { state: { from: { pathname: wishlistPath } } });
   };
 
+  // ? Handles logout by clearing auth and redirecting to login
   const handleLogout = async () => {
     try {
       await api.post("/auth/logout");
@@ -169,14 +189,16 @@ const Header = () => {
                       className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                       onClick={() => setAccountOpen(false)}
                     >
-                      <User className="w-4 h-4 text-text-muted" /> Account
+                      <User className="w-4 h-4 text-text-muted" />
+                      Account
                     </Link>
                     <Link
                       to="/account/orders"
                       className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                       onClick={() => setAccountOpen(false)}
                     >
-                      <Package className="w-4 h-4 text-text-muted" /> Orders
+                      <Package className="w-4 h-4 text-text-muted" />
+                      Orders
                     </Link>
                     {isAdmin && (
                       <Link
@@ -184,7 +206,8 @@ const Header = () => {
                         className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                         onClick={() => setAccountOpen(false)}
                       >
-                        <Shield className="w-4 h-4 text-text-muted" /> Admin
+                        <Shield className="w-4 h-4 text-text-muted" />
+                        Admin
                       </Link>
                     )}
                     <button
@@ -194,7 +217,8 @@ const Header = () => {
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-primary hover:bg-background flex items-center gap-2"
                     >
-                      <LogOut className="w-4 h-4" /> Logout
+                      <LogOut className="w-4 h-4" />
+                      Logout
                     </button>
                   </div>
                 </div>
@@ -230,38 +254,44 @@ const Header = () => {
                     className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                     onClick={() => setHelpOpen(false)}
                   >
-                    <BookOpen className="w-4 h-4 text-text-muted" /> Our Story
+                    <BookOpen className="w-4 h-4 text-text-muted" />
+                    Our Story
                   </Link>
                   <Link
                     to="/delivery"
                     className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                     onClick={() => setHelpOpen(false)}
                   >
-                    <Truck className="w-4 h-4 text-text-muted" /> Delivery Info
+                    <Truck className="w-4 h-4 text-text-muted" />
+                    Delivery Info
                   </Link>
                   <Link
                     to="/returns"
                     className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                     onClick={() => setHelpOpen(false)}
                   >
-                    <RotateCcw className="w-4 h-4 text-text-muted" /> Returns
+                    <RotateCcw className="w-4 h-4 text-text-muted" />
+                    Returns
                   </Link>
                   <Link
                     to="/faq"
                     className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                     onClick={() => setHelpOpen(false)}
                   >
-                    <HelpCircle className="w-4 h-4 text-text-muted" /> FAQ
+                    <HelpCircle className="w-4 h-4 text-text-muted" />
+                    FAQ
                   </Link>
                   <Link
                     to="/contact"
                     className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
                     onClick={() => setHelpOpen(false)}
                   >
-                    <MessageCircle className="w-4 h-4 text-text-muted" /> Contact
+                    <MessageCircle className="w-4 h-4 text-text-muted" />
+                    Contact
                   </Link>
                   <div className="px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted flex items-center gap-2">
-                    <FolderOpen className="w-4 h-4" /> Categories
+                    <FolderOpen className="w-4 h-4" />
+                    Categories
                   </div>
                   {categories?.map((cat) => {
                     const { Icon, color } = getCategoryIcon(cat.name);
