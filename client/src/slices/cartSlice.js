@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "../services/api";
 import { clearAuth } from "./authSlice";
+import { toast } from "sonner";
 
 // Rehydrate cart from localStorage (guest cart)
 const loadCart = () => {
@@ -67,34 +68,50 @@ export const fetchCart = createAsyncThunk("cart/fetch", async (_, { rejectWithVa
 export const addToCart = createAsyncThunk(
   "cart/add",
   async ({ productId, quantity = 1, categoryId }, { rejectWithValue }) => {
-    const res = await api.post("/cart/items", {
-      productId,
-      quantity,
-      categoryId,
-    });
-    return res.data.data;
+    try {
+      const res = await api.post("/cart/items", {
+        productId,
+        quantity,
+        categoryId,
+      });
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to add to cart.");
+    }
   },
 );
 
 export const updateCartItem = createAsyncThunk(
   "cart/update",
   async ({ productId, quantity }, { rejectWithValue }) => {
-    const res = await api.put(`/cart/items/${productId}`, { quantity });
-    return res.data.data;
+    try {
+      const res = await api.put(`/cart/items/${productId}`, { quantity });
+      return res.data.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to update quantity.");
+    }
   },
 );
 
 export const removeCartItem = createAsyncThunk(
   "cart/remove",
   async (productId, { rejectWithValue }) => {
-    await api.delete(`/cart/items/${productId}`);
-    return productId;
+    try {
+      await api.delete(`/cart/items/${productId}`);
+      return productId;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to remove item.");
+    }
   },
 );
 
 export const clearCart = createAsyncThunk("cart/clear", async (_, { rejectWithValue }) => {
-  await api.delete("/cart");
-  return [];
+  try {
+    await api.delete("/cart");
+    return [];
+  } catch (err) {
+    return rejectWithValue(err.response?.data?.message || "Failed to clear cart.");
+  }
 });
 
 // Merge guest cart into server cart on login
@@ -126,6 +143,7 @@ const cartSlice = createSlice({
   name: "cart",
   initialState: {
     items: loadCart(),
+    confirmedItems: [], // Snapshot of the last known-good server/cart state for rollback
     loading: false,
     error: null,
     source: "local", // "local" or "server"
@@ -176,6 +194,7 @@ const cartSlice = createSlice({
         // If null (401), keep guest cart; otherwise use server cart
         if (action.payload !== null) {
           state.items = normalizeItems(action.payload);
+          state.confirmedItems = state.items; // Sync backup
           state.source = "server";
         }
         state.loading = false;
@@ -183,25 +202,79 @@ const cartSlice = createSlice({
       .addCase(fetchCart.rejected, (state) => {
         state.loading = false;
       })
+      // ── Optimistic Add ──────────────────────────────────────────
+      .addCase(addToCart.pending, (state, action) => {
+        state.confirmedItems = [...state.items]; // Snapshot for rollback
+        // Synchronously apply same logic as addLocal
+        const normalized = normalizeItem(action.meta.arg);
+        const { productId, quantity = 1 } = normalized;
+        const existing = state.items.find((item) => getCartItemProductId(item) === productId);
+        if (existing) {
+          existing.quantity += quantity;
+        } else {
+          state.items.push({ ...normalized, quantity });
+        }
+      })
       .addCase(addToCart.fulfilled, (state, action) => {
         state.items = normalizeItems(action.payload);
+        state.confirmedItems = state.items; // Update backup to new server state
         state.source = "server";
         saveCart(state.items);
       })
+      .addCase(addToCart.rejected, (state, action) => {
+        state.items = state.confirmedItems; // Rollback
+        toast.error(action.payload || "Could not add item to cart.");
+      })
+      // ── Optimistic Update ───────────────────────────────────────
+      .addCase(updateCartItem.pending, (state, action) => {
+        state.confirmedItems = [...state.items];
+        const { productId, quantity } = action.meta.arg;
+        const item = state.items.find((cartItem) => getCartItemProductId(cartItem) === productId);
+        if (item) {
+          item.quantity = Math.max(1, quantity);
+        }
+      })
       .addCase(updateCartItem.fulfilled, (state, action) => {
         state.items = normalizeItems(action.payload);
+        state.confirmedItems = state.items;
         saveCart(state.items);
       })
+      .addCase(updateCartItem.rejected, (state, action) => {
+        state.items = state.confirmedItems;
+        toast.error(action.payload || "Could not update quantity.");
+      })
+      // ── Optimistic Remove ───────────────────────────────────────
+      .addCase(removeCartItem.pending, (state, action) => {
+        state.confirmedItems = [...state.items];
+        state.items = state.items.filter((item) => getCartItemProductId(item) !== action.meta.arg);
+      })
       .addCase(removeCartItem.fulfilled, (state, action) => {
+        // action.payload is the productId in this case
         state.items = state.items.filter((item) => getCartItemProductId(item) !== action.payload);
+        state.confirmedItems = state.items;
         saveCart(state.items);
+      })
+      .addCase(removeCartItem.rejected, (state, action) => {
+        state.items = state.confirmedItems;
+        toast.error(action.payload || "Could not remove item.");
+      })
+      // ── Optimistic Clear ────────────────────────────────────────
+      .addCase(clearCart.pending, (state) => {
+        state.confirmedItems = [...state.items];
+        state.items = [];
       })
       .addCase(clearCart.fulfilled, (state, action) => {
         state.items = normalizeItems(action.payload);
+        state.confirmedItems = state.items;
         saveCart(state.items);
+      })
+      .addCase(clearCart.rejected, (state, action) => {
+        state.items = state.confirmedItems;
+        toast.error(action.payload || "Could not clear cart.");
       })
       .addCase(mergeGuestCart.fulfilled, (state, action) => {
         state.items = normalizeItems(action.payload);
+        state.confirmedItems = state.items;
         state.source = "server";
         saveCart(state.items);
       })
