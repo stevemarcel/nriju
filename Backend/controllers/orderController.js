@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Coupon from "../models/Coupon.js";
+import Setting from "../models/Setting.js";
 import {
   computeAvailableStock,
   deductStockFIFO,
@@ -10,6 +11,12 @@ import {
 } from "../services/inventoryService.js";
 import { syncOrderProductSales } from "../services/productSalesService.js";
 import { recordActivity } from "../utils/activityUtils.js";
+import {
+  calculateDeliveryFeeKobo,
+  configuredDeliveryFee,
+  DEFAULT_DELIVERY_FEE_STEP_KOBO,
+  DEFAULT_DELIVERY_FEES_KOBO,
+} from "../utils/delivery.js";
 
 const ORDER_STATUSES = [
   "pending",
@@ -91,6 +98,34 @@ const calculateCostOfGoodsSold = (allocations) => {
   );
 };
 
+const deliveryFeeFor = async (deliveryMethod, subtotalKobo, session) => {
+  if (deliveryMethod === "pickup") return 0;
+
+  const settingKey = deliveryMethod === "own" ? "delivery_fee_own" : "delivery_fee_thirdparty";
+  const settings = await Setting.find({
+    key: { $in: [settingKey, "delivery_fee_increment_per_5000"] },
+  })
+    .select("key value")
+    .session(session)
+    .lean();
+  const settingsByKey = Object.fromEntries(settings.map((setting) => [setting.key, setting.value]));
+  const baseFeeKobo = configuredDeliveryFee(
+    settingsByKey[settingKey],
+    DEFAULT_DELIVERY_FEES_KOBO[deliveryMethod],
+  );
+  const feeStepKobo = configuredDeliveryFee(
+    settingsByKey.delivery_fee_increment_per_5000,
+    DEFAULT_DELIVERY_FEE_STEP_KOBO,
+  );
+
+  return calculateDeliveryFeeKobo({
+    subtotalKobo,
+    baseFeeKobo,
+    feeStepKobo,
+    deliveryMethod,
+  });
+};
+
 const populateOrder = (query) =>
   query
     .populate("items.product", "name images")
@@ -168,7 +203,7 @@ const createOrder = asyncHandler(async (req, res) => {
       discountKobo = Math.max(0, Math.min(subtotalKobo, Number(discountKobo) || 0));
     }
 
-    const deliveryFeeKobo = deliveryMethod === "pickup" ? 0 : 150000;
+    const deliveryFeeKobo = await deliveryFeeFor(deliveryMethod, subtotalKobo, session);
     const totalKobo = subtotalKobo - discountKobo + deliveryFeeKobo;
 
     const [order] = await Order.create(

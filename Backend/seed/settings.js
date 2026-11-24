@@ -30,6 +30,10 @@ export default [
     value: 750000,
   },
   {
+    key: "delivery_fee_increment_per_5000",
+    value: 70000,
+  },
+  {
     key: "pickup_available",
     value: true,
   },

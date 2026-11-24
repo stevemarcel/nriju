@@ -12,6 +12,7 @@ const getPublicSettings = asyncHandler(async (req, res) => {
     "business_address",
     "delivery_fee_own",
     "delivery_fee_thirdparty",
+    "delivery_fee_increment_per_5000",
     "pickup_available",
     "whatsapp_number",
     "instagram_handle",

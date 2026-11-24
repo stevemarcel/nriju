@@ -4,6 +4,13 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { clearAll, getCartItemProductId } from "../../slices/cartSlice";
 import api from "../../services/api";
+import { usePublicSettings } from "../../hooks/usePublicSettings";
+import {
+  calculateDeliveryFeeKobo,
+  configuredDeliveryFee,
+  DEFAULT_DELIVERY_FEE_STEP_KOBO,
+  DEFAULT_DELIVERY_FEES_KOBO,
+} from "../../utils/deliveryFee";
 import { formatNaira, toKobo } from "../../utils/formatMoney";
 import {
   MapPin,
@@ -20,13 +27,12 @@ import {
   Check,
 } from "lucide-react";
 
-const DELIVERY_FEE_KOBO = 150000; // ₦1,500 default (mirrors Backend createOrder)
-
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { items } = useAppSelector((s) => s.cart);
   const { user } = useAppSelector((s) => s.auth);
+  const { data: publicSettings = {} } = usePublicSettings();
 
   // If the cart is empty but the user lands here directly, send them shopping.
   useEffect(() => {
@@ -56,7 +62,32 @@ const CheckoutPage = () => {
 
   // ── Derived totals (items carry kobo prices from ProductCard) ──
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const deliveryFee = deliveryMethod === "pickup" ? 0 : DELIVERY_FEE_KOBO;
+  const deliveryFeeStep = configuredDeliveryFee(
+    publicSettings.delivery_fee_increment_per_5000,
+    DEFAULT_DELIVERY_FEE_STEP_KOBO,
+  );
+  const deliveryFees = {
+    own: calculateDeliveryFeeKobo({
+      subtotalKobo: subtotal,
+      baseFeeKobo: configuredDeliveryFee(
+        publicSettings.delivery_fee_own,
+        DEFAULT_DELIVERY_FEES_KOBO.own,
+      ),
+      feeStepKobo: deliveryFeeStep,
+      deliveryMethod: "own",
+    }),
+    thirdparty: calculateDeliveryFeeKobo({
+      subtotalKobo: subtotal,
+      baseFeeKobo: configuredDeliveryFee(
+        publicSettings.delivery_fee_thirdparty,
+        DEFAULT_DELIVERY_FEES_KOBO.thirdparty,
+      ),
+      feeStepKobo: deliveryFeeStep,
+      deliveryMethod: "thirdparty",
+    }),
+    pickup: 0,
+  };
+  const deliveryFee = deliveryFees[deliveryMethod] ?? 0;
   const total = subtotal - discountKobo + deliveryFee;
 
   // ── Coupon validation ───────────────────────────────────────────
@@ -284,13 +315,21 @@ const CheckoutPage = () => {
                   {
                     value: "thirdparty",
                     label: "Third-party delivery",
-                    desc: "3–4 working days. ₦1,500 fee.",
+                    desc: `3-4 working days. ${
+                      deliveryFees.thirdparty === 0
+                        ? "Free delivery."
+                        : `${formatNaira(deliveryFees.thirdparty)} delivery.`
+                    }`,
                     icon: Truck,
                   },
                   {
                     value: "own",
                     label: "Nriju own fleet",
-                    desc: "Same-day delivery for cooked items. ₦1,500 fee.",
+                    desc: `Same-day delivery for cooked items. ${
+                      deliveryFees.own === 0
+                        ? "Free delivery."
+                        : `${formatNaira(deliveryFees.own)} delivery.`
+                    }`,
                     icon: Truck,
                   },
                   {

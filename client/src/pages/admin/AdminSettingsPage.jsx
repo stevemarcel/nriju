@@ -106,6 +106,12 @@ const SECTIONS = [
         hint: "Charge applied to orders fulfilled by an external courier.",
       },
       {
+        key: "delivery_fee_increment_per_5000",
+        label: "Delivery increase per ₦5,000 band (₦)",
+        type: "money",
+        hint: "Added for each ₦5,000 band above an order subtotal of ₦10,000.",
+      },
+      {
         key: "pickup_available",
         label: "Pickup available",
         type: "boolean",

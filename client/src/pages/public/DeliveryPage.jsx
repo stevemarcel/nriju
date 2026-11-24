@@ -1,19 +1,21 @@
 import { Truck, MapPin, Clock, Package, CheckCircle } from "lucide-react";
 import { usePublicSettings } from "../../hooks/usePublicSettings";
+import { formatNaira } from "../../utils/formatMoney";
+import { configuredDeliveryFee, DEFAULT_DELIVERY_FEE_STEP_KOBO } from "../../utils/deliveryFee";
 
 const DeliveryPage = () => {
   const { data: s, isPending } = usePublicSettings();
 
   const ownFee = s?.delivery_fee_own;
   const thirdFee = s?.delivery_fee_thirdparty;
+  const deliveryFeeStep = configuredDeliveryFee(
+    s?.delivery_fee_increment_per_5000,
+    DEFAULT_DELIVERY_FEE_STEP_KOBO,
+  );
   const pickupAvailable = s?.pickup_available !== false && s?.pickup_available !== "false";
   const hours = s?.opening_hours || "Mon - Sat, 8am - 8pm";
 
-  const formatFee = (kobo) => {
-    if (kobo == null || kobo === "") return null;
-    const n = Number(kobo) / 100;
-    return `₦${n.toLocaleString("en-NG")}`;
-  };
+  const formatFee = (kobo) => (kobo == null || kobo === "" ? null : formatNaira(Number(kobo)));
 
   return (
     <div>
@@ -78,10 +80,16 @@ const DeliveryPage = () => {
               </div>
             ) : (
               <div className="space-y-4">
+                <p className="rounded-lg bg-background p-4 text-sm leading-6 text-text-secondary">
+                  Delivery is free below ₦5,000. From ₦5,000 through ₦10,000, the base fee applies.
+                  Each additional ₦5,000 band adds {formatNaira(deliveryFeeStep)}.
+                </p>
                 <div className="flex items-center justify-between p-4 bg-background rounded-lg">
                   <div>
                     <p className="font-medium text-sm">Own-fleet delivery</p>
-                    <p className="text-xs text-text-muted">Same-day, cooked & packaged</p>
+                    <p className="text-xs text-text-muted">
+                      Base fee, same-day cooked and packaged
+                    </p>
                   </div>
                   <span className="font-heading font-bold text-text">
                     {formatFee(ownFee) || "—"}
@@ -90,7 +98,7 @@ const DeliveryPage = () => {
                 <div className="flex items-center justify-between p-4 bg-background rounded-lg">
                   <div>
                     <p className="font-medium text-sm">Third-party delivery</p>
-                    <p className="text-xs text-text-muted">Packaged items only</p>
+                    <p className="text-xs text-text-muted">Base fee, packaged items only</p>
                   </div>
                   <span className="font-heading font-bold text-text">
                     {formatFee(thirdFee) || "—"}
