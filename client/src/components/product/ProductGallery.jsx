@@ -72,17 +72,17 @@ const ProductGallery = ({ product }) => {
               type="button"
               onClick={() => showImage(activeImageIndex - 1)}
               aria-label={`Show previous image of ${product.name}`}
-              className="absolute left-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface/95 text-primary shadow-soft transition-colors hover:bg-background-soft active:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              className="absolute left-3 top-1/2 flex h-6 md:h-11 w-6 md:w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface/95 text-primary shadow-soft transition-colors hover:bg-background-soft active:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
-              <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+              <ChevronLeft className="h-3 md:h-5 w-3 md:w-5" aria-hidden="true" />
             </button>
             <button
               type="button"
               onClick={() => showImage(activeImageIndex + 1)}
               aria-label={`Show next image of ${product.name}`}
-              className="absolute right-3 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface/95 text-primary shadow-soft transition-colors hover:bg-background-soft active:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              className="absolute right-3 top-1/2 flex h-6 md:h-11 w-6 md:w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface/95 text-primary shadow-soft transition-colors hover:bg-background-soft active:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
-              <ChevronRight className="h-5 w-5" aria-hidden="true" />
+              <ChevronRight className="h-3 md:h-5 w-3 md:w-5" aria-hidden="true" />
             </button>
           </>
         ) : null}

@@ -192,7 +192,9 @@ const changePassword = asyncHandler(async (req, res) => {
 const googleCallback = asyncHandler(async (req, res) => {
   const user = req.user;
   setAuthCookie(res, generateToken(user._id));
-  res.redirect(`${process.env.CLIENT_URL}/login?google=success`);
+  // Redirect to root — the SPA's fetchMe thunk will bootstrap the session
+  // from the cookie and the app will resolve to the correct destination.
+  res.redirect(process.env.CLIENT_URL);
 });
 
 // @DESCRIPTION Get the currently authenticated user

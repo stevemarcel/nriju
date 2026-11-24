@@ -158,6 +158,34 @@ export const downloadAvatarFromCloudinary = async (publicId) => {
 };
 
 /**
+ * Download an image from any HTTPS URL and return its raw bytes with MIME type.
+ * Used for Google OAuth avatars — fetched server-side so CORS is never an issue.
+ */
+export const downloadBufferFromUrl = async (url) => {
+  if (!url) throw new Error("Source URL is empty.");
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    throw new Error("Invalid source URL.");
+  }
+  if (parsedUrl.protocol !== "https:") throw new Error("Only HTTPS URLs are supported.");
+
+  const response = await fetch(parsedUrl, {
+    signal: AbortSignal.timeout(15000),
+    redirect: "error",
+  });
+  if (!response.ok) throw new Error(`Failed to fetch image (${response.status}).`);
+
+  const contentType = response.headers.get("content-type") || "image/jpeg";
+  if (!contentType.startsWith("image/")) throw new Error("Non-image content returned.");
+
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (!buffer.length) throw new Error("Image is empty.");
+  return { buffer, contentType };
+};
+
+/**
  * Remove an asset. Throw on a real Cloudinary failure so controllers can avoid
  * clearing a user's database reference when deletion has not succeeded.
  */

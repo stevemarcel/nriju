@@ -2,6 +2,7 @@ import "dotenv/config";
 
 import path from "path";
 import express from "express";
+import expressSession from "express-session";
 import colors from "colors";
 import cookieParser from "cookie-parser";
 import passport from "passport";
@@ -39,8 +40,23 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(activityLog);
 
+// Session support is required by Passport for the OAuth handshake.
+app.use(
+  expressSession({
+    secret: process.env.SESSION_SECRET || "nriju-session-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+    },
+  }),
+);
+
 // Passport for Google OAuth
 app.use(passport.initialize());
+app.use(passport.session());
 
 // API rate limiting. Auth endpoints are limited per-route inside
 // authRoutes.js (login/register/forgot-password only) — NOT at the
