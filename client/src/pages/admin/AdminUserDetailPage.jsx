@@ -14,7 +14,7 @@ import Dropdown from "../../components/ui/Dropdown";
 import CropAvatar from "../../components/ui/CropAvatar";
 import { toast } from "sonner";
 import {
-  ArrowLeft,
+  ChevronLeft,
   Building2,
   Check,
   CheckCircle,
@@ -764,7 +764,7 @@ const AdminUserDetailPage = () => {
               onClick={() => navigate("/admin/users")}
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-white hover:bg-primary/90"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ChevronLeft className="h-4 w-4" />
               Back to users
             </button>
           }
@@ -783,10 +783,10 @@ const AdminUserDetailPage = () => {
           type="button"
           onClick={handleRequestLeave}
           disabled={saving}
-          className="rounded-lg p-2 transition-colors hover:bg-background-soft disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg p-2 transition-colors text-text-muted hover:text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Back to users"
         >
-          <ArrowLeft className="h-5 w-5 text-text-muted" />
+          <ChevronLeft className="h-5 w-5" />
         </button>
         <div className="min-w-0 flex-1">
           <AdminPageHeader
