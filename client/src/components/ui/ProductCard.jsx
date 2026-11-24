@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/store";
-import { addItem, changeQuantity, deleteItem } from "../../slices/cartSlice";
+import { addItem, changeQuantity, deleteItem, getCartItemProductId } from "../../slices/cartSlice";
 import { toggleWishlist } from "../../slices/wishlistSlice";
 import {
   ChevronLeft,
@@ -20,10 +20,7 @@ const MAX_VISIBLE_DOTS = 5;
 const MAX_RATING = 5;
 
 const ProductRating = ({ rating = 0, reviewCount = 0, className = "" }) => {
-  const normalizedRating = Math.min(
-    Math.max(Number(rating) || 0, 0),
-    MAX_RATING,
-  );
+  const normalizedRating = Math.min(Math.max(Number(rating) || 0, 0), MAX_RATING);
   const filledStars = Math.round(normalizedRating);
   const reviewLabel = reviewCount === 1 ? "review" : "reviews";
 
@@ -38,17 +35,12 @@ const ProductRating = ({ rating = 0, reviewCount = 0, className = "" }) => {
           <Star
             key={index}
             className={`h-3 w-3 ${
-              index < filledStars
-                ? "fill-secondary text-secondary"
-                : "text-border"
+              index < filledStars ? "fill-secondary text-secondary" : "text-border"
             }`}
           />
         ))}
       </span>
-      <span
-        className="text-xs font-medium text-text-secondary"
-        aria-hidden="true"
-      >
+      <span className="text-xs font-medium text-text-secondary" aria-hidden="true">
         ({reviewCount})
       </span>
     </div>
@@ -66,7 +58,7 @@ const ProductCard = ({ product }) => {
     ),
   );
 
-  const cartItem = items.find((i) => i.product === product._id);
+  const cartItem = items.find((item) => getCartItemProductId(item) === product._id);
   const qty = cartItem?.quantity ?? 0;
   const price = formatNaira(product.price);
   const productImages = product.images ?? [];
@@ -84,11 +76,8 @@ const ProductCard = ({ product }) => {
     e.preventDefault();
     dispatch(
       addItem({
+        product,
         productId: product._id,
-        name: product.name,
-        price: product.price,
-        image: product.images[0],
-        unit: product.unit,
         categoryId,
         quantity: 1,
       }),
@@ -110,11 +99,8 @@ const ProductCard = ({ product }) => {
     e.stopPropagation();
     dispatch(
       addItem({
+        product,
         productId: product._id,
-        name: product.name,
-        price: product.price,
-        image: product.images[0],
-        unit: product.unit,
         categoryId,
         quantity: 1,
       }),
@@ -155,10 +141,7 @@ const ProductCard = ({ product }) => {
 
   const discount =
     product.compareAtPrice && product.compareAtPrice > product.price
-      ? Math.round(
-          ((product.compareAtPrice - product.price) / product.compareAtPrice) *
-            100,
-        )
+      ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
       : null;
 
   const soldOut = product.stock === 0;
@@ -229,9 +212,7 @@ const ProductCard = ({ product }) => {
           <>
             <button
               type="button"
-              onClick={(event) =>
-                handleImageControl(event, activeImageIndex - 1)
-              }
+              onClick={(event) => handleImageControl(event, activeImageIndex - 1)}
               aria-label={`Show previous image of ${product.name}`}
               className="absolute left-1 top-1/2 z-20 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-surface/85 text-primary shadow-soft transition-colors hover:bg-surface active:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:flex"
             >
@@ -239,9 +220,7 @@ const ProductCard = ({ product }) => {
             </button>
             <button
               type="button"
-              onClick={(event) =>
-                handleImageControl(event, activeImageIndex + 1)
-              }
+              onClick={(event) => handleImageControl(event, activeImageIndex + 1)}
               aria-label={`Show next image of ${product.name}`}
               className="absolute right-1 top-1/2 z-20 hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full bg-surface/85 text-primary shadow-soft transition-colors hover:bg-surface active:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:flex"
             >
@@ -258,16 +237,12 @@ const ProductCard = ({ product }) => {
                 type="button"
                 onClick={(event) => handleImageControl(event, imageIndex)}
                 aria-label={`Show image ${imageIndex + 1} of ${imageCount}`}
-                aria-current={
-                  activeImageIndex === imageIndex ? "true" : undefined
-                }
+                aria-current={activeImageIndex === imageIndex ? "true" : undefined}
                 className="flex h-6 w-6 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-on-accent"
               >
                 <span
                   className={`h-1.5 w-1.5 rounded-full ${
-                    activeImageIndex === imageIndex
-                      ? "bg-on-accent"
-                      : "bg-on-accent/50"
+                    activeImageIndex === imageIndex ? "bg-on-accent" : "bg-on-accent/50"
                   }`}
                   aria-hidden="true"
                 />
@@ -280,9 +255,7 @@ const ProductCard = ({ product }) => {
         {soldOut && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-1 bg-primary/85">
             <span className="text-on-accent font-semibold">Sold Out</span>
-            <span className="text-on-accent/90 text-xs">
-              Will be back in stock soon
-            </span>
+            <span className="text-on-accent/90 text-xs">Will be back in stock soon</span>
           </div>
         )}
       </div>
@@ -322,13 +295,9 @@ const ProductCard = ({ product }) => {
 
         <div className="mt-2.5 hidden min-h-6 flex-wrap items-center gap-1.5 sm:flex">
           {tag ? (
-            <span className="chip bg-accent-soft text-primary capitalize">
-              {tag}
-            </span>
+            <span className="chip bg-accent-soft text-primary capitalize">{tag}</span>
           ) : (
-            <span className="chip invisible bg-accent-soft text-primary capitalize">
-              &nbsp;
-            </span>
+            <span className="chip invisible bg-accent-soft text-primary capitalize">&nbsp;</span>
           )}
           <span className={`chip ${stockPillClass}`}>{stockPillText}</span>
         </div>
@@ -344,9 +313,7 @@ const ProductCard = ({ product }) => {
             >
               <Minus className="w-3.5 h-3.5" />
             </button>
-            <span className="flex-1 text-center text-sm font-semibold text-text">
-              {qty}
-            </span>
+            <span className="flex-1 text-center text-sm font-semibold text-text">{qty}</span>
             <button
               type="button"
               onClick={handleIncrement}

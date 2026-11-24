@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
-import { changeQuantity, deleteItem } from "../../slices/cartSlice";
+import { changeQuantity, deleteItem, getCartItemProductId } from "../../slices/cartSlice";
 import { formatNaira } from "../../utils/formatMoney";
 import { ShoppingBag, ArrowRight, Minus, Plus, X } from "lucide-react";
 
@@ -15,9 +15,6 @@ const CartPage = () => {
   const total = subtotal + deliveryFee + tax;
 
   // ? Functions: handlers, callbacks, helpers
-  const resolveProductId = (product) =>
-    typeof product === "object" && product ? product._id : product;
-
   if (items.length === 0) {
     return (
       <main className="bg-background px-3 py-6 sm:px-4 sm:py-10">
@@ -57,7 +54,7 @@ const CartPage = () => {
           {/* Cart Items */}
           <div className="lg:col-span-8 space-y-4">
             {items.map((item) => {
-              const productId = resolveProductId(item.product);
+              const productId = getCartItemProductId(item);
               return (
                 <div
                   key={productId}

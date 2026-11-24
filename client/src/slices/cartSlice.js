@@ -15,14 +15,43 @@ const saveCart = (items) => {
   localStorage.setItem("nriju_cart", JSON.stringify(items));
 };
 
-// Server items arrive with `product` populated as a full document; guest items
-// store it as a bare id string. Every reducer and call site compares it to a
-// string, so flatten it on the way in.
-const normalizeItems = (items = []) =>
-  items.map((i) => ({
-    ...i,
-    product: i && typeof i.product === "object" && i.product ? i.product._id : i?.product,
-  }));
+const idOf = (value) => (value && typeof value === "object" ? value._id : value);
+
+export const getCartItemProductId = (item) => item?.productId || idOf(item?.product);
+
+// Keep the populated product document in every cart item. Server cart responses
+// already provide it, and guest additions provide it from the product card. The
+// duplicated display fields keep existing consumers simple and preserve support
+// for carts saved by older versions of the app.
+const normalizeItem = (item = {}) => {
+  const sourceProduct = item.product && typeof item.product === "object" ? item.product : null;
+  const productId = item.productId || idOf(item.product);
+  const product =
+    sourceProduct ||
+    (productId
+      ? {
+          _id: productId,
+          name: item.name,
+          price: item.price,
+          images: item.image ? [item.image] : [],
+          unit: item.unit,
+          category: item.categoryId,
+        }
+      : null);
+
+  return {
+    ...item,
+    product,
+    productId,
+    name: product?.name ?? item.name ?? "",
+    price: product?.price ?? item.price ?? 0,
+    image: product?.images?.[0] ?? item.image ?? "",
+    unit: product?.unit ?? item.unit ?? "",
+    categoryId: idOf(product?.category) ?? item.categoryId ?? null,
+  };
+};
+
+const normalizeItems = (items = []) => items.map(normalizeItem);
 
 export const fetchCart = createAsyncThunk("cart/fetch", async (_, { rejectWithValue }) => {
   try {
@@ -76,14 +105,15 @@ export const mergeGuestCart = createAsyncThunk(
     if (!items.length) return [];
     // Send all guest items to server
     for (const item of items) {
+      const productId = getCartItemProductId(item);
       try {
         await api.post("/cart/items", {
-          productId: item.product,
+          productId,
           quantity: item.quantity,
           categoryId: item.categoryId,
         });
       } catch (err) {
-        console.warn("Failed to merge item", item.product, err?.response?.data?.message);
+        console.warn("Failed to merge item", productId, err?.response?.data?.message);
       }
     }
     // After merge, fetch the authoritative server cart
@@ -103,33 +133,33 @@ const cartSlice = createSlice({
   reducers: {
     // Optimistic local update (guest flow or fallback)
     addLocal: (state, action) => {
-      const { productId, name, price, image, unit, categoryId, quantity = 1 } = action.payload;
-      const existing = state.items.find((i) => i.product === productId);
+      const normalized = normalizeItem(action.payload);
+      const { productId, quantity = 1 } = normalized;
+      const existing = state.items.find((item) => getCartItemProductId(item) === productId);
       if (existing) {
         existing.quantity += quantity;
+        existing.product = normalized.product;
+        existing.productId = normalized.productId;
+        existing.name = normalized.name;
+        existing.price = normalized.price;
+        existing.image = normalized.image;
+        existing.unit = normalized.unit;
+        existing.categoryId = normalized.categoryId;
       } else {
-        state.items.push({
-          product: productId,
-          name,
-          price,
-          image,
-          unit,
-          categoryId,
-          quantity,
-        });
+        state.items.push({ ...normalized, quantity });
       }
       saveCart(state.items);
     },
     updateLocal: (state, action) => {
       const { productId, quantity } = action.payload;
-      const item = state.items.find((i) => i.product === productId);
+      const item = state.items.find((cartItem) => getCartItemProductId(cartItem) === productId);
       if (item) {
         item.quantity = Math.max(1, quantity);
         saveCart(state.items);
       }
     },
     removeLocal: (state, action) => {
-      state.items = state.items.filter((i) => i.product !== action.payload);
+      state.items = state.items.filter((item) => getCartItemProductId(item) !== action.payload);
       saveCart(state.items);
     },
     clearLocal: (state) => {
@@ -163,7 +193,7 @@ const cartSlice = createSlice({
         saveCart(state.items);
       })
       .addCase(removeCartItem.fulfilled, (state, action) => {
-        state.items = state.items.filter((i) => i.product !== action.payload);
+        state.items = state.items.filter((item) => getCartItemProductId(item) !== action.payload);
         saveCart(state.items);
       })
       .addCase(clearCart.fulfilled, (state, action) => {
@@ -194,9 +224,9 @@ export const addItem = (item) => (dispatch, getState) => {
   if (source === "server") {
     return dispatch(
       addToCart({
-        productId: item.productId,
+        productId: getCartItemProductId(item),
         quantity: item.quantity,
-        categoryId: item.categoryId,
+        categoryId: item.categoryId || idOf(item.product?.category),
       }),
     );
   }

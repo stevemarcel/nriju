@@ -112,11 +112,8 @@ const ProductDetailPage = () => {
       : null;
 
   const cartItem = {
+    product,
     productId: product._id,
-    name: product.name,
-    price: product.price,
-    image: product.images?.[0] || "",
-    unit: product.unit,
     categoryId,
     quantity,
   };

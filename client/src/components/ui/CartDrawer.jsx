@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAppSelector, useAppDispatch } from "../../store/store";
 import { setCartDrawer } from "../../slices/uiSlice";
-import { changeQuantity, deleteItem } from "../../slices/cartSlice";
+import { changeQuantity, deleteItem, getCartItemProductId } from "../../slices/cartSlice";
 import { X, Minus, Plus, ShoppingBag } from "lucide-react";
 import { formatNaira } from "../../utils/formatMoney";
 
@@ -22,9 +22,6 @@ const CartDrawer = () => {
   }, [dispatch]);
 
   if (!cartDrawerOpen) return null;
-
-  const resolveProductId = (product) =>
-    typeof product === "object" && product ? product._id : product;
 
   return (
     <>
@@ -62,7 +59,7 @@ const CartDrawer = () => {
           ) : (
             <div className="space-y-4">
               {items.map((item) => {
-                const productId = resolveProductId(item.product);
+                const productId = getCartItemProductId(item);
                 return (
                   <div key={productId} className="flex gap-3">
                     <div className="w-16 h-16 rounded-lg bg-background flex items-center justify-center shrink-0">

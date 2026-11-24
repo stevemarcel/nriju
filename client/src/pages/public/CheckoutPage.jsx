@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAppDispatch, useAppSelector } from "../../store/store";
-import { clearAll } from "../../slices/cartSlice";
+import { clearAll, getCartItemProductId } from "../../slices/cartSlice";
 import api from "../../services/api";
 import { formatNaira, toKobo } from "../../utils/formatMoney";
 import {
@@ -65,7 +65,10 @@ const CheckoutPage = () => {
       api.post("/coupons/validate", {
         code,
         subtotal,
-        items: items.map((i) => ({ productId: i.product, categoryId: i.categoryId })),
+        items: items.map((item) => ({
+          productId: getCartItemProductId(item),
+          categoryId: item.categoryId,
+        })),
       }),
   });
 
@@ -104,7 +107,7 @@ const CheckoutPage = () => {
     try {
       const orderPayload = {
         items: items.map((i) => ({
-          productId: i.product,
+          productId: getCartItemProductId(i),
           quantity: i.quantity,
         })),
         shippingAddress: address,
@@ -531,7 +534,7 @@ const OrderSummary = ({
 
       <div className="space-y-2 text-sm mb-4">
         {items.map((i) => (
-          <div key={i.product} className="flex justify-between">
+          <div key={getCartItemProductId(i)} className="flex justify-between">
             <span className="text-text-muted truncate max-w-45">
               {i.name} × {i.quantity}
             </span>
