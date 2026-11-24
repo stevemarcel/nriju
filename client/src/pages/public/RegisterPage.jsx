@@ -4,7 +4,7 @@ import { useAppDispatch } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
 import { mergeGuestCart } from "../../slices/cartSlice";
 import api from "../../services/api";
-import { User, Mail, Lock, Phone, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { User, Mail, Lock, Phone, ChevronRight, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 const RegisterPage = () => {
   const dispatch = useAppDispatch();
@@ -218,7 +218,7 @@ const RegisterPage = () => {
             className="w-full py-3 bg-primary text-white font-medium rounded-lg flex items-center justify-center gap-2 hover:bg-primary/95 disabled:opacity-50 transition-colors"
           >
             {loading ? "Creating..." : "Create Account"}
-            {!loading && <ArrowRight className="w-4 h-4" />}
+            {!loading && <ChevronRight className="w-4 h-4" />}
           </button>
         </form>
 

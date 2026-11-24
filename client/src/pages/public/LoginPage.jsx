@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../../store/store";
 import { setUser } from "../../slices/authSlice";
 import { mergeGuestCart } from "../../slices/cartSlice";
 import api from "../../services/api";
-import { Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ChevronRight, AlertCircle, Eye, EyeOff } from "lucide-react";
 
 const LoginPage = () => {
   const dispatch = useAppDispatch();
@@ -167,7 +167,7 @@ const LoginPage = () => {
             className="w-full py-3 bg-primary text-white font-medium rounded-lg flex items-center justify-center gap-2 hover:bg-primary/95 disabled:opacity-50 transition-colors"
           >
             {loading ? "Signing in..." : "Sign In"}
-            {!loading && <ArrowRight className="w-4 h-4" />}
+            {!loading && <ChevronRight className="w-4 h-4" />}
           </button>
         </form>
 
