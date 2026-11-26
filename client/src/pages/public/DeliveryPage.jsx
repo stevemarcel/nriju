@@ -67,7 +67,7 @@ const DeliveryPage = () => {
   const whatsapp = s?.whatsapp_number || s?.business_phone || "+234 800 000 0000";
 
   const maxOrderKobo = s?.pay_on_delivery_max_order_kobo || 10000000;
-  const canPayOnDelivery = s?.pay_on_delivery_enabled === true;
+  const canPayOnDelivery = s?.pay_on_delivery_enabled !== false;
 
   const formatFee = (kobo) => (kobo == null || kobo === "" ? "—" : formatNaira(Number(kobo)));
 
@@ -123,7 +123,7 @@ const DeliveryPage = () => {
                 </div>
               );
             })}
-            </div>
+          </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Pricing */}
@@ -192,7 +192,7 @@ const DeliveryPage = () => {
                     <Banknote className="w-5 h-5 text-primary" /> Pay on Delivery
                   </h2>
                   <p className="text-text-muted text-sm leading-relaxed mb-4">
-                    Pay with cash, POS or transfer — your driver will confirm a one-time OTP code
+                    Pay with cash, POS or transfer - your driver will confirm a one-time OTP code
                     before handing over your order. Available on orders up to{" "}
                     {formatFee(maxOrderKobo)}.
                   </p>
