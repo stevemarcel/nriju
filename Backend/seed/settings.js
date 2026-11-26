@@ -34,6 +34,22 @@ export default [
     value: 70000,
   },
   {
+    key: "vat_rate_basis_points",
+    value: 750,
+  },
+  {
+    key: "pay_on_delivery_enabled",
+    value: true,
+  },
+  {
+    key: "pay_on_delivery_max_order_kobo",
+    value: 10000000,
+  },
+  {
+    key: "handoff_otp_expiry_minutes",
+    value: 240,
+  },
+  {
     key: "pickup_available",
     value: true,
   },

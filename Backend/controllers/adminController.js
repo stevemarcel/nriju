@@ -16,7 +16,7 @@ import { buildAddressChanges, setUserActivity } from "../utils/userActivity.js";
 import { skipActivityLog } from "../utils/activityUtils.js";
 import { LOW_STOCK_THRESHOLD } from "../utils/inventoryConstants.js";
 
-const USER_ROLES = ["customer", "admin", "superAdmin"];
+const USER_ROLES = ["customer", "courier", "admin", "superAdmin"];
 const USER_UPDATE_FIELDS = [
   "name",
   "email",
@@ -29,6 +29,7 @@ const USER_UPDATE_FIELDS = [
 
 const ROLE_LABELS = {
   customer: "Customer",
+  courier: "Courier",
   admin: "Admin",
   superAdmin: "Super Admin",
 };
@@ -319,6 +320,7 @@ const getStats = asyncHandler(async (_req, res) => {
       recentActivity,
       usersByRole: {
         customers: usersByRole.customer || 0,
+        couriers: usersByRole.courier || 0,
         admins: usersByRole.admin || 0,
         superAdmins: usersByRole.superAdmin || 0,
       },

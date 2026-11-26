@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
     avatarPublicId: { type: String, default: "" },
     role: {
       type: String,
-      enum: ["customer", "admin", "superAdmin"],
+      enum: ["customer", "courier", "admin", "superAdmin"],
       default: "customer",
       index: true,
     },

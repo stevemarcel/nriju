@@ -28,6 +28,8 @@ import inventoryRoutes from "./routes/inventoryRoutes.js";
 import settingRoutes from "./routes/settingRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import checkoutRoutes from "./routes/checkoutRoutes.js";
+import pickupLocationRoutes from "./routes/pickupLocationRoutes.js";
 
 const port = process.env.PORT || 5000;
 
@@ -78,6 +80,8 @@ app.use("/api/v1/inventory", inventoryRoutes);
 app.use("/api/v1/settings", settingRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/checkout", checkoutRoutes);
+app.use("/api/v1/pickup-locations", pickupLocationRoutes);
 
 // Serve frontend in production — single-platform deployment
 if (process.env.NODE_ENV === "production") {

@@ -51,4 +51,12 @@ const superAdmin = asyncHandler(async (req, res, next) => {
   next();
 });
 
-export { auth, admin, superAdmin };
+const courier = asyncHandler(async (req, res, next) => {
+  if (!req.user || req.user.role !== "courier") {
+    res.status(403);
+    throw new Error("Access denied: courier role required");
+  }
+  next();
+});
+
+export { auth, admin, superAdmin, courier };

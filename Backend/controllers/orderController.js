@@ -3,20 +3,14 @@ import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Coupon from "../models/Coupon.js";
-import Setting from "../models/Setting.js";
-import {
-  computeAvailableStock,
-  deductStockFIFO,
-  restoreStockAllocations,
-} from "../services/inventoryService.js";
+import { deductStockFIFO, restoreStockAllocations } from "../services/inventoryService.js";
 import { syncOrderProductSales } from "../services/productSalesService.js";
 import { recordActivity } from "../utils/activityUtils.js";
+import { calculateCheckoutPricing } from "../services/checkoutPricingService.js";
 import {
-  calculateDeliveryFeeKobo,
-  configuredDeliveryFee,
-  DEFAULT_DELIVERY_FEE_STEP_KOBO,
-  DEFAULT_DELIVERY_FEES_KOBO,
-} from "../utils/delivery.js";
+  createOrderReceivedNotification,
+  createOrderStatusNotification,
+} from "../services/notificationService.js";
 
 const ORDER_STATUSES = [
   "pending",
@@ -30,7 +24,7 @@ const ORDER_STATUSES = [
   "refunded",
 ];
 const DELIVERY_METHODS = ["own", "thirdparty", "pickup"];
-const PAYMENT_METHODS = ["paystack", "card", "cash"];
+const PAYMENT_METHODS = ["paystack", "pay_on_delivery", "pay_at_pickup", "card", "cash"];
 
 const fail = (message, status = 400) => {
   const error = new Error(message);
@@ -64,30 +58,6 @@ const runInTransaction = async (callback) => {
   }
 };
 
-const normalizeItems = (items) => {
-  if (!Array.isArray(items) || items.length === 0) {
-    fail("Cart is empty.");
-  }
-
-  const merged = new Map();
-  for (const item of items) {
-    const productId = String(item?.productId || item?.product || "");
-    if (!mongoose.isValidObjectId(productId)) fail("An order item has an invalid product.");
-
-    const quantity = Number(item.quantity);
-    if (!Number.isSafeInteger(quantity) || quantity < 1) {
-      fail("Order item quantities must be positive whole numbers.");
-    }
-
-    merged.set(productId, (merged.get(productId) || 0) + quantity);
-  }
-
-  return [...merged.entries()].map(([productId, quantity]) => ({
-    productId,
-    quantity,
-  }));
-};
-
 const calculateCostOfGoodsSold = (allocations) => {
   if (!allocations.length || allocations.some((allocation) => allocation.unitCost == null)) {
     return null;
@@ -98,50 +68,38 @@ const calculateCostOfGoodsSold = (allocations) => {
   );
 };
 
-const deliveryFeeFor = async (deliveryMethod, subtotalKobo, session) => {
-  if (deliveryMethod === "pickup") return 0;
-
-  const settingKey = deliveryMethod === "own" ? "delivery_fee_own" : "delivery_fee_thirdparty";
-  const settings = await Setting.find({
-    key: { $in: [settingKey, "delivery_fee_increment_per_5000"] },
-  })
-    .select("key value")
-    .session(session)
-    .lean();
-  const settingsByKey = Object.fromEntries(settings.map((setting) => [setting.key, setting.value]));
-  const baseFeeKobo = configuredDeliveryFee(
-    settingsByKey[settingKey],
-    DEFAULT_DELIVERY_FEES_KOBO[deliveryMethod],
-  );
-  const feeStepKobo = configuredDeliveryFee(
-    settingsByKey.delivery_fee_increment_per_5000,
-    DEFAULT_DELIVERY_FEE_STEP_KOBO,
-  );
-
-  return calculateDeliveryFeeKobo({
-    subtotalKobo,
-    baseFeeKobo,
-    feeStepKobo,
-    deliveryMethod,
-  });
-};
-
 const populateOrder = (query) =>
   query
     .populate("items.product", "name images")
     .populate("coupon", "code")
-    .populate("user", "name email avatar phone");
+    .populate("user", "name email avatar phone")
+    .populate("assignedCourier", "name email phone")
+    .populate("pickupLocation.location", "name code addressLine city state openingHours");
+
+const validateShippingAddress = (address) => {
+  if (!address || typeof address !== "object" || Array.isArray(address)) {
+    fail("A shipping address is required.");
+  }
+  for (const field of ["name", "phone", "line1", "city", "state"]) {
+    if (typeof address[field] !== "string" || !address[field].trim()) {
+      fail(`Shipping address ${field} is required.`);
+    }
+  }
+};
 
 // @DESCRIPTION Create a new authenticated order and reserve its stock FIFO.
 // @ROUTE       POST /api/v1/orders
 // @ACCESS      Authenticated
 const createOrder = asyncHandler(async (req, res) => {
-  const normalizedItems = normalizeItems(req.body.items);
-  const { shippingAddress, deliveryMethod, couponCode, paymentMethod = "paystack" } = req.body;
+  const {
+    shippingAddress,
+    deliveryMethod,
+    couponCode,
+    pickupLocationId,
+    paymentMethod = "paystack",
+  } = req.body;
 
-  if (!shippingAddress || typeof shippingAddress !== "object") {
-    fail("A shipping address is required.");
-  }
+  if (deliveryMethod !== "pickup") validateShippingAddress(shippingAddress);
   if (!DELIVERY_METHODS.includes(deliveryMethod)) {
     fail("Invalid delivery method.");
   }
@@ -150,76 +108,66 @@ const createOrder = asyncHandler(async (req, res) => {
   }
 
   const result = await runInTransaction(async (session) => {
-    const productIds = normalizedItems.map((item) => item.productId);
-    const products = await Product.find({ _id: { $in: productIds } }).session(session);
-    const productMap = new Map(products.map((product) => [String(product._id), product]));
+    const pricing = await calculateCheckoutPricing({
+      items: req.body.items,
+      deliveryMethod,
+      couponCode,
+      pickupLocationId,
+      session,
+    });
+    const isPayOnDelivery = ["pay_on_delivery", "pay_at_pickup", "cash"].includes(paymentMethod);
 
-    let subtotalKobo = 0;
-    const orderItems = [];
-
-    for (const item of normalizedItems) {
-      const product = productMap.get(item.productId);
-      if (!product || !product.isActive) {
-        fail("One or more products are unavailable.", 404);
-      }
-
-      const available = await computeAvailableStock(product._id, session);
-      if (available < item.quantity) {
-        fail(`${product.name} has only ${available} available.`, 409);
-      }
-
-      subtotalKobo += product.price * item.quantity;
-      if (!Number.isSafeInteger(subtotalKobo)) fail("Order total is too large.");
-
-      orderItems.push({
-        product: product._id,
-        name: product.name,
-        price: product.price,
-        quantity: item.quantity,
-        image: product.images?.[0] || "",
-        stockAllocations: [],
-        costOfGoodsSold: null,
-      });
+    if (isPayOnDelivery && !pricing.payOnDelivery.enabled) {
+      fail("Payment on delivery is not available for this order.", 409);
+    }
+    if (paymentMethod === "pay_at_pickup" && deliveryMethod !== "pickup") {
+      fail("Pay at pickup requires store pickup.");
+    }
+    if (paymentMethod === "pay_on_delivery" && deliveryMethod !== "own") {
+      fail("Payment on delivery is available only with Nriju own-fleet delivery.");
     }
 
-    let discountKobo = 0;
-    let coupon = null;
-    if (couponCode) {
-      coupon = await Coupon.findOne({
-        code: String(couponCode).trim().toUpperCase(),
-        isActive: true,
-      }).session(session);
-
-      if (!coupon) fail("Invalid coupon code.");
-      if (coupon.expiryDate && coupon.expiryDate < new Date()) {
-        fail("Coupon has expired.");
-      }
-      if (subtotalKobo < coupon.minOrder) {
-        fail(
-          `Minimum order for this coupon is ₦${(coupon.minOrder / 100).toLocaleString("en-NG")}.`,
-        );
-      }
-      discountKobo = coupon.discountKoboFor(subtotalKobo);
-      discountKobo = Math.max(0, Math.min(subtotalKobo, Number(discountKobo) || 0));
-    }
-
-    const deliveryFeeKobo = await deliveryFeeFor(deliveryMethod, subtotalKobo, session);
-    const totalKobo = subtotalKobo - discountKobo + deliveryFeeKobo;
+    const orderShippingAddress =
+      deliveryMethod === "pickup"
+        ? {
+            name: req.user.name,
+            phone: req.user.phone || shippingAddress?.phone || "Not provided",
+            line1: pricing.pickupLocation.addressLine,
+            line2: pricing.pickupLocation.landmark || "",
+            city: pricing.pickupLocation.city,
+            state: pricing.pickupLocation.state,
+          }
+        : shippingAddress;
 
     const [order] = await Order.create(
       [
         {
           user: req.user._id,
-          items: orderItems,
-          shippingAddress,
+          items: pricing.orderItems,
+          shippingAddress: orderShippingAddress,
           deliveryMethod,
-          deliveryFee: deliveryFeeKobo,
-          subtotal: subtotalKobo,
-          discount: discountKobo,
-          coupon: coupon?._id,
-          total: totalKobo,
+          deliveryFee: pricing.deliveryFeeKobo,
+          subtotal: pricing.subtotalKobo,
+          discount: pricing.discountKobo,
+          vatRateBasisPoints: pricing.vatRateBasisPoints,
+          vatAmount: pricing.vatAmountKobo,
+          coupon: pricing.coupon?._id,
+          total: pricing.totalKobo,
           paymentMethod,
-          status: "pending",
+          paymentStatus: isPayOnDelivery ? "unpaid" : "pending",
+          paymentExpiresAt: isPayOnDelivery ? null : new Date(Date.now() + 30 * 60 * 1000),
+          status: isPayOnDelivery ? "confirmed" : "pending",
+          pickupLocation: pricing.pickupLocation
+            ? {
+                location: pricing.pickupLocation._id,
+                name: pricing.pickupLocation.name,
+                code: pricing.pickupLocation.code,
+                addressLine: pricing.pickupLocation.addressLine,
+                city: pricing.pickupLocation.city,
+                state: pricing.pickupLocation.state,
+                openingHours: pricing.pickupLocation.openingHours,
+              }
+            : undefined,
         },
       ],
       { session },
@@ -245,6 +193,11 @@ const createOrder = asyncHandler(async (req, res) => {
       orderItem.costOfGoodsSold = calculateCostOfGoodsSold(deduction.allocations);
     }
 
+    if (isPayOnDelivery && pricing.coupon) {
+      await Coupon.updateOne({ _id: pricing.coupon._id }, { $inc: { usedCount: 1 } }, { session });
+      order.couponRedeemedAt = new Date();
+    }
+
     await order.save({ session });
 
     return order;
@@ -258,6 +211,10 @@ const createOrder = asyncHandler(async (req, res) => {
     actionType: "create",
     changes: [{ field: "Order total", from: "—", to: result.total }],
     description: `placed order #${result.orderNumber} for ₦${(result.total / 100).toLocaleString("en-NG")}`,
+  });
+
+  createOrderReceivedNotification(result).catch((error) => {
+    console.error("Could not create order notification:", error.message);
   });
 
   res.status(201).json({
@@ -434,6 +391,12 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       actionType: result.nextStatus === "cancelled" ? "status_toggle" : "update",
       changes: result.changes,
       description: descriptions.join("; "),
+    });
+  }
+
+  if (result.nextStatus !== result.previousStatus) {
+    createOrderStatusNotification(result.order, result.nextStatus).catch((error) => {
+      console.error("Could not create order status notification:", error.message);
     });
   }
 
