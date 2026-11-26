@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   MapPin,
@@ -14,6 +15,9 @@ import { FaInstagram, FaFacebookF, FaWhatsapp } from "react-icons/fa";
 import { usePublicSettings } from "../../hooks/usePublicSettings";
 import { phoneHref, socialProfileHref, whatsappHref } from "../../utils/contactLinks";
 
+// * Declarations
+const HERO_IMAGE = "/assets/contact/contact-hero.webp";
+
 const QUICK_LINKS = [
   { label: "Shop", to: "/shop", icon: ShoppingCart, primary: true },
   { label: "Delivery Info", to: "/delivery", icon: Truck },
@@ -23,6 +27,9 @@ const QUICK_LINKS = [
 
 const ContactPage = () => {
   const { data: s } = usePublicSettings();
+
+  // * Declarations
+  const [heroImageAvailable, setHeroImageAvailable] = useState(true);
 
   const phone = s?.business_phone || "+234 800 000 0000";
   const email = s?.business_email || "orders@nriju.com";
@@ -40,6 +47,19 @@ const ContactPage = () => {
     <main className="bg-background">
       {/* Hero */}
       <section className="relative bg-text py-16 sm:py-20">
+        {heroImageAvailable ? (
+          <img
+            src={HERO_IMAGE}
+            alt=""
+            onError={() => setHeroImageAvailable(false)}
+            className="absolute inset-0 h-full w-full object-cover object-center"
+            aria-hidden="true"
+          />
+        ) : null}
+        <div
+          className="absolute inset-0 bg-linear-to-t from-text/95 via-text/55 to-text/25"
+          aria-hidden="true"
+        />
         <div className="relative mx-auto w-full max-w-screen-2xl px-6 sm:px-8 text-center sm:py-24 lg:py-28">
           <span className="inline-block px-3 py-1 bg-primary/20 rounded-full text-xs font-semibold mb-4 tracking-wide uppercase text-on-accent">
             Get in Touch
