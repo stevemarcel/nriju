@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
 import Coupon from "../models/Coupon.js";
+import Setting from "../models/Setting.js";
 import { deductStockFIFO, restoreStockAllocations } from "../services/inventoryService.js";
 import { syncOrderProductSales } from "../services/productSalesService.js";
 import { recordActivity } from "../utils/activityUtils.js";
@@ -11,6 +12,7 @@ import {
   createOrderReceivedNotification,
   createOrderStatusNotification,
 } from "../services/notificationService.js";
+import { issueHandoffOtp } from "../services/handoffOtpService.js";
 
 const ORDER_STATUSES = [
   "pending",
@@ -346,6 +348,15 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       });
     }
 
+    if (nextStatus === "cancelled" && order.coupon && order.couponRedeemedAt) {
+      await Coupon.updateOne(
+        { _id: order.coupon, usedCount: { $gt: 0 } },
+        { $inc: { usedCount: -1 } },
+        { session },
+      );
+      order.couponRedeemedAt = null;
+    }
+
     const salesUpdate = await syncOrderProductSales(order, nextStatus, session);
     if (salesUpdate === "counted") {
       changes.push({
@@ -358,7 +369,19 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     }
 
     order.status = nextStatus;
-    if (changes.length) await order.save({ session });
+    let handoffOtpIssued = false;
+    if (
+      nextStatus === "ready_for_pickup" &&
+      order.deliveryMethod === "pickup" &&
+      order.paymentMethod === "pay_at_pickup"
+    ) {
+      const otpSetting = await Setting.findOne({ key: "handoff_otp_expiry_minutes" })
+        .session(session)
+        .lean();
+      issueHandoffOtp(order, Math.max(15, Number(otpSetting?.value) || 240));
+      handoffOtpIssued = true;
+    }
+    if (changes.length || handoffOtpIssued) await order.save({ session });
 
     return { order, changes, previousStatus, nextStatus };
   });

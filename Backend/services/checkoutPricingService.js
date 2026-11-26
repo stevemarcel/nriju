@@ -26,6 +26,7 @@ const CHECKOUT_SETTING_KEYS = [
   "vat_rate_basis_points",
   "pay_on_delivery_enabled",
   "pay_on_delivery_max_order_kobo",
+  "pickup_available",
 ];
 
 const fail = (message, statusCode = 400, details = undefined) => {
@@ -155,6 +156,12 @@ export const calculateCheckoutPricing = async ({
 
   const productTypes = products.map((product) => product.productType);
   const availableDeliveryMethods = allowedMethods(productTypes);
+  if (
+    deliveryMethod === "pickup" &&
+    (settings.pickup_available === false || settings.pickup_available === "false")
+  ) {
+    fail("Store pickup is currently unavailable.", 409);
+  }
   if (!availableDeliveryMethods.includes(deliveryMethod)) {
     fail("This delivery method is not available for the products in your cart.", 409, {
       availableDeliveryMethods,

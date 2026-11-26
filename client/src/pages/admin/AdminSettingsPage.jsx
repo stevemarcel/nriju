@@ -112,6 +112,34 @@ const SECTIONS = [
         hint: "Added for each ₦5,000 band above an order subtotal of ₦10,000.",
       },
       {
+        key: "vat_rate_basis_points",
+        label: "VAT rate (%)",
+        type: "percentage",
+        defaultValue: 750,
+        hint: "Applied to the discounted merchandise subtotal in cart and checkout.",
+      },
+      {
+        key: "pay_on_delivery_enabled",
+        label: "Payment on delivery",
+        type: "boolean",
+        defaultValue: true,
+        hint: "Allow eligible own-fleet and pickup orders to be paid at handoff.",
+      },
+      {
+        key: "pay_on_delivery_max_order_kobo",
+        label: "Payment on delivery limit (₦)",
+        type: "money",
+        defaultValue: 10000000,
+        hint: "Orders above this total must be paid online. Set 0 for no limit.",
+      },
+      {
+        key: "handoff_otp_expiry_minutes",
+        label: "Handoff code lifetime (minutes)",
+        type: "number",
+        defaultValue: 240,
+        hint: "How long a courier-issued handoff code remains valid.",
+      },
+      {
         key: "pickup_available",
         label: "Pickup available",
         type: "boolean",
@@ -168,6 +196,14 @@ const valuesMatch = (field, draftValue, savedValue) => {
     }
 
     return toKobo(draftValue) === Number(savedValue);
+  }
+
+  if (field.type === "percentage") {
+    if (draftValue === "" || draftValue == null) {
+      return savedValue === "" || savedValue == null;
+    }
+
+    return Math.round(Number(draftValue) * 100) === Number(savedValue);
   }
 
   if (field.type === "boolean") {
@@ -275,6 +311,10 @@ const AdminSettingsPage = () => {
         payload[key] = asBoolean(value);
       } else if (field.type === "money") {
         payload[key] = value === "" || value == null ? null : toKobo(value);
+      } else if (field.type === "percentage") {
+        payload[key] = value === "" || value == null ? null : Math.round(Number(value) * 100);
+      } else if (field.type === "number") {
+        payload[key] = value === "" || value == null ? null : Number(value);
       } else {
         payload[key] = value;
       }
@@ -297,9 +337,15 @@ const AdminSettingsPage = () => {
   const currentValue = (k) => {
     if (values[k.key] !== undefined) return values[k.key];
 
-    const savedValue = Object.hasOwn(settingsByKey, k.key) ? settingsByKey[k.key] : "";
+    const savedValue = Object.hasOwn(settingsByKey, k.key)
+      ? settingsByKey[k.key]
+      : (k.defaultValue ?? "");
 
     if (k.type === "money") {
+      return savedValue === "" || savedValue == null ? "" : Number(savedValue) / 100;
+    }
+
+    if (k.type === "percentage") {
       return savedValue === "" || savedValue == null ? "" : Number(savedValue) / 100;
     }
 
@@ -364,13 +410,14 @@ const AdminSettingsPage = () => {
       );
     }
 
-    if (k.type === "money") {
+    if (k.type === "money" || k.type === "percentage" || k.type === "number") {
       return (
         <input
           id={id}
           type="number"
-          step="0.01"
+          step={k.type === "number" ? "1" : "0.01"}
           min="0"
+          max={k.type === "percentage" ? "100" : undefined}
           value={current ?? ""}
           onChange={(e) => handleChange(k.key, e.target.value)}
           className={ADMIN_FIELD_CLASS}

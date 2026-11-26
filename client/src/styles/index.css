@@ -37,6 +37,7 @@
   --radius-button: 8px;
   --radius-input: 8px;
   --radius-chip: 999px;
+  --checkout-panel-height: 38rem;
 }
 
 @layer base {
@@ -124,8 +125,7 @@
 }
 
 @utility animate-product-image-enter {
-  animation: product-image-enter var(--motion-duration-standard)
-    var(--motion-ease-standard);
+  animation: product-image-enter var(--motion-duration-standard) var(--motion-ease-standard);
 }
 
 @media (prefers-reduced-motion: reduce) {

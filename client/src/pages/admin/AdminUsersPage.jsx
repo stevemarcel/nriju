@@ -27,6 +27,7 @@ import {
   Eye,
   Check,
   Loader2,
+  Truck,
 } from "lucide-react";
 
 const getInitials = (name) =>
@@ -61,6 +62,13 @@ const ROLE_OPTIONS = [
     color: "text-blue-600",
   },
   {
+    value: "courier",
+    label: "Couriers",
+    roles: ["courier"],
+    icon: Truck,
+    color: "text-primary",
+  },
+  {
     value: "superAdmin",
     label: "Super Admins",
     roles: ["superAdmin"],
@@ -84,6 +92,11 @@ const ROLE_MAP = {
     label: "Customer",
     cls: "bg-slate-100 text-slate-700",
     icon: <User className="w-3 h-3" />,
+  },
+  courier: {
+    label: "Courier",
+    cls: "bg-red-50 text-primary",
+    icon: <Truck className="w-3 h-3" />,
   },
 };
 

@@ -36,6 +36,7 @@ import {
   UserCheck,
   UserX,
   X,
+  Truck,
 } from "lucide-react";
 
 const ROLE_MAP = {
@@ -53,6 +54,11 @@ const ROLE_MAP = {
     label: "Customer",
     cls: "bg-slate-100 text-slate-700",
     icon: <User className="w-3 h-3" />,
+  },
+  courier: {
+    label: "Courier",
+    cls: "bg-red-50 text-primary",
+    icon: <Truck className="w-3 h-3" />,
   },
 };
 
@@ -93,6 +99,7 @@ const ADDRESS_LABELS = {
 // role changes, especially Super Admin changes, in the backend as well.
 const ROLE_OPTIONS = [
   { value: "customer", label: "Customer", icon: User },
+  { value: "courier", label: "Courier", icon: Truck },
   { value: "admin", label: "Admin", icon: Shield },
 ];
 

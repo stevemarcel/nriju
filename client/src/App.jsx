@@ -6,6 +6,7 @@ import { fetchCart } from "./slices/cartSlice";
 import MainLayout from "./components/layout/MainLayout";
 import ProtectedRoute from "./components/guards/ProtectedRoute";
 import AdminRoute from "./components/guards/AdminRoute";
+import CourierRoute from "./components/guards/CourierRoute";
 import AdminLayout from "./components/layout/AdminLayout";
 import ErrorBoundary from "./components/layout/ErrorBoundary";
 
@@ -49,6 +50,8 @@ const AdminCouponsPage = lazy(() => import("./pages/admin/AdminCouponsPage"));
 const AdminActivitiesPage = lazy(() => import("./pages/admin/AdminActivitiesPage"));
 const AdminInventoryPage = lazy(() => import("./pages/admin/AdminInventoryPage"));
 const AdminSettingsPage = lazy(() => import("./pages/admin/AdminSettingsPage"));
+const AdminPickupLocationsPage = lazy(() => import("./pages/admin/AdminPickupLocationsPage"));
+const CourierOrdersPage = lazy(() => import("./pages/courier/CourierOrdersPage"));
 
 const App = () => {
   const dispatch = useAppDispatch();
@@ -107,7 +110,6 @@ const App = () => {
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
-          <Route path="/checkout/success" element={<CheckoutSuccessPage />} />
 
           {/* ── Account area (authenticated) ────────────────────── */}
           <Route
@@ -123,6 +125,22 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <CheckoutPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout/result"
+            element={
+              <ProtectedRoute>
+                <CheckoutSuccessPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/checkout/success"
+            element={
+              <ProtectedRoute>
+                <CheckoutSuccessPage />
               </ProtectedRoute>
             }
           />
@@ -166,6 +184,14 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/courier"
+            element={
+              <CourierRoute>
+                <CourierOrdersPage />
+              </CourierRoute>
+            }
+          />
 
           {/* ── Admin area ──────────────────────────────────────── */}
           <Route
@@ -179,6 +205,7 @@ const App = () => {
             <Route index element={<AdminDashboardPage />} />
             <Route path="products" element={<AdminProductsPage />} />
             <Route path="orders" element={<AdminOrdersPage />} />
+            <Route path="pickup-locations" element={<AdminPickupLocationsPage />} />
             {/* <Route path="customers" element={<AdminCustomersPage />} /> */}
             <Route path="users/:id" element={<AdminUserDetailPage />} />
             <Route path="users" element={<AdminUsersPage />} />

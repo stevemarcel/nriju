@@ -13,6 +13,7 @@ import "./config/passport.js";
 import { notFound, errorHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rateLimit.js";
 import activityLog from "./middleware/activityLog.js";
+import { expirePendingPaymentOrders } from "./services/orderExpiryService.js";
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
@@ -30,6 +31,7 @@ import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import checkoutRoutes from "./routes/checkoutRoutes.js";
 import pickupLocationRoutes from "./routes/pickupLocationRoutes.js";
+import courierRoutes from "./routes/courierRoutes.js";
 
 const port = process.env.PORT || 5000;
 
@@ -37,7 +39,14 @@ connectDB();
 
 const app = express();
 
-app.use(express.json({ limit: "10mb" }));
+app.use(
+  express.json({
+    limit: "10mb",
+    verify: (req, res, buffer) => {
+      req.rawBody = buffer;
+    },
+  }),
+);
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(activityLog);
@@ -82,6 +91,7 @@ app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/checkout", checkoutRoutes);
 app.use("/api/v1/pickup-locations", pickupLocationRoutes);
+app.use("/api/v1/courier", courierRoutes);
 
 // Serve frontend in production — single-platform deployment
 if (process.env.NODE_ENV === "production") {
@@ -97,4 +107,13 @@ if (process.env.NODE_ENV === "production") {
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(port, () => console.log(`Nriju server started on port ${port}`.yellow.bold));
+app.listen(port, () => {
+  console.log(`Nriju server started on port ${port}`.yellow.bold);
+
+  const releaseExpiredOrders = () =>
+    expirePendingPaymentOrders().catch((error) =>
+      console.error("Could not release expired payment orders:", error.message),
+    );
+  setTimeout(releaseExpiredOrders, 10_000);
+  setInterval(releaseExpiredOrders, 5 * 60 * 1000).unref();
+});

@@ -16,6 +16,7 @@ import {
   X,
   Clock,
   ClipboardList,
+  MapPinned,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -25,6 +26,7 @@ const nav = [
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/inventory", label: "Inventory", icon: ClipboardList },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
+  { to: "/admin/pickup-locations", label: "Pickup locations", icon: MapPinned },
   { to: "/admin/users", label: "Staff & Users", icon: UserCog },
   { to: "/admin/reviews", label: "Reviews", icon: Star },
   { to: "/admin/coupons", label: "Coupons", icon: Ticket },

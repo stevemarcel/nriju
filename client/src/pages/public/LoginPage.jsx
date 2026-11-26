@@ -22,12 +22,19 @@ const LoginPage = () => {
   // ProtectedRoute / the auth:unauthorized handler both stash it in
   // location.state.from; resume that flow instead of always sending them
   // to the account dashboard.
-  const from = location.state?.from?.pathname || "/";
+  const requestedFrom = location.state?.from?.pathname;
+  const destinationFor = (account) =>
+    requestedFrom ||
+    (account?.role === "courier"
+      ? "/courier"
+      : ["admin", "superAdmin"].includes(account?.role)
+        ? "/admin"
+        : "/");
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) navigate(from, { replace: true });
-  }, [user, navigate, from]);
+    if (user) navigate(destinationFor(user), { replace: true });
+  }, [user, navigate, requestedFrom]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,10 +43,11 @@ const LoginPage = () => {
 
     try {
       const res = await api.post("/auth/login", { email, password });
-      dispatch(setUser(res.data.data));
+      const account = res.data.data;
+      dispatch(setUser(account));
       // Merge guest cart into server cart
       dispatch(mergeGuestCart());
-      navigate(from, { replace: true });
+      navigate(destinationFor(account), { replace: true });
     } catch (err) {
       setError(err.response?.data?.message || "Login failed. Please try again.");
     } finally {
@@ -175,7 +183,7 @@ const LoginPage = () => {
           Don't have an account?{" "}
           <Link
             to="/register"
-            state={{ from }}
+            state={{ requestedFrom }}
             className="text-primary font-medium hover:underline"
           >
             Create one

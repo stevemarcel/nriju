@@ -1,50 +1,234 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useAppDispatch, useAppSelector } from "../../store/store";
-import { clearAll, getCartItemProductId } from "../../slices/cartSlice";
-import api from "../../services/api";
-import { usePublicSettings } from "../../hooks/usePublicSettings";
+import { useNavigate } from "react-router-dom";
 import {
-  calculateDeliveryFeeKobo,
-  configuredDeliveryFee,
-  DEFAULT_DELIVERY_FEE_STEP_KOBO,
-  DEFAULT_DELIVERY_FEES_KOBO,
-} from "../../utils/deliveryFee";
-import { formatNaira, toKobo } from "../../utils/formatMoney";
-import {
-  MapPin,
-  Phone,
-  Truck,
-  Package,
-  CreditCard,
-  Wallet,
-  Landmark,
-  ArrowRight,
   ArrowLeft,
-  Tag,
-  ShoppingBag,
+  ArrowRight,
+  Banknote,
+  Building2,
   Check,
+  CreditCard,
+  Landmark,
+  Loader2,
+  LockKeyhole,
+  MapPin,
+  PackageCheck,
+  ShieldCheck,
+  Store,
+  Tag,
+  Truck,
 } from "lucide-react";
+import api from "../../services/api";
+import { clearAll, getCartItemProductId } from "../../slices/cartSlice";
+import { useAppDispatch, useAppSelector } from "../../store/store";
+import { formatNaira } from "../../utils/formatMoney";
+import { formatVatRate } from "../../utils/pricing";
+
+const DELIVERY_OPTIONS = [
+  {
+    value: "thirdparty",
+    label: "Third-party delivery",
+    description: "Tracked delivery through an external logistics partner.",
+    icon: Truck,
+  },
+  {
+    value: "own",
+    label: "Nriju own fleet",
+    description: "Direct delivery by a Nriju courier, including fresh orders.",
+    icon: PackageCheck,
+  },
+  {
+    value: "pickup",
+    label: "Pick up in store",
+    description: "Choose a convenient Nriju collection point. No delivery fee.",
+    icon: Store,
+  },
+];
+
+const ADDRESS_FIELDS = [
+  { key: "name", label: "Full name", autoComplete: "name", placeholder: "Your full name" },
+  { key: "phone", label: "Phone number", autoComplete: "tel", placeholder: "+234" },
+  {
+    key: "line1",
+    label: "Street address",
+    autoComplete: "address-line1",
+    placeholder: "House number and street",
+  },
+  {
+    key: "line2",
+    label: "Landmark or apartment",
+    autoComplete: "address-line2",
+    placeholder: "Optional",
+    optional: true,
+  },
+  { key: "city", label: "City", autoComplete: "address-level2", placeholder: "City" },
+  { key: "state", label: "State", autoComplete: "address-level1", placeholder: "State" },
+];
+
+const methodsForCart = (items) => {
+  const types = new Set(items.map((item) => item.product?.productType).filter(Boolean));
+  if (types.has("cooked") || types.has("fresh") || !types.size) return ["own", "pickup"];
+  return ["own", "thirdparty", "pickup"];
+};
+
+const Stepper = ({ current }) => {
+  const steps = ["Delivery", "Payment", "Confirmation"];
+  return (
+    <ol className="grid grid-cols-3 gap-2" aria-label="Checkout progress">
+      {steps.map((label, index) => {
+        const number = index + 1;
+        const active = number === current;
+        const complete = number < current;
+        return (
+          <li key={label} className="min-w-0">
+            <div
+              className={`h-1 rounded-full ${active || complete ? "bg-primary" : "bg-border-soft"}`}
+            />
+            <div className="mt-2 flex items-center gap-2">
+              <span
+                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                  active || complete
+                    ? "bg-primary text-on-accent"
+                    : "bg-background-soft text-text-muted"
+                }`}
+                aria-current={active ? "step" : undefined}
+              >
+                {complete ? <Check className="h-3.5 w-3.5" aria-hidden="true" /> : number}
+              </span>
+              <span
+                className={`truncate text-xs font-semibold sm:text-sm ${
+                  active ? "text-text" : "text-text-muted"
+                }`}
+              >
+                {label}
+              </span>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  );
+};
+
+const OrderSummary = ({
+  quote,
+  itemCount,
+  couponDraft,
+  setCouponDraft,
+  appliedCoupon,
+  onApplyCoupon,
+  couponPending,
+  couponError,
+  quotePending,
+}) => (
+  <aside className="rounded-card border border-border-soft bg-surface p-5 shadow-soft sm:p-6 lg:sticky lg:top-24">
+    <h2 className="font-heading text-xl font-bold text-text">Order summary</h2>
+    <dl className="mt-5 space-y-3 border-t border-border-soft pt-5 text-sm">
+      <div className="flex justify-between gap-4">
+        <dt className="text-text-secondary">Subtotal ({itemCount} items)</dt>
+        <dd className="font-semibold tabular-nums text-text">
+          {quote ? formatNaira(quote.subtotal) : "—"}
+        </dd>
+      </div>
+      {quote?.discount > 0 ? (
+        <div className="flex justify-between gap-4 text-success">
+          <dt>Coupon discount</dt>
+          <dd className="font-semibold tabular-nums">−{formatNaira(quote.discount)}</dd>
+        </div>
+      ) : null}
+      <div className="flex justify-between gap-4">
+        <dt className="text-text-secondary">
+          VAT {quote ? `(${formatVatRate(quote.vatRateBasisPoints)}%)` : ""}
+        </dt>
+        <dd className="font-medium tabular-nums text-text">
+          {quote ? formatNaira(quote.vatAmount) : "—"}
+        </dd>
+      </div>
+      <div className="flex justify-between gap-4">
+        <dt className="text-text-secondary">Delivery</dt>
+        <dd className="font-medium tabular-nums text-text">
+          {quote ? (quote.deliveryFee === 0 ? "Free" : formatNaira(quote.deliveryFee)) : "—"}
+        </dd>
+      </div>
+    </dl>
+
+    <form className="mt-5 border-t border-border-soft pt-5" onSubmit={onApplyCoupon}>
+      <label
+        htmlFor="checkout-coupon"
+        className="flex items-center gap-2 text-sm font-semibold text-text"
+      >
+        <Tag className="h-4 w-4 text-primary" aria-hidden="true" /> Coupon code
+      </label>
+      <div className="mt-2 flex gap-2">
+        <input
+          id="checkout-coupon"
+          value={couponDraft}
+          onChange={(event) => setCouponDraft(event.target.value.toUpperCase())}
+          placeholder="Enter code"
+          className="min-h-11 min-w-0 flex-1 rounded-button border border-border bg-background px-3 text-sm text-text outline-none transition-colors placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15"
+        />
+        <button
+          type="submit"
+          disabled={couponPending || !couponDraft.trim()}
+          className="min-h-11 rounded-button bg-primary px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {couponPending ? "Checking" : "Apply"}
+        </button>
+      </div>
+      {appliedCoupon ? (
+        <p className="mt-2 text-xs font-medium text-success">{appliedCoupon} applied.</p>
+      ) : null}
+      {couponError ? (
+        <p className="mt-2 text-xs text-error" role="alert">
+          {couponError}
+        </p>
+      ) : null}
+    </form>
+
+    <div className="mt-5 flex items-baseline justify-between gap-4 border-t border-border-soft pt-5">
+      <span className="font-heading text-lg font-bold text-text">Total</span>
+      <span className="font-heading text-2xl font-bold tabular-nums text-text">
+        {quotePending ? (
+          <Loader2 className="h-5 w-5 animate-spin text-primary" aria-label="Updating total" />
+        ) : quote ? (
+          formatNaira(quote.total)
+        ) : (
+          "—"
+        )}
+      </span>
+    </div>
+
+    <ul className="mt-6 space-y-2 border-t border-border-soft pt-5 text-xs leading-5 text-text-secondary">
+      <li className="flex gap-2">
+        <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+        Server-verified prices, VAT, delivery and coupon totals.
+      </li>
+      <li className="flex gap-2">
+        <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+        Online payments continue securely through Paystack.
+      </li>
+    </ul>
+  </aside>
+);
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const { items } = useAppSelector((s) => s.cart);
-  const { user } = useAppSelector((s) => s.auth);
-  const { data: publicSettings = {} } = usePublicSettings();
-
-  // If the cart is empty but the user lands here directly, send them shopping.
-  useEffect(() => {
-    if (!items.length) navigate("/cart", { replace: true });
-  }, [items, navigate]);
-
-  // ── Form state across steps ─────────────────────────────────────
+  const { items } = useAppSelector((state) => state.cart);
+  const { user } = useAppSelector((state) => state.auth);
+  const availableMethods = useMemo(() => methodsForCart(items), [items]);
   const [step, setStep] = useState(1);
+  const [deliveryMethod, setDeliveryMethod] = useState(() =>
+    availableMethods.includes("thirdparty") ? "thirdparty" : "own",
+  );
+  const [pickupLocationId, setPickupLocationId] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("paystack");
+  const [couponDraft, setCouponDraft] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState("");
+  const [couponError, setCouponError] = useState("");
+  const [formError, setFormError] = useState("");
 
-  // Pre-fill from the user's saved profile address when one exists, so
-  // the customer doesn't have to retype it at checkout.
-  const savedAddress = user?.addresses?.find((a) => a.isDefault) || user?.addresses?.[0];
+  const savedAddress = user?.addresses?.find((entry) => entry.isDefault) || user?.addresses?.[0];
   const [address, setAddress] = useState({
     name: savedAddress?.name || user?.name || "",
     phone: savedAddress?.phone || user?.phone || "",
@@ -53,573 +237,530 @@ const CheckoutPage = () => {
     city: savedAddress?.city || "",
     state: savedAddress?.state || "",
   });
-  const [deliveryMethod, setDeliveryMethod] = useState("thirdparty");
-  const [paymentMethod, setPaymentMethod] = useState("paystack");
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
-  const [discountKobo, setDiscountKobo] = useState(0);
-  const [couponError, setCouponError] = useState("");
 
-  // ── Derived totals (items carry kobo prices from ProductCard) ──
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const deliveryFeeStep = configuredDeliveryFee(
-    publicSettings.delivery_fee_increment_per_5000,
-    DEFAULT_DELIVERY_FEE_STEP_KOBO,
+  const orderItems = useMemo(
+    () =>
+      items.map((item) => ({
+        productId: getCartItemProductId(item),
+        quantity: item.quantity,
+      })),
+    [items],
   );
-  const deliveryFees = {
-    own: calculateDeliveryFeeKobo({
-      subtotalKobo: subtotal,
-      baseFeeKobo: configuredDeliveryFee(
-        publicSettings.delivery_fee_own,
-        DEFAULT_DELIVERY_FEES_KOBO.own,
-      ),
-      feeStepKobo: deliveryFeeStep,
-      deliveryMethod: "own",
+  const itemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const quotePayload = useMemo(
+    () => ({
+      items: orderItems,
+      deliveryMethod,
+      ...(appliedCoupon ? { couponCode: appliedCoupon } : {}),
+      ...(deliveryMethod === "pickup" && pickupLocationId ? { pickupLocationId } : {}),
     }),
-    thirdparty: calculateDeliveryFeeKobo({
-      subtotalKobo: subtotal,
-      baseFeeKobo: configuredDeliveryFee(
-        publicSettings.delivery_fee_thirdparty,
-        DEFAULT_DELIVERY_FEES_KOBO.thirdparty,
-      ),
-      feeStepKobo: deliveryFeeStep,
-      deliveryMethod: "thirdparty",
-    }),
-    pickup: 0,
-  };
-  const deliveryFee = deliveryFees[deliveryMethod] ?? 0;
-  const total = subtotal - discountKobo + deliveryFee;
+    [appliedCoupon, deliveryMethod, orderItems, pickupLocationId],
+  );
 
-  // ── Coupon validation ───────────────────────────────────────────
+  const pickupQuery = useQuery({
+    queryKey: ["pickup-locations", "active"],
+    queryFn: async () => (await api.get("/pickup-locations")).data.data || [],
+  });
+  const quoteQuery = useQuery({
+    queryKey: ["checkout-quote", quotePayload],
+    queryFn: async () =>
+      (
+        await api.post("/checkout/quote", quotePayload, {
+          skipGlobalErrorToast: true,
+        })
+      ).data.data,
+    enabled: items.length > 0 && (deliveryMethod !== "pickup" || Boolean(pickupLocationId)),
+    retry: false,
+  });
+  const quote = quoteQuery.data;
+
   const couponMutation = useMutation({
-    mutationFn: (code) =>
-      api.post("/coupons/validate", {
-        code,
-        subtotal,
-        items: items.map((item) => ({
-          productId: getCartItemProductId(item),
-          categoryId: item.categoryId,
-        })),
-      }),
+    mutationFn: async (code) =>
+      (
+        await api.post(
+          "/checkout/quote",
+          { ...quotePayload, couponCode: code },
+          { skipGlobalErrorToast: true },
+        )
+      ).data.data,
+    onSuccess: (_data, code) => {
+      setAppliedCoupon(code);
+      setCouponError("");
+    },
+    onError: (error) => {
+      setCouponError(error?.response?.data?.message || "That coupon could not be applied.");
+    },
   });
 
-  const handleValidateCoupon = async (e) => {
-    e.preventDefault();
-    setCouponError("");
-    setAppliedCoupon(null);
-    setDiscountKobo(0);
-
-    if (!couponCode.trim()) return;
-
-    try {
-      const res = await couponMutation.promiseMutate(couponCode);
-      console.log("coupon valid", res);
-      setAppliedCoupon({ code: couponCode, ...res.data });
-    } catch (err) {
-      setCouponError(
-        err?.response?.data?.message ||
-          "Could not apply that coupon. Check the code and try again.",
-      );
-    }
-  };
-
-  // ── Order creation + Paystack redirect ─────────────────────────
-  const { mutateAsync: createOrder, isPending: placingOrder } = useMutation({
-    mutationFn: (payload) => api.post("/orders", payload),
-  });
-
+  const createOrder = useMutation({ mutationFn: (payload) => api.post("/orders", payload) });
   const initializePayment = useMutation({
     mutationFn: (orderId) => api.post("/payments/initialize", { orderId }),
   });
 
-  const handlePlaceOrder = async (e) => {
-    e.preventDefault();
+  const chooseDelivery = (method) => {
+    if (!availableMethods.includes(method)) return;
+    setDeliveryMethod(method);
+    setFormError("");
+    if (method === "thirdparty" && paymentMethod !== "paystack") setPaymentMethod("paystack");
+  };
 
+  const continueToPayment = () => {
+    if (deliveryMethod === "pickup" && !pickupLocationId) {
+      setFormError("Choose a pickup point to continue.");
+      return;
+    }
+    if (deliveryMethod !== "pickup") {
+      const missing = ADDRESS_FIELDS.filter(
+        (field) => !field.optional && !address[field.key].trim(),
+      );
+      if (missing.length) {
+        setFormError("Complete all required shipping address fields.");
+        return;
+      }
+    }
+    if (!quote || quoteQuery.isError) {
+      setFormError(
+        quoteQuery.error?.response?.data?.message || "We could not confirm this delivery option.",
+      );
+      return;
+    }
+    setFormError("");
+    setStep(2);
+  };
+
+  const handleApplyCoupon = (event) => {
+    event.preventDefault();
+    const code = couponDraft.trim().toUpperCase();
+    if (code) couponMutation.mutate(code);
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!quote) return;
+    setFormError("");
     try {
-      const orderPayload = {
-        items: items.map((i) => ({
-          productId: getCartItemProductId(i),
-          quantity: i.quantity,
-        })),
-        shippingAddress: address,
+      const selectedPayment =
+        paymentMethod === "offline"
+          ? deliveryMethod === "pickup"
+            ? "pay_at_pickup"
+            : "pay_on_delivery"
+          : "paystack";
+      const response = await createOrder.mutateAsync({
+        items: orderItems,
         deliveryMethod,
-        couponCode: appliedCoupon ? appliedCoupon.code : undefined,
-        paymentMethod,
-      };
+        paymentMethod: selectedPayment,
+        shippingAddress: address,
+        ...(pickupLocationId ? { pickupLocationId } : {}),
+        ...(appliedCoupon ? { couponCode: appliedCoupon } : {}),
+      });
+      const order = response.data.data;
 
-      const orderRes = await createOrder(orderPayload);
-      const order = orderRes.data.data;
-
-      // Pay on the Paystack flow; capture/cash just clear the cart.
-      if (paymentMethod === "paystack") {
-        const payRes = await initializePayment.mutateAsync(order._id);
-        const payData = payRes?.data?.data || {};
-        const authUrl = payData.authorization_url;
-        if (authUrl) {
-          // Persist the Paystack reference (not the order number) so the
-          // callback page can look up and verify the payment.
-          sessionStorage.setItem("nriju_paystack_ref", payData.reference);
-          // Send the user through Paystack, with our callback as the
-          // redirect target so the SPA can verify the payment on return.
-          const url = new URL(authUrl);
-          url.searchParams.set("redirect_url", `${window.location.origin}/checkout/success`);
-          window.location.href = url.toString();
-          return;
-        }
+      if (selectedPayment === "paystack") {
+        const payment = await initializePayment.mutateAsync(order._id);
+        window.location.assign(payment.data.data.authorization_url);
+        return;
       }
 
-      // Non-card flow: just clear the cart and thank the user.
       dispatch(clearAll());
-      sessionStorage.setItem("nriju_order_ref", order.orderNumber || order._id);
-      navigate("/checkout/success");
-    } catch (err) {
-      console.error("order failed", err);
+      navigate(`/checkout/result?order=${order._id}&mode=offline`, { replace: true });
+    } catch (error) {
+      setFormError(
+        error?.response?.data?.message || "We could not place your order. Please try again.",
+      );
     }
   };
 
-  if (!items.length) return null; // guarded by the useEffect above
+  if (!items.length) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-background-soft px-4">
+        <div className="max-w-md text-center">
+          <h1 className="font-heading text-3xl font-bold text-text">Your cart is empty</h1>
+          <button
+            type="button"
+            onClick={() => navigate("/shop")}
+            className="mt-6 rounded-button bg-primary px-6 py-3 font-semibold text-on-accent"
+          >
+            Return to the shop
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  const pickupLocations = pickupQuery.data || [];
+  const offlineAllowed =
+    quote?.payOnDelivery?.enabled && ["own", "pickup"].includes(deliveryMethod);
+  const busy = createOrder.isPending || initializePayment.isPending;
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-5xl">
-      {/* ── Progress dots ────────────────────────────────────── */}
-      <div className="flex items-center justify-center gap-2 mb-8">
-        {[1, 2, 3].map((s) => (
-          <button
-            key={s}
-            onClick={() => setStep(s)}
-            disabled={!items.length}
-            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
-              step === s
-                ? "bg-primary text-white"
-                : "bg-surface border border-border text-text-muted"
-            }`}
-            type="button"
-          >
-            {s === 3 && placingOrder ? (
-              <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              s
-            )}
-          </button>
-        ))}
-      </div>
-
-      <form onSubmit={step === 3 ? handlePlaceOrder : undefined}>
-        {/* ── Step 1: Contact + address ───────────────────────── */}
-        {step === 1 && (
-          <div className="grid lg:grid-cols-2 gap-10">
-            <div className="space-y-5">
-              <h2 className="font-heading text-xl font-bold text-text flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary" /> Delivery Address
-              </h2>
-
-              <div>
-                <label className="block text-sm font-medium text-text mb-1.5">Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={address.name}
-                  onChange={(e) => setAddress({ ...address, name: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary transition-colors"
-                  placeholder="John Doe"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text mb-1.5">Phone Number *</label>
-                <input
-                  type="tel"
-                  required
-                  value={address.phone}
-                  onChange={(e) => setAddress({ ...address, phone: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary transition-colors"
-                  placeholder="+234 800 000 0000"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text mb-1.5">
-                  Street Address *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={address.line1}
-                  onChange={(e) => setAddress({ ...address, line1: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary transition-colors"
-                  placeholder="123 Freedom Way"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-text mb-1.5">
-                  Additional info (optional)
-                </label>
-                <input
-                  type="text"
-                  value={address.line2}
-                  onChange={(e) => setAddress({ ...address, line2: e.target.value })}
-                  className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary transition-colors"
-                  placeholder="Landmark, floor, etc."
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-text mb-1.5">City *</label>
-                  <input
-                    type="text"
-                    required
-                    value={address.city}
-                    onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary transition-colors"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-text mb-1.5">State *</label>
-                  <input
-                    type="text"
-                    required
-                    value={address.state}
-                    onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                    className="w-full px-4 py-2.5 bg-surface border border-border rounded-lg focus:outline-none focus:border-primary transition-colors"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Order summary sticky on desktop */}
-            <div>
-              <OrderSummary
-                subtotal={subtotal}
-                deliveryFee={deliveryFee}
-                discountKobo={discountKobo}
-                total={total}
-                deliveryMethod={deliveryMethod}
-                setDeliveryMethod={setDeliveryMethod}
-              />
-            </div>
+    <main className="min-h-screen bg-background-soft px-3 py-6 sm:px-4 sm:py-10 lg:py-14">
+      <div className="mx-auto max-w-7xl">
+        <header className="mx-auto mb-8 max-w-3xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
+            Secure checkout
+          </p>
+          <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-text sm:text-4xl">
+            Complete your order
+          </h1>
+          <div className="mx-auto mt-6 max-w-2xl">
+            <Stepper current={step} />
           </div>
-        )}
+        </header>
 
-        {/* ── Step 2: Delivery + Payment ────────────────────────── */}
-        {step === 2 && (
-          <div className="grid lg:grid-cols-2 gap-10">
-            <div className="space-y-6">
-              <h2 className="font-heading text-xl font-bold text-text flex items-center gap-2">
-                <Truck className="w-5 h-5 text-primary" /> Delivery Method
-              </h2>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.6fr)_minmax(20rem,0.8fr)] lg:items-start xl:gap-12">
+          <section>
+            {step === 1 ? (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="font-heading text-2xl font-bold text-text">
+                    How should we fulfil your order?
+                  </h2>
+                  <p className="mt-2 text-sm leading-6 text-text-secondary">
+                    Availability follows the most time-sensitive product in your cart.
+                  </p>
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {DELIVERY_OPTIONS.map((option) => {
+                    const Icon = option.icon;
+                    const selected = deliveryMethod === option.value;
+                    const disabled =
+                      !availableMethods.includes(option.value) ||
+                      (option.value === "pickup" &&
+                        pickupQuery.isSuccess &&
+                        !pickupLocations.length);
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        disabled={disabled}
+                        aria-pressed={selected}
+                        onClick={() => chooseDelivery(option.value)}
+                        className={`min-h-40 rounded-card border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                          selected
+                            ? "border-primary bg-accent-soft"
+                            : "border-border-soft bg-surface hover:border-primary/40"
+                        } disabled:cursor-not-allowed disabled:opacity-45`}
+                      >
+                        <span
+                          className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                            selected
+                              ? "bg-primary text-on-accent"
+                              : "bg-background-soft text-primary"
+                          }`}
+                        >
+                          <Icon className="h-5 w-5" aria-hidden="true" />
+                        </span>
+                        <span className="mt-4 block font-heading text-base font-bold text-text">
+                          {option.label}
+                        </span>
+                        <span className="mt-1 block text-xs leading-5 text-text-secondary">
+                          {disabled && option.value !== "pickup"
+                            ? "Unavailable for fresh items in this cart."
+                            : option.description}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
 
-              <div className="space-y-3">
-                {[
-                  {
-                    value: "thirdparty",
-                    label: "Third-party delivery",
-                    desc: `3-4 working days. ${
-                      deliveryFees.thirdparty === 0
-                        ? "Free delivery."
-                        : `${formatNaira(deliveryFees.thirdparty)} delivery.`
-                    }`,
-                    icon: Truck,
-                  },
-                  {
-                    value: "own",
-                    label: "Nriju own fleet",
-                    desc: `Same-day delivery for cooked items. ${
-                      deliveryFees.own === 0
-                        ? "Free delivery."
-                        : `${formatNaira(deliveryFees.own)} delivery.`
-                    }`,
-                    icon: Truck,
-                  },
-                  {
-                    value: "pickup",
-                    label: "Pick up in store",
-                    desc: "Collect from Lagos kitchen. Free.",
-                    icon: Package,
-                  },
-                ].map((m) => {
-                  const Icon = m.icon;
-                  return (
-                    <label
-                      key={m.value}
-                      className={`flex items-start gap-4 p-4 border rounded-xl cursor-pointer transition-all ${
-                        deliveryMethod === m.value
-                          ? "border-primary bg-primary/5"
-                          : "border-border bg-surface hover:border-primary/50"
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="deliveryMethod"
-                        value={m.value}
-                        checked={deliveryMethod === m.value}
-                        onChange={() => setDeliveryMethod(m.value)}
-                        className="mt-1"
-                      />
-                      <Icon className="w-5 h-5 text-primary shrink-0" />
-                      <div>
-                        <p className="font-medium text-text">{m.label}</p>
-                        <p className="text-sm text-text-muted">{m.desc}</p>
-                      </div>
-                    </label>
-                  );
-                })}
-              </div>
-
-              <div className="pt-6">
-                <h2 className="font-heading text-xl font-bold text-text flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-primary" /> Payment Method
-                </h2>
-
-                <div className="space-y-3 mt-4">
-                  <label className="flex items-center gap-4 p-4 border border-border rounded-xl cursor-pointer peer">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="paystack"
-                      checked={paymentMethod === "paystack"}
-                      onChange={() => setPaymentMethod("paystack")}
-                      className="mt-1"
-                    />
-                    <Landmark className="w-5 h-5 text-primary shrink-0" />
-                    <div>
-                      <p className="font-medium text-text">Card / Bank Transfer</p>
-                      <p className="text-sm text-text-muted">
-                        Secure payment via Paystack (Visa, Mastercard, Verve, bank transfer).
+                {deliveryMethod === "pickup" ? (
+                  <div className="h-(--checkout-panel-height) overflow-hidden rounded-card border border-border-soft bg-surface shadow-soft">
+                    <div className="border-b border-border-soft p-5">
+                      <h3 className="font-heading text-xl font-bold text-text">
+                        Choose a pickup point
+                      </h3>
+                      <p className="mt-1 text-sm text-text-secondary">
+                        The list scrolls independently when more locations are added.
                       </p>
                     </div>
-                  </label>
-
-                  <label className="flex items-center gap-4 p-4 border border-border rounded-xl cursor-pointer peer">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="cash"
-                      checked={paymentMethod === "cash"}
-                      onChange={() => setPaymentMethod("cash")}
-                      className="mt-1"
-                    />
-                    <Wallet className="w-5 h-5 text-primary shrink-0" />
-                    <div>
-                      <p className="font-medium text-text">Cash on Delivery / Pickup</p>
-                      <p className="text-sm text-text-muted">
-                        Pay cash when you receive your order.
-                      </p>
+                    <div className="h-[calc(var(--checkout-panel-height)-6.5rem)] space-y-3 overflow-y-auto p-4 sm:p-5">
+                      {pickupQuery.isPending ? (
+                        <div className="flex h-full items-center justify-center">
+                          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        </div>
+                      ) : null}
+                      {pickupQuery.isSuccess && !pickupLocations.length ? (
+                        <div className="flex h-full items-center justify-center text-center text-sm text-text-secondary">
+                          No pickup points are available right now.
+                        </div>
+                      ) : null}
+                      {pickupLocations.map((location) => {
+                        const selected = pickupLocationId === location._id;
+                        return (
+                          <button
+                            key={location._id}
+                            type="button"
+                            aria-pressed={selected}
+                            onClick={() => setPickupLocationId(location._id)}
+                            className={`w-full rounded-xl border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 ${
+                              selected
+                                ? "border-primary bg-accent-soft"
+                                : "border-border-soft bg-background hover:border-primary/40"
+                            }`}
+                          >
+                            <span className="flex items-start gap-3">
+                              <span
+                                className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
+                                  selected ? "bg-primary text-on-accent" : "bg-surface text-primary"
+                                }`}
+                              >
+                                <MapPin className="h-4 w-4" aria-hidden="true" />
+                              </span>
+                              <span className="min-w-0 flex-1">
+                                <span className="flex items-center justify-between gap-3">
+                                  <strong className="text-sm text-text">{location.name}</strong>
+                                  {selected ? (
+                                    <Check className="h-4 w-4 text-primary" aria-hidden="true" />
+                                  ) : null}
+                                </span>
+                                <span className="mt-1 block text-xs leading-5 text-text-secondary">
+                                  {location.addressLine}, {location.city}, {location.state}
+                                </span>
+                                {location.openingHours ? (
+                                  <span className="mt-2 block text-xs font-medium text-text">
+                                    {location.openingHours}
+                                  </span>
+                                ) : null}
+                                {location.instructions ? (
+                                  <span className="mt-1 block text-xs text-text-muted">
+                                    {location.instructions}
+                                  </span>
+                                ) : null}
+                              </span>
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <OrderSummary
-              subtotal={subtotal}
-              deliveryFee={deliveryFee}
-              discountKobo={discountKobo}
-              total={total}
-              deliveryMethod={deliveryMethod}
-              setDeliveryMethod={setDeliveryMethod}
-            />
-          </div>
-        )}
-
-        {/* ── Step 3: Review + Coupon ───────────────────────────── */}
-        {step === 3 && (
-          <div className="grid lg:grid-cols-2 gap-10">
-            <div className="space-y-6">
-              {/* Address summary */}
-              <div className="p-5 bg-surface border border-border rounded-xl">
-                <h3 className="font-heading font-semibold text-text mb-3">Delivery to</h3>
-                <p className="font-medium text-text">{address.name}</p>
-                <p className="text-sm text-text-muted mt-1">
-                  {address.line1}
-                  {address.line2 && `, ${address.line2}`}
-                  <br />
-                  {address.city}, {address.state}
-                  <br />
-                  {address.phone}
-                </p>
-              </div>
-
-              {/* Payment summary */}
-              <div className="p-5 bg-surface border border-border rounded-xl">
-                <h3 className="font-heading font-semibold text-text mb-3">Payment</h3>
-                <p className="text-sm text-text-muted">
-                  {paymentMethod === "paystack" ? "Pay via Paystack" : "Cash on delivery/pickup"} ·{" "}
-                  {paymentMethod === "cash" ? "Pay in person" : "Secure card & bank transfer"}
-                </p>
-              </div>
-
-              {/* Coupon */}
-              <div className="p-5 bg-surface border border-border rounded-xl">
-                <h3 className="font-heading font-semibold text-text mb-3 flex items-center gap-2">
-                  <Tag className="w-4 h-4 text-primary" /> Coupon
-                </h3>
-                {appliedCoupon ? (
-                  <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-                    <span className="text-sm font-medium text-emerald-800">
-                      {appliedCoupon.code} applied — −{formatNaira(discountKobo)}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAppliedCoupon(null);
-                        setDiscountKobo(0);
-                        setCouponCode("");
-                      }}
-                      className="text-xs text-emerald-700 hover:underline"
-                    >
-                      Remove
-                    </button>
                   </div>
                 ) : (
-                  <>
-                    <form onSubmit={handleValidateCoupon} className="flex gap-2">
-                      <input
-                        type="text"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                        placeholder="Enter coupon code"
-                        className="flex-1 px-3 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm"
-                      />
-                      <button
-                        type="submit"
-                        disabled={!couponCode || couponMutation.isPending}
-                        className="px-4 py-2 bg-primary text-white font-medium rounded-lg hover:bg-primary/95 disabled:opacity-60 transition-colors"
-                      >
-                        Apply
-                      </button>
-                    </form>
-                    {couponError && <p className="mt-2 text-xs text-rose-600">{couponError}</p>}
-                  </>
+                  <div className="h-(--checkout-panel-height) overflow-y-auto rounded-card border border-border-soft bg-surface p-5 shadow-soft sm:p-6">
+                    <div className="flex items-start gap-3">
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft text-primary">
+                        <Building2 className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <div>
+                        <h3 className="font-heading text-xl font-bold text-text">
+                          Shipping address
+                        </h3>
+                        <p className="mt-1 text-sm text-text-secondary">
+                          Used for delivery and courier contact.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                      {ADDRESS_FIELDS.map((field) => (
+                        <div
+                          key={field.key}
+                          className={
+                            field.key === "line1" || field.key === "line2" ? "sm:col-span-2" : ""
+                          }
+                        >
+                          <label
+                            htmlFor={`address-${field.key}`}
+                            className="text-sm font-semibold text-text"
+                          >
+                            {field.label}
+                            {field.optional ? "" : " *"}
+                          </label>
+                          <input
+                            id={`address-${field.key}`}
+                            value={address[field.key]}
+                            autoComplete={field.autoComplete}
+                            onChange={(event) =>
+                              setAddress((current) => ({
+                                ...current,
+                                [field.key]: event.target.value,
+                              }))
+                            }
+                            placeholder={field.placeholder}
+                            className="mt-2 min-h-11 w-full rounded-button border border-border bg-background px-3 text-sm text-text outline-none transition-colors placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
+
+                {formError || quoteQuery.isError ? (
+                  <p
+                    className="rounded-xl border border-error-border bg-error-soft p-3 text-sm text-error"
+                    role="alert"
+                  >
+                    {formError || quoteQuery.error?.response?.data?.message}
+                  </p>
+                ) : null}
+                <div className="flex justify-end">
+                  <button
+                    type="button"
+                    onClick={continueToPayment}
+                    disabled={quoteQuery.isPending}
+                    className="inline-flex min-h-12 items-center gap-2 rounded-button bg-primary px-6 font-semibold text-on-accent transition-opacity hover:opacity-90 disabled:opacity-50"
+                  >
+                    Continue to payment <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-6">
+                <div>
+                  <h2 className="font-heading text-2xl font-bold text-text">Choose how to pay</h2>
+                  <p className="mt-2 text-sm leading-6 text-text-secondary">
+                    Your delivery details are saved for this order. Select one payment route below.
+                  </p>
+                </div>
+                <div className="space-y-3">
+                  <button
+                    type="button"
+                    aria-pressed={paymentMethod === "paystack"}
+                    onClick={() => setPaymentMethod("paystack")}
+                    className={`w-full rounded-card border p-5 text-left transition-colors ${
+                      paymentMethod === "paystack"
+                        ? "border-primary bg-accent-soft"
+                        : "border-border-soft bg-surface hover:border-primary/40"
+                    }`}
+                  >
+                    <span className="flex items-start gap-4">
+                      <span
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                          paymentMethod === "paystack"
+                            ? "bg-primary text-on-accent"
+                            : "bg-background-soft text-primary"
+                        }`}
+                      >
+                        <CreditCard className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <span>
+                        <strong className="font-heading text-base text-text">
+                          Pay securely with Paystack
+                        </strong>
+                        <span className="mt-1 block text-sm leading-6 text-text-secondary">
+                          Paystack will show every channel enabled for this account, including card,
+                          bank, transfer, USSD, QR, mobile money and Apple Pay where supported.
+                        </span>
+                        <span className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-primary">
+                          <Landmark className="h-4 w-4" aria-hidden="true" /> Hosted and verified by
+                          Paystack
+                        </span>
+                      </span>
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!offlineAllowed}
+                    aria-pressed={paymentMethod === "offline"}
+                    onClick={() => setPaymentMethod("offline")}
+                    className={`w-full rounded-card border p-5 text-left transition-colors ${
+                      paymentMethod === "offline"
+                        ? "border-primary bg-accent-soft"
+                        : "border-border-soft bg-surface hover:border-primary/40"
+                    } disabled:cursor-not-allowed disabled:opacity-50`}
+                  >
+                    <span className="flex items-start gap-4">
+                      <span
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${
+                          paymentMethod === "offline"
+                            ? "bg-primary text-on-accent"
+                            : "bg-background-soft text-primary"
+                        }`}
+                      >
+                        <Banknote className="h-5 w-5" aria-hidden="true" />
+                      </span>
+                      <span>
+                        <strong className="font-heading text-base text-text">
+                          {deliveryMethod === "pickup" ? "Pay at pickup" : "Payment on delivery"}
+                        </strong>
+                        <span className="mt-1 block text-sm leading-6 text-text-secondary">
+                          {offlineAllowed
+                            ? "Pay the exact order total by cash, POS or transfer. For delivery, share the six-digit handoff code only after payment and receipt of the order."
+                            : "This option is unavailable for the selected delivery method or order value."}
+                        </span>
+                      </span>
+                    </span>
+                  </button>
+                </div>
 
-            {/* Order summary */}
-            <OrderSummary
-              subtotal={subtotal}
-              deliveryFee={deliveryFee}
-              discountKobo={discountKobo}
-              total={total}
-              deliveryMethod={deliveryMethod}
-              setDeliveryMethod={setDeliveryMethod}
-              hideDeliverySelector
-            />
-          </div>
-        )}
+                <div className="rounded-card border border-border-soft bg-surface p-5">
+                  <h3 className="font-heading font-bold text-text">Fulfilment details</h3>
+                  <div className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
+                    <div>
+                      <p className="text-text-muted">Method</p>
+                      <p className="mt-1 font-semibold text-text">
+                        {DELIVERY_OPTIONS.find((option) => option.value === deliveryMethod)?.label}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-text-muted">Estimated window</p>
+                      <p className="mt-1 font-semibold text-text">
+                        {quote?.eta || "Confirmed after order placement"}
+                      </p>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <p className="text-text-muted">Destination</p>
+                      <p className="mt-1 font-semibold text-text">
+                        {deliveryMethod === "pickup"
+                          ? pickupLocations.find((location) => location._id === pickupLocationId)
+                              ?.name
+                          : `${address.line1}, ${address.city}, ${address.state}`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
 
-        {/* ── Step navigation ─────────────────────────────────── */}
-        <div className="mt-8 flex items-center justify-between pt-6 border-t border-border">
-          <button
-            type="button"
-            onClick={() => setStep((s) => Math.max(1, s - 1))}
-            disabled={step === 1}
-            className="px-5 py-2.5 text-sm font-medium text-text-muted border border-border rounded-lg hover:bg-surface disabled:opacity-40 inline-flex items-center gap-2"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
+                {formError ? (
+                  <p
+                    className="rounded-xl border border-error-border bg-error-soft p-3 text-sm text-error"
+                    role="alert"
+                  >
+                    {formError}
+                  </p>
+                ) : null}
+                <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-button border border-border bg-surface px-5 font-semibold text-text hover:border-primary/40"
+                  >
+                    <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePlaceOrder}
+                    disabled={busy || !quote || (paymentMethod === "offline" && !offlineAllowed)}
+                    className="inline-flex min-h-12 items-center justify-center gap-2 rounded-button bg-primary px-6 font-semibold text-on-accent transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {busy ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" /> Processing
+                      </>
+                    ) : paymentMethod === "paystack" ? (
+                      <>
+                        Continue to Paystack <ArrowRight className="h-4 w-4" />
+                      </>
+                    ) : (
+                      <>
+                        Place order <Check className="h-4 w-4" />
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
 
-          {step < 3 ? (
-            <button
-              type="button"
-              onClick={() => setStep((s) => Math.min(3, s + 1))}
-              className="px-5 py-2.5 bg-primary text-white font-medium rounded-lg inline-flex items-center gap-2 hover:bg-primary/95 transition-colors"
-            >
-              Continue <ArrowRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={placingOrder}
-              className="px-8 py-3 bg-primary text-white font-medium rounded-lg inline-flex items-center gap-2 hover:bg-primary/95 disabled:opacity-60 transition-colors"
-            >
-              {placingOrder ? (
-                <>
-                  <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Placing order...
-                </>
-              ) : (
-                <>
-                  <Check className="w-5 h-4" />
-                  Place Order — {formatNaira(total)}
-                </>
-              )}
-            </button>
-          )}
+          <OrderSummary
+            quote={quote}
+            itemCount={itemCount}
+            couponDraft={couponDraft}
+            setCouponDraft={setCouponDraft}
+            appliedCoupon={appliedCoupon}
+            onApplyCoupon={handleApplyCoupon}
+            couponPending={couponMutation.isPending}
+            couponError={couponError}
+            quotePending={quoteQuery.isPending}
+          />
         </div>
-      </form>
-    </div>
-  );
-};
-
-// ── Shared order summary sidebar ────────────────────────────────
-const OrderSummary = ({
-  subtotal,
-  deliveryFee,
-  discountKobo,
-  total,
-  deliveryMethod,
-  setDeliveryMethod,
-  hideDeliverySelector,
-}) => {
-  const { items } = useAppSelector((s) => s.cart);
-
-  return (
-    <div className="bg-surface border border-border rounded-xl p-6 sticky top-24">
-      <h3 className="font-heading font-semibold text-text mb-4 flex items-center gap-2">
-        <ShoppingBag className="w-4 h-4" /> Order Summary
-      </h3>
-
-      <div className="space-y-2 text-sm mb-4">
-        {items.map((i) => (
-          <div key={getCartItemProductId(i)} className="flex justify-between">
-            <span className="text-text-muted truncate max-w-45">
-              {i.name} × {i.quantity}
-            </span>
-            <span className="font-medium text-text">{formatNaira(i.price * i.quantity)}</span>
-          </div>
-        ))}
       </div>
-
-      {!hideDeliverySelector && (
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-text mb-1.5">
-            Delivery Method (quick switch)
-          </label>
-          <select
-            value={deliveryMethod}
-            onChange={(e) => setDeliveryMethod(e.target.value)}
-            className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm focus:outline-none focus:border-primary"
-          >
-            <option value="thirdparty">Third-party delivery (+₦1,500)</option>
-            <option value="own">Nriju own fleet (+₦1,500)</option>
-            <option value="pickup">Pickup (free)</option>
-          </select>
-        </div>
-      )}
-
-      <div className="border-t border-border pt-4 space-y-2 text-sm">
-        <div className="flex justify-between">
-          <span className="text-text-muted">Subtotal</span>
-          <span className="font-medium text-text">{formatNaira(subtotal)}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-text-muted">Delivery</span>
-          <span className="font-medium text-text">{formatNaira(deliveryFee)}</span>
-        </div>
-        {discountKobo > 0 && (
-          <div className="flex justify-between">
-            <span className="text-text-muted">Discount</span>
-            <span className="font-medium text-emerald-600">−{formatNaira(discountKobo)}</span>
-          </div>
-        )}
-        <div className="flex justify-between border-t border-border pt-2 mt-2 font-heading font-bold">
-          <span>Total</span>
-          <span className="text-text">{formatNaira(subtotal - discountKobo + deliveryFee)}</span>
-        </div>
-      </div>
-    </div>
+    </main>
   );
 };
 

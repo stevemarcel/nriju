@@ -1,6 +1,7 @@
 import asyncHandler from "express-async-handler";
 import mongoose from "mongoose";
 import PickupLocation from "../models/PickupLocation.js";
+import Setting from "../models/Setting.js";
 import { recordActivity } from "../utils/activityUtils.js";
 
 const fail = (message, statusCode = 400) => {
@@ -11,6 +12,10 @@ const fail = (message, statusCode = 400) => {
 };
 
 const getPickupLocations = asyncHandler(async (_req, res) => {
+  const pickupSetting = await Setting.findOne({ key: "pickup_available" }).lean();
+  if (pickupSetting && (pickupSetting.value === false || pickupSetting.value === "false")) {
+    return res.json({ success: true, data: [] });
+  }
   const locations = await PickupLocation.find({ isActive: true }).sort({ sortOrder: 1, name: 1 });
   res.json({ success: true, data: locations });
 });

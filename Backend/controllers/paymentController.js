@@ -1,67 +1,155 @@
 import asyncHandler from "express-async-handler";
+import crypto from "crypto";
 import https from "https";
+import mongoose from "mongoose";
+import Coupon from "../models/Coupon.js";
 import Order from "../models/Order.js";
 import Payment from "../models/Payment.js";
+import { createOrderStatusNotification } from "../services/notificationService.js";
 
-const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY;
-const PAYSTACK_BASE = "https://api.paystack.co";
+const fail = (message, status = 400) => {
+  const error = new Error(message);
+  error.status = status;
+  error.statusCode = status;
+  throw error;
+};
 
-// @DESCRIPTION Initialize a Paystack payment
-// @ROUTE       POST /api/v1/payments/initialize
-// @ACCESS      Authenticated
+const paystackRequest = ({ path, method = "GET", body }) =>
+  new Promise((resolve, reject) => {
+    const secret = process.env.PAYSTACK_SECRET_KEY;
+    if (!secret) return reject(new Error("Paystack is not configured."));
+
+    const request = https.request(
+      {
+        hostname: "api.paystack.co",
+        port: 443,
+        path,
+        method,
+        headers: {
+          Authorization: `Bearer ${secret}`,
+          "Content-Type": "application/json",
+        },
+      },
+      (response) => {
+        let data = "";
+        response.on("data", (chunk) => (data += chunk));
+        response.on("end", () => {
+          try {
+            resolve(JSON.parse(data));
+          } catch {
+            reject(new Error("Paystack returned an unreadable response."));
+          }
+        });
+      },
+    );
+    request.on("error", reject);
+    if (body) request.write(JSON.stringify(body));
+    request.end();
+  });
+
+const callbackUrlFor = (req, orderId) => {
+  const configuredBase = process.env.CLIENT_URL || process.env.APP_URL;
+  const base = configuredBase || `${req.protocol}://${req.get("host")}`;
+  return `${base.replace(/\/$/, "")}/checkout/result?order=${orderId}`;
+};
+
+const isMatchingCharge = (payment, order, data) =>
+  data?.status === "success" &&
+  Number(data.amount) === order.total &&
+  String(data.currency || "").toUpperCase() === "NGN" &&
+  (!data.metadata?.orderId || String(data.metadata.orderId) === String(order._id)) &&
+  String(data.reference) === payment.paystackRef;
+
+const applySuccessfulCharge = async (payment, paystackData) => {
+  const session = await mongoose.startSession();
+  let changedToConfirmed = false;
+  let confirmedOrder = null;
+
+  try {
+    await session.withTransaction(async () => {
+      const freshPayment = await Payment.findById(payment._id).session(session);
+      const order = await Order.findById(payment.order?._id || payment.order).session(session);
+      if (!freshPayment || !order) fail("Payment order was not found.", 404);
+      if (!isMatchingCharge(freshPayment, order, paystackData)) {
+        freshPayment.status = "failed";
+        freshPayment.metadata = paystackData;
+        await freshPayment.save({ session });
+        fail("Payment details do not match this order.", 409);
+      }
+
+      freshPayment.status = "success";
+      freshPayment.channel = paystackData.channel;
+      freshPayment.paidAt = paystackData.paid_at ? new Date(paystackData.paid_at) : new Date();
+      freshPayment.metadata = paystackData;
+      await freshPayment.save({ session });
+
+      if (order.paymentStatus !== "paid") {
+        changedToConfirmed = order.status === "pending";
+        if (changedToConfirmed) order.status = "confirmed";
+        order.paymentStatus = "paid";
+        order.paymentRef = freshPayment.paystackRef;
+        order.paymentExpiresAt = null;
+
+        if (order.coupon && !order.couponRedeemedAt) {
+          await Coupon.updateOne({ _id: order.coupon }, { $inc: { usedCount: 1 } }, { session });
+          order.couponRedeemedAt = new Date();
+        }
+        await order.save({ session });
+      }
+      confirmedOrder = order;
+    });
+  } finally {
+    await session.endSession();
+  }
+
+  if (changedToConfirmed && confirmedOrder) {
+    createOrderStatusNotification(confirmedOrder, "confirmed").catch((error) => {
+      console.error("Could not create payment notification:", error.message);
+    });
+  }
+  return confirmedOrder;
+};
+
+// Paystack's hosted checkout displays the channels enabled on the merchant
+// account, keeping card details and channel-specific flows off this server.
 const initializePayment = asyncHandler(async (req, res) => {
   const { orderId } = req.body;
+  if (!mongoose.isValidObjectId(orderId)) fail("Invalid order ID.");
 
-  const order = await Order.findById(orderId);
-  if (!order) {
-    res.status(404);
-    throw new Error("Order not found");
+  const order = await Order.findOne({ _id: orderId, user: req.user._id });
+  if (!order) fail("Order not found.", 404);
+  if (order.paymentMethod !== "paystack") fail("This order is not an online-payment order.", 409);
+  if (["paid", "collected", "reconciled"].includes(order.paymentStatus)) {
+    fail("This order has already been paid.", 409);
+  }
+  if (order.status === "cancelled" || order.paymentExpiresAt?.getTime() <= Date.now()) {
+    fail("This payment session has expired. Please place the order again.", 409);
   }
 
-  // Generate unique reference
-  const reference = `NRJ-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-
-  const payload = JSON.stringify({
-    email: req.user.email,
-    amount: order.total, // already in kobo
-    reference,
-    metadata: {
-      orderId: order._id.toString(),
-      orderNumber: order.orderNumber,
-    },
-  });
-
-  const options = {
-    hostname: "api.paystack.co",
-    port: 443,
+  const reference = `NRJ-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
+  const paystackRes = await paystackRequest({
     path: "/transaction/initialize",
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${PAYSTACK_SECRET}`,
-      "Content-Type": "application/json",
+    body: {
+      email: req.user.email,
+      amount: order.total,
+      currency: "NGN",
+      reference,
+      callback_url: callbackUrlFor(req, order._id),
+      metadata: {
+        orderId: order._id.toString(),
+        orderNumber: order.orderNumber,
+        userId: req.user._id.toString(),
+      },
     },
-  };
-
-  const paystackRes = await new Promise((resolve, reject) => {
-    const reqHttps = https.request(options, (resHttps) => {
-      let data = "";
-      resHttps.on("data", (chunk) => (data += chunk));
-      resHttps.on("end", () => resolve(JSON.parse(data)));
-    });
-    reqHttps.on("error", reject);
-    reqHttps.write(payload);
-    reqHttps.end();
   });
 
-  if (!paystackRes.status) {
-    res.status(400);
-    throw new Error(paystackRes.message || "Paystack initialization failed");
-  }
+  if (!paystackRes.status) fail(paystackRes.message || "Paystack initialization failed.");
 
-  // Create pending payment record
   await Payment.create({
     order: order._id,
     paystackRef: reference,
+    provider: "paystack",
     amount: order.total,
     status: "pending",
     customerEmail: req.user.email,
@@ -70,116 +158,52 @@ const initializePayment = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    data: {
-      authorization_url: paystackRes.data.authorization_url,
-      reference,
-    },
+    data: { authorization_url: paystackRes.data.authorization_url, reference },
   });
 });
 
-// @DESCRIPTION Verify a Paystack payment
-// @ROUTE       POST /api/v1/payments/verify/:reference
-// @ACCESS      Public (called after redirect from Paystack)
 const verifyPayment = asyncHandler(async (req, res) => {
-  const { reference } = req.params;
-
-  const payment = await Payment.findOne({ paystackRef: reference }).populate(
-    "order",
-  );
-  if (!payment) {
-    res.status(404);
-    throw new Error("Payment not found");
+  const payment = await Payment.findOne({ paystackRef: req.params.reference }).populate("order");
+  if (!payment) fail("Payment not found.", 404);
+  if (!payment.order || String(payment.order.user) !== String(req.user._id)) {
+    fail("Not authorized to verify this payment.", 403);
   }
 
-  // Call Paystack verify endpoint
-  const verifyRes = await new Promise((resolve, reject) => {
-    https
-      .get(
-        `${PAYSTACK_BASE}/transaction/verify/${encodeURIComponent(reference)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${PAYSTACK_SECRET}`,
-          },
-        },
-        (resHttps) => {
-          let data = "";
-          resHttps.on("data", (chunk) => (data += chunk));
-          resHttps.on("end", () => resolve(JSON.parse(data)));
-        },
-      )
-      .on("error", reject);
+  const verifyRes = await paystackRequest({
+    path: `/transaction/verify/${encodeURIComponent(req.params.reference)}`,
   });
-
   if (!verifyRes.status) {
     payment.status = "failed";
+    payment.metadata = verifyRes;
     await payment.save();
-    res.status(400);
-    throw new Error(verifyRes.message || "Payment verification failed");
+    fail(verifyRes.message || "Payment verification failed.");
   }
 
-  const paystackData = verifyRes.data;
-
-  // Update payment record
-  payment.status = paystackData.status;
-  payment.channel = paystackData.channel;
-  payment.paidAt = paystackData.paid_at ? new Date(paystackData.paid_at) : null;
-  payment.metadata = paystackData;
-
-  if (paystackData.status === "success") {
-    payment.status = "success";
-
-    // A successful online payment confirms the order for fulfilment.
-    const order = await Order.findById(payment.order._id);
-    if (order) {
-      if (order.status === "pending") order.status = "confirmed";
-      order.paymentRef = reference;
-      await order.save();
-    }
-  }
-
-  await payment.save();
-
+  const order = await applySuccessfulCharge(payment, verifyRes.data);
   res.json({
     success: true,
-    data: {
-      status: payment.status,
-      paidAt: payment.paidAt,
-      order: payment.order,
-    },
+    data: { status: "success", paidAt: verifyRes.data.paid_at, order },
   });
 });
 
-// @DESCRIPTION Handle Paystack webhook events
-// @ROUTE       POST /api/v1/payments/webhook
-// @ACCESS      Public (Paystack server-to-server)
 const handleWebhook = asyncHandler(async (req, res) => {
-  const event = req.body;
+  const secret = process.env.PAYSTACK_SECRET_KEY;
+  const signature = req.get("x-paystack-signature") || "";
+  const expected =
+    secret && req.rawBody
+      ? crypto.createHmac("sha512", secret).update(req.rawBody).digest("hex")
+      : "";
+  const signatureIsValid =
+    signature.length === expected.length &&
+    signature.length > 0 &&
+    crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  if (!signatureIsValid) fail("Invalid Paystack webhook signature.", 401);
 
-  // In production, verify the x-paystack-signature header here
-  // using HMAC-SHA512 with the secret key.
-
-  if (event.event === "charge.success") {
-    const payment = await Payment.findOne({
-      paystackRef: event.data.reference,
-    });
-    if (payment) {
-      if (payment.status !== "success") {
-        payment.status = "success";
-        payment.channel = event.data.channel;
-        payment.paidAt = new Date(event.data.paid_at);
-        await payment.save();
-      }
-
-      const order = await Order.findById(payment.order);
-      if (order) {
-        if (order.status === "pending") order.status = "confirmed";
-        order.paymentRef = event.data.reference;
-        await order.save();
-      }
-    }
+  if (req.body.event === "charge.success") {
+    const payment = await Payment.findOne({ paystackRef: req.body.data.reference });
+    if (payment) await applySuccessfulCharge(payment, req.body.data);
   }
 
-  // Always return 200 to prevent Paystack retries
   res.status(200).json({ received: true });
 });
 

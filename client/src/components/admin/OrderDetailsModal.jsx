@@ -1,6 +1,18 @@
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { Clock, Save, Check, Package, MapPin, CreditCard, User, ClipboardList } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import {
+  Clock,
+  Save,
+  Check,
+  Package,
+  MapPin,
+  CreditCard,
+  User,
+  ClipboardList,
+  Truck,
+  BadgeCheck,
+} from "lucide-react";
+import { toast } from "sonner";
 import Dropdown from "../ui/Dropdown";
 import { ConfirmModal } from "../ui/ConfirmModal";
 import api from "../../services/api";
@@ -11,7 +23,7 @@ import {
   ADMIN_SECONDARY_BUTTON_CLASS,
   AdminModalHeader,
 } from "./AdminModalPrimitives";
-import { formatNaira } from "../../utils/formatMoney";
+import { formatNaira, toKobo } from "../../utils/formatMoney";
 
 const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
   // * Lock page scroll when modal is open
@@ -22,6 +34,13 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
 
   // * Tracking code for shipment (local editable copy)
   const [trackingCode, setTrackingCode] = useState(order.trackingCode || order.orderNumber || "");
+  const [courierId, setCourierId] = useState(order.assignedCourier?._id || "");
+  const [pickupPayment, setPickupPayment] = useState({
+    otp: "",
+    method: "cash",
+    amount: String(order.total / 100),
+    reference: "",
+  });
 
   // * Controls visibility of confirmation modal
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -30,6 +49,43 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
   const updateMutation = useMutation({
     mutationFn: (updates) => api.patch(`/orders/${order._id}/status`, updates),
     onSuccess: onUpdated,
+  });
+  const couriersQuery = useQuery({
+    queryKey: ["admin", "couriers"],
+    queryFn: async () =>
+      (await api.get("/admin/users", { params: { role: "courier", isActive: true, limit: 100 } }))
+        .data.data || [],
+    enabled: order.deliveryMethod === "own",
+  });
+  const assignMutation = useMutation({
+    mutationFn: () => api.patch(`/orders/${order._id}/assign-courier`, { courierId }),
+    onSuccess: () => {
+      toast.success("Courier assigned.");
+      onUpdated();
+    },
+    onError: (error) => toast.error(error?.response?.data?.message || "Could not assign courier."),
+  });
+  const reconcileMutation = useMutation({
+    mutationFn: () => api.patch(`/orders/${order._id}/reconcile`),
+    onSuccess: () => {
+      toast.success("Collection reconciled.");
+      onUpdated();
+    },
+    onError: (error) =>
+      toast.error(error?.response?.data?.message || "Could not reconcile collection."),
+  });
+  const pickupMutation = useMutation({
+    mutationFn: () =>
+      api.post(`/orders/${order._id}/confirm-pickup`, {
+        ...pickupPayment,
+        amount: toKobo(pickupPayment.amount),
+      }),
+    onSuccess: () => {
+      toast.success("Pickup payment and handoff confirmed.");
+      onUpdated();
+    },
+    onError: (error) =>
+      toast.error(error?.response?.data?.message || "Could not confirm pickup payment."),
   });
 
   // ? Triggers confirmation modal before saving status changes
@@ -118,6 +174,55 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
               </div>
             </div>
 
+            {order.deliveryMethod === "own" ? (
+              <div className="bg-background-soft/70 rounded-[20px] p-5 border border-border/60">
+                <div className="flex items-center gap-2 mb-4">
+                  <Truck className="w-4 h-4 text-text-muted" />
+                  <h3 className="font-heading font-semibold text-text">Courier assignment</h3>
+                </div>
+                <Dropdown
+                  trigger={
+                    <>
+                      <Truck className="mr-2 h-4 w-4 text-text-muted" />
+                      <span className="flex-1 text-left">
+                        {couriersQuery.data?.find((courier) => courier._id === courierId)?.name ||
+                          "Choose a courier"}
+                      </span>
+                    </>
+                  }
+                  color="muted"
+                  fullWidth
+                  ariaLabel="Choose courier"
+                >
+                  {couriersQuery.data?.map((courier) => (
+                    <button
+                      key={courier._id}
+                      type="button"
+                      onClick={() => setCourierId(courier._id)}
+                      className={`flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm hover:bg-background ${courierId === courier._id ? "bg-primary/5 font-semibold text-primary" : "text-text"}`}
+                    >
+                      <span className="flex-1">
+                        <span className="block">{courier.name}</span>
+                        <span className="text-xs text-text-muted">
+                          {courier.phone || courier.email}
+                        </span>
+                      </span>
+                      {courierId === courier._id ? <Check className="h-4 w-4" /> : null}
+                    </button>
+                  ))}
+                </Dropdown>
+                <button
+                  type="button"
+                  onClick={() => assignMutation.mutate()}
+                  disabled={!courierId || assignMutation.isPending}
+                  className={`${ADMIN_SECONDARY_BUTTON_CLASS} mt-3`}
+                >
+                  <Truck className="h-4 w-4" />{" "}
+                  {assignMutation.isPending ? "Assigning..." : "Assign courier"}
+                </button>
+              </div>
+            ) : null}
+
             {/* Status & tracking card */}
             <div className="bg-background-soft/70 rounded-[20px] p-5 border border-border/60">
               <div className="flex items-center gap-2 mb-4">
@@ -183,6 +288,77 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
             </div>
 
             {/* Order items card */}
+            {order.status === "ready_for_pickup" && order.paymentMethod === "pay_at_pickup" ? (
+              <div className="bg-background-soft/70 rounded-[20px] p-5 border border-border/60">
+                <div className="flex items-center gap-2 mb-4">
+                  <CreditCard className="w-4 h-4 text-text-muted" />
+                  <h3 className="font-heading font-semibold text-text">Confirm pickup payment</h3>
+                </div>
+                <p className="mb-4 text-xs leading-5 text-text-muted">
+                  Receive the full payment and verify the customer's six-digit handoff code before
+                  confirming collection.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <input
+                    aria-label="Handoff code"
+                    inputMode="numeric"
+                    maxLength="6"
+                    placeholder="6-digit code"
+                    value={pickupPayment.otp}
+                    onChange={(event) =>
+                      setPickupPayment((current) => ({
+                        ...current,
+                        otp: event.target.value.replace(/\D/g, ""),
+                      }))
+                    }
+                    className={ADMIN_FIELD_CLASS}
+                  />
+                  <input
+                    aria-label="Amount received in naira"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={pickupPayment.amount}
+                    onChange={(event) =>
+                      setPickupPayment((current) => ({ ...current, amount: event.target.value }))
+                    }
+                    className={ADMIN_FIELD_CLASS}
+                  />
+                  <div className="flex gap-2 sm:col-span-2">
+                    {["cash", "pos", "transfer"].map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        aria-pressed={pickupPayment.method === method}
+                        onClick={() => setPickupPayment((current) => ({ ...current, method }))}
+                        className={`min-h-10 flex-1 rounded-button border text-sm font-semibold capitalize ${pickupPayment.method === method ? "border-primary bg-primary text-white" : "border-border bg-surface text-text"}`}
+                      >
+                        {method}
+                      </button>
+                    ))}
+                  </div>
+                  <input
+                    aria-label="POS or transfer reference"
+                    placeholder="Reference (required for POS/transfer)"
+                    value={pickupPayment.reference}
+                    onChange={(event) =>
+                      setPickupPayment((current) => ({ ...current, reference: event.target.value }))
+                    }
+                    className={`${ADMIN_FIELD_CLASS} sm:col-span-2`}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => pickupMutation.mutate()}
+                  disabled={pickupMutation.isPending || pickupPayment.otp.length !== 6}
+                  className={`${ADMIN_PRIMARY_BUTTON_CLASS} mt-4`}
+                >
+                  <Check className="h-4 w-4" />
+                  {pickupMutation.isPending ? "Confirming..." : "Confirm payment and pickup"}
+                </button>
+              </div>
+            ) : null}
+
             <div className="bg-background-soft/70 rounded-[20px] p-5 border border-border/60">
               <div className="flex items-center gap-2 mb-4">
                 <Package className="w-4 h-4 text-text-muted" />
@@ -237,6 +413,16 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
                     <span className="font-medium text-text">{formatNaira(order.deliveryFee)}</span>
                   </div>
                 )}
+                <div className="flex justify-between">
+                  <span className="text-text-muted">VAT</span>
+                  <span className="font-medium text-text">{formatNaira(order.vatAmount || 0)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-text-muted">Payment status</span>
+                  <span className="font-medium capitalize text-text">
+                    {String(order.paymentStatus || "pending").replaceAll("_", " ")}
+                  </span>
+                </div>
                 <div className="border-t border-border/60 pt-3 flex justify-between font-bold text-text">
                   <span>Total</span>
                   <span className="font-heading">{formatNaira(order.total)}</span>
@@ -245,6 +431,16 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
             </div>
           </div>
           <div className="p-5 border-t border-border/60 flex justify-end gap-3">
+            {order.reconciliationStatus === "pending" ? (
+              <button
+                onClick={() => reconcileMutation.mutate()}
+                disabled={reconcileMutation.isPending}
+                className={ADMIN_SECONDARY_BUTTON_CLASS}
+              >
+                <BadgeCheck className="h-4 w-4" />{" "}
+                {reconcileMutation.isPending ? "Reconciling..." : "Reconcile collection"}
+              </button>
+            ) : null}
             <button onClick={onClose} className={ADMIN_SECONDARY_BUTTON_CLASS}>
               Close
             </button>

@@ -1,6 +1,44 @@
 import asyncHandler from "express-async-handler";
 import Setting from "../models/Setting.js";
 
+const NON_NEGATIVE_INTEGER_KEYS = new Set([
+  "delivery_fee_own",
+  "delivery_fee_thirdparty",
+  "delivery_fee_increment_per_5000",
+  "pay_on_delivery_max_order_kobo",
+]);
+
+const normalizeSettingValue = (key, value) => {
+  if (NON_NEGATIVE_INTEGER_KEYS.has(key)) {
+    if (!Number.isSafeInteger(value) || value < 0) {
+      const error = new Error(`${key} must be a non-negative integer in kobo.`);
+      error.status = 400;
+      throw error;
+    }
+  }
+  if (key === "vat_rate_basis_points") {
+    if (!Number.isSafeInteger(value) || value < 0 || value > 10000) {
+      const error = new Error("VAT rate must be between 0% and 100%.");
+      error.status = 400;
+      throw error;
+    }
+  }
+  if (["pay_on_delivery_enabled", "pickup_available"].includes(key) && typeof value !== "boolean") {
+    const error = new Error(`${key} must be true or false.`);
+    error.status = 400;
+    throw error;
+  }
+  if (
+    key === "handoff_otp_expiry_minutes" &&
+    (!Number.isSafeInteger(value) || value < 15 || value > 1440)
+  ) {
+    const error = new Error("Handoff code lifetime must be between 15 and 1440 minutes.");
+    error.status = 400;
+    throw error;
+  }
+  return value;
+};
+
 // @DESCRIPTION Get public settings (delivery fees, business info)
 // @ROUTE       GET /api/v1/settings/public
 // @ACCESS      Public
@@ -48,7 +86,7 @@ const getSettings = asyncHandler(async (req, res) => {
 // @ACCESS      Admin
 const updateSetting = asyncHandler(async (req, res) => {
   const { key } = req.params;
-  const { value } = req.body;
+  const value = normalizeSettingValue(key, req.body.value);
 
   let setting = await Setting.findOne({ key });
   if (!setting) {
@@ -68,7 +106,8 @@ const updateSettings = asyncHandler(async (req, res) => {
   const updates = req.body; // { key: value, ... }
 
   const updated = [];
-  for (const [key, value] of Object.entries(updates)) {
+  for (const [key, rawValue] of Object.entries(updates)) {
+    const value = normalizeSettingValue(key, rawValue);
     let setting = await Setting.findOne({ key });
     if (!setting) {
       setting = await Setting.create({ key, value });

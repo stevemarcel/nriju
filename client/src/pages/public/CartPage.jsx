@@ -24,6 +24,7 @@ import {
   DEFAULT_DELIVERY_FEES_KOBO,
 } from "../../utils/deliveryFee";
 import { formatNaira } from "../../utils/formatMoney";
+import { calculateVatKobo, configuredVatRateBasisPoints, formatVatRate } from "../../utils/pricing";
 
 const productFromItem = (item) =>
   item.product && typeof item.product === "object" ? item.product : null;
@@ -179,7 +180,9 @@ const CartPage = () => {
     ),
     deliveryMethod: "thirdparty",
   });
-  const estimatedTotal = subtotal + estimatedDeliveryFee;
+  const vatRateBasisPoints = configuredVatRateBasisPoints(publicSettings.vat_rate_basis_points);
+  const estimatedVat = calculateVatKobo({ subtotalKobo: subtotal, vatRateBasisPoints });
+  const estimatedTotal = subtotal + estimatedVat + estimatedDeliveryFee;
 
   if (items.length === 0) {
     return (
@@ -271,6 +274,10 @@ const CartPage = () => {
                 <dd className="text-right font-medium text-text">
                   {estimatedDeliveryFee === 0 ? "Free" : formatNaira(estimatedDeliveryFee)}
                 </dd>
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <dt className="text-text-secondary">VAT ({formatVatRate(vatRateBasisPoints)}%)</dt>
+                <dd className="font-medium tabular-nums text-text">{formatNaira(estimatedVat)}</dd>
               </div>
             </dl>
 

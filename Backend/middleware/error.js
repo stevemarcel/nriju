@@ -29,11 +29,18 @@ const errorHandler = (err, req, res, next) => {
     return res.status(400).json({ success: false, message: "Validation failed", errors });
   }
 
-  const status = res.statusCode && res.statusCode !== 200 ? res.statusCode : 500;
+  const declaredStatus = Number(err.statusCode || err.status);
+  const status =
+    res.statusCode && res.statusCode !== 200
+      ? res.statusCode
+      : Number.isInteger(declaredStatus) && declaredStatus >= 400 && declaredStatus < 600
+        ? declaredStatus
+        : 500;
 
   res.status(status).json({
     success: false,
     message: status === 500 ? "Something went wrong. Please try again." : err.message,
+    ...(status !== 500 && err.details ? { details: err.details } : {}),
     // Stack trace only in development
     ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
