@@ -12,6 +12,11 @@ import {
   createOrderReceivedNotification,
   createOrderStatusNotification,
 } from "../services/notificationService.js";
+import {
+  COMPLETED_STATUSES,
+  getUnreviewedOrderItems,
+  scheduleReviewReminders,
+} from "../services/reviewReminderService.js";
 import { issueHandoffOtp } from "../services/handoffOtpService.js";
 
 const ORDER_STATUSES = [
@@ -202,6 +207,10 @@ const createOrder = asyncHandler(async (req, res) => {
 
     await order.save({ session });
 
+    if (isPayOnDelivery) {
+      await createOrderReceivedNotification(order, { session });
+    }
+
     return order;
   });
 
@@ -213,10 +222,6 @@ const createOrder = asyncHandler(async (req, res) => {
     actionType: "create",
     changes: [{ field: "Order total", from: "—", to: result.total }],
     description: `placed order #${result.orderNumber} for ₦${(result.total / 100).toLocaleString("en-NG")}`,
-  });
-
-  createOrderReceivedNotification(result).catch((error) => {
-    console.error("Could not create order notification:", error.message);
   });
 
   res.status(201).json({
@@ -368,6 +373,19 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       changes.push({ field: "Product sales", from: "Counted", to: "Reversed" });
     }
 
+    const firstCompletion = COMPLETED_STATUSES.includes(nextStatus) && !order.completedAt;
+    const reviewItems = firstCompletion ? await getUnreviewedOrderItems(order, { session }) : [];
+
+    if (firstCompletion) {
+      await scheduleReviewReminders(order, reviewItems, { session });
+    }
+
+    if (nextStatus === "refunded") {
+      order.nextReviewReminderAt = null;
+      order.reviewReminderStoppedAt ||= new Date();
+      order.reviewReminderProcessingAt = null;
+    }
+
     order.status = nextStatus;
     let handoffOtpIssued = false;
     if (
@@ -381,7 +399,15 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       issueHandoffOtp(order, Math.max(15, Number(otpSetting?.value) || 240));
       handoffOtpIssued = true;
     }
-    if (changes.length || handoffOtpIssued) await order.save({ session });
+    if (changes.length || handoffOtpIssued || firstCompletion) await order.save({ session });
+
+    if (nextStatus !== previousStatus) {
+      await createOrderStatusNotification(order, nextStatus, {
+        session,
+        reviewItems,
+        includeReviewInvitation: firstCompletion && reviewItems.length > 0,
+      });
+    }
 
     return { order, changes, previousStatus, nextStatus };
   });
@@ -414,12 +440,6 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       actionType: result.nextStatus === "cancelled" ? "status_toggle" : "update",
       changes: result.changes,
       description: descriptions.join("; "),
-    });
-  }
-
-  if (result.nextStatus !== result.previousStatus) {
-    createOrderStatusNotification(result.order, result.nextStatus).catch((error) => {
-      console.error("Could not create order status notification:", error.message);
     });
   }
 

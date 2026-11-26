@@ -1,10 +1,11 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
 import { Breadcrumb } from "../../components/ui/Navigation";
-import { KeyRound, Package } from "lucide-react";
-import { useState } from "react";
+import { KeyRound, Package, Star } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { formatNaira } from "../../utils/formatMoney";
+import AccountOrderReviewModal from "../../components/account/AccountOrderReviewModal";
 
 const STATUS_MAP = {
   pending: { label: "Pending", cls: "bg-amber-100 text-amber-700" },
@@ -55,6 +56,7 @@ const HandoffCode = ({ orderId }) => {
 
 const AccountOrdersPage = () => {
   const [filter, setFilter] = useState("all");
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: ordersData, isPending } = useQuery({
     queryKey: ["orders", "mine"],
     queryFn: async () => (await api.get("/orders")).data,
@@ -62,6 +64,29 @@ const AccountOrdersPage = () => {
 
   const orders = ordersData?.data || [];
   const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
+  const reviewOrderId = searchParams.get("action") === "review" ? searchParams.get("order") : null;
+
+  const closeReview = useCallback(() => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("action");
+    next.delete("order");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  const openReview = (orderId) => {
+    const next = new URLSearchParams(searchParams);
+    next.set("order", orderId);
+    next.set("action", "review");
+    setSearchParams(next);
+  };
+
+  useEffect(() => {
+    const orderId = searchParams.get("order");
+    if (!orderId || searchParams.get("action") === "review" || isPending) return;
+    document
+      .getElementById(`order-${orderId}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [isPending, searchParams]);
 
   const filters = [
     { value: "all", label: "All" },
@@ -74,7 +99,7 @@ const AccountOrdersPage = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background-soft">
+    <div className="min-h-screen bg-background">
       {/* Top bar */}
       <div className="bg-surface border-b border-border-soft">
         <div className="container mx-auto px-4 py-4">
@@ -144,6 +169,7 @@ const AccountOrdersPage = () => {
             {filtered.map((o) => (
               <div
                 key={o._id}
+                id={`order-${o._id}`}
                 className="bg-surface rounded-xl border border-border-soft p-5 hover:shadow-sm transition-shadow"
               >
                 <div className="flex items-start justify-between mb-4">
@@ -199,9 +225,16 @@ const AccountOrdersPage = () => {
                     <span className="text-xs text-text-muted">
                       {o.items.length} item{o.items.length !== 1 ? "s" : ""}
                     </span>
-                    <button className="text-sm text-primary hover:underline font-medium">
-                      View details →
-                    </button>
+                    {["delivered", "picked_up"].includes(o.status) && (
+                      <button
+                        type="button"
+                        onClick={() => openReview(o._id)}
+                        className="inline-flex min-h-10 items-center gap-1.5 rounded-button px-2.5 text-sm font-semibold text-primary outline-none transition-colors hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        <Star className="h-4 w-4" aria-hidden="true" />
+                        Review products
+                      </button>
+                    )}
                   </div>
                 </div>
                 {(o.status === "on_the_way" &&
@@ -216,6 +249,7 @@ const AccountOrdersPage = () => {
           </div>
         )}
       </div>
+      <AccountOrderReviewModal orderId={reviewOrderId} onClose={closeReview} />
     </div>
   );
 };

@@ -22,6 +22,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { getCategoryIcon } from "../../utils/categoryIcons";
+import NotificationBell from "../notifications/NotificationBell";
 
 const Header = () => {
   // * Redux dispatch for side effects
@@ -231,6 +232,8 @@ const Header = () => {
                   Login
                 </Link>
               )}
+
+              {user && <NotificationBell />}
 
               {/* Help dropdown — click to open */}
               <div className="group relative">

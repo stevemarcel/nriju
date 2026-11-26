@@ -62,7 +62,6 @@ const isMatchingCharge = (payment, order, data) =>
 
 const applySuccessfulCharge = async (payment, paystackData) => {
   const session = await mongoose.startSession();
-  let changedToConfirmed = false;
   let confirmedOrder = null;
 
   try {
@@ -84,7 +83,7 @@ const applySuccessfulCharge = async (payment, paystackData) => {
       await freshPayment.save({ session });
 
       if (order.paymentStatus !== "paid") {
-        changedToConfirmed = order.status === "pending";
+        const changedToConfirmed = order.status === "pending";
         if (changedToConfirmed) order.status = "confirmed";
         order.paymentStatus = "paid";
         order.paymentRef = freshPayment.paystackRef;
@@ -95,6 +94,10 @@ const applySuccessfulCharge = async (payment, paystackData) => {
           order.couponRedeemedAt = new Date();
         }
         await order.save({ session });
+
+        if (changedToConfirmed) {
+          await createOrderStatusNotification(order, "confirmed", { session });
+        }
       }
       confirmedOrder = order;
     });
@@ -102,11 +105,6 @@ const applySuccessfulCharge = async (payment, paystackData) => {
     await session.endSession();
   }
 
-  if (changedToConfirmed && confirmedOrder) {
-    createOrderStatusNotification(confirmedOrder, "confirmed").catch((error) => {
-      console.error("Could not create payment notification:", error.message);
-    });
-  }
   return confirmedOrder;
 };
 

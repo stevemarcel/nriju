@@ -16,6 +16,7 @@ import {
   Shield,
   Plus,
   Zap,
+  Bell,
 } from "lucide-react";
 import { formatNaira } from "../../utils/formatMoney";
 
@@ -142,6 +143,7 @@ const AccountDashboardPage = () => {
                     count={wishlistItems.length}
                   />
                   <QuickActionLink to="/account/profile" icon={User} label="Profile" />
+                  <QuickActionLink to="/account/notifications" icon={Bell} label="Notifications" />
                   <QuickActionLink to="/account/change-password" icon={Lock} label="Password" />
                   {isAdmin && <QuickActionLink to="/admin" icon={Shield} label="Admin Dashboard" />}
                 </div>

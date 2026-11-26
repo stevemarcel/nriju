@@ -2,6 +2,8 @@ import asyncHandler from "express-async-handler";
 import Review from "../models/Review.js";
 import Product from "../models/Product.js";
 import Order from "../models/Order.js";
+import mongoose from "mongoose";
+import { stopSatisfiedReviewRemindersForUser } from "../services/reviewReminderService.js";
 
 // @DESCRIPTION List approved reviews for a product
 // @ROUTE       GET /api/v1/reviews/:productId
@@ -15,6 +17,55 @@ const getProductReviews = asyncHandler(async (req, res) => {
     .sort("-createdAt");
 
   res.json({ success: true, data: reviews });
+});
+
+// @DESCRIPTION Get reviewable products from one completed order.
+// @ROUTE       GET /api/v1/reviews/order/:orderId/eligible
+// @ACCESS      Authenticated (order owner)
+const getOrderReviewEligibility = asyncHandler(async (req, res) => {
+  if (!mongoose.isValidObjectId(req.params.orderId)) {
+    res.status(400);
+    throw new Error("Invalid order ID.");
+  }
+
+  const order = await Order.findOne({ _id: req.params.orderId, user: req.user._id });
+  if (!order) {
+    res.status(404);
+    throw new Error("Order not found.");
+  }
+  if (!["delivered", "picked_up"].includes(order.status)) {
+    res.status(409);
+    throw new Error("Reviews become available after the order is delivered or picked up.");
+  }
+
+  const productIds = order.items.map((item) => item.product);
+  const reviews = await Review.find({
+    user: req.user._id,
+    product: { $in: productIds },
+  })
+    .select("product")
+    .lean();
+  const reviewedIds = new Set(reviews.map((review) => String(review.product)));
+
+  res.json({
+    success: true,
+    data: {
+      order: {
+        _id: order._id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        completedAt: order.completedAt,
+      },
+      items: order.items.map((item) => ({
+        _id: item._id,
+        product: item.product,
+        name: item.name,
+        image: item.image,
+        quantity: item.quantity,
+        reviewed: reviewedIds.has(String(item.product)),
+      })),
+    },
+  });
 });
 
 // @DESCRIPTION Submit a new review (pending admin approval)
@@ -67,6 +118,10 @@ const submitReview = asyncHandler(async (req, res) => {
     isVerifiedPurchase: true,
   });
 
+  stopSatisfiedReviewRemindersForUser(req.user._id).catch((error) => {
+    console.error("Could not update review reminders:", error.message);
+  });
+
   req.activity = {
     action: "review.created",
     entity: "review",
@@ -79,7 +134,7 @@ const submitReview = asyncHandler(async (req, res) => {
 
   res.status(201).json({
     success: true,
-    message: "Review submitted and awaiting approval",
+    message: "Review submitted. Thank you.",
     data: review,
   });
 });
@@ -193,4 +248,11 @@ const getAllReviews = asyncHandler(async (req, res) => {
   });
 });
 
-export { getProductReviews, submitReview, updateReview, moderateReview, getAllReviews };
+export {
+  getProductReviews,
+  getOrderReviewEligibility,
+  submitReview,
+  updateReview,
+  moderateReview,
+  getAllReviews,
+};

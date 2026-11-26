@@ -14,6 +14,9 @@ import { notFound, errorHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rateLimit.js";
 import activityLog from "./middleware/activityLog.js";
 import { expirePendingPaymentOrders } from "./services/orderExpiryService.js";
+import { startNotificationWorkers } from "./services/notificationWorker.js";
+import Notification from "./models/Notification.js";
+import EmailOutbox from "./models/EmailOutbox.js";
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
@@ -35,8 +38,6 @@ import pickupLocationRoutes from "./routes/pickupLocationRoutes.js";
 import courierRoutes from "./routes/courierRoutes.js";
 
 const port = process.env.PORT || 5000;
-
-connectDB();
 
 const app = express();
 
@@ -109,13 +110,26 @@ if (process.env.NODE_ENV === "production") {
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(port, () => {
-  console.log(`Nriju server started on port ${port}`.yellow.bold);
+const startServer = async () => {
+  await connectDB();
+  // Create the notification collections and their idempotency indexes before
+  // order transactions attempt to write to them for the first time.
+  await Promise.all([Notification.init(), EmailOutbox.init()]);
 
-  const releaseExpiredOrders = () =>
-    expirePendingPaymentOrders().catch((error) =>
-      console.error("Could not release expired payment orders:", error.message),
-    );
-  setTimeout(releaseExpiredOrders, 10_000);
-  setInterval(releaseExpiredOrders, 5 * 60 * 1000).unref();
+  app.listen(port, () => {
+    console.log(`Nriju server started on port ${port}`.yellow.bold);
+    startNotificationWorkers();
+
+    const releaseExpiredOrders = () =>
+      expirePendingPaymentOrders().catch((error) =>
+        console.error("Could not release expired payment orders:", error.message),
+      );
+    setTimeout(releaseExpiredOrders, 10_000);
+    setInterval(releaseExpiredOrders, 5 * 60 * 1000).unref();
+  });
+};
+
+startServer().catch((error) => {
+  console.error("Could not start Nriju:", error.message);
+  process.exit(1);
 });

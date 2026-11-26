@@ -37,6 +37,7 @@ const AccountProfilePage = lazy(() => import("./pages/account/AccountProfilePage
 const AddressesPage = lazy(() => import("./pages/account/AddressesPage"));
 const ChangePasswordPage = lazy(() => import("./pages/account/ChangePasswordPage"));
 const WishlistPage = lazy(() => import("./pages/account/WishlistPage"));
+const NotificationsPage = lazy(() => import("./pages/account/NotificationsPage"));
 
 // ADMIN PAGES
 const AdminDashboardPage = lazy(() => import("./pages/admin/AdminDashboardPage"));
@@ -182,6 +183,14 @@ const App = () => {
             element={
               <ProtectedRoute>
                 <WishlistPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/account/notifications"
+            element={
+              <ProtectedRoute>
+                <NotificationsPage />
               </ProtectedRoute>
             }
           />
