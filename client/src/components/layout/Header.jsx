@@ -255,7 +255,7 @@ const Header = () => {
                     onClick={() => setHelpOpen(false)}
                   >
                     <BookOpen className="w-4 h-4 text-text-muted" />
-                    Our Story
+                    About Us
                   </Link>
                   <Link
                     to="/delivery"
