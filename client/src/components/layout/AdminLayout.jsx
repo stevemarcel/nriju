@@ -17,6 +17,7 @@ import {
   Clock,
   ClipboardList,
   MapPinned,
+  Mail,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -30,6 +31,7 @@ const nav = [
   { to: "/admin/users", label: "Staff & Users", icon: UserCog },
   { to: "/admin/reviews", label: "Reviews", icon: Star },
   { to: "/admin/coupons", label: "Coupons", icon: Ticket },
+  { to: "/admin/newsletter", label: "Newsletter", icon: Mail },
   { to: "/admin/activities", label: "Activities", icon: Clock },
   { to: "/admin/settings", label: "Settings", icon: Settings },
 ];

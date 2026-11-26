@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   Truck,
 } from "lucide-react";
+import { toast } from "sonner";
 import ProductCard from "../../components/ui/ProductCard";
 import api from "../../services/api";
 import { getCategoryIcon } from "../../utils/categoryIcons";
@@ -277,6 +278,10 @@ const HeroCarousel = () => {
 };
 
 const HomePage = () => {
+  // * Declarations
+  const [email, setEmail] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
   const { data: featured } = useQuery({
     queryKey: ["products", "featured"],
     queryFn: async () => {
@@ -312,6 +317,28 @@ const HomePage = () => {
       return res.data.data;
     },
   });
+
+  // ? Functions
+  const handleSubscribe = async (event) => {
+    event.preventDefault();
+    const trimmed = email.trim();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await api.post("/newsletter", { email: trimmed });
+      setEmail("");
+      toast.success(res.data.message || "You're on the list! We'll send Nriju's latest dishes and deals your way.");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Subscription didn't go through. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="bg-background">
@@ -387,18 +414,45 @@ const HomePage = () => {
       <ProductShelf id="new-arrivals" title="New Arrivals" products={newArrivals} />
       <ProductShelf id="best-sellers" title="Best Sellers" products={bestSellers} />
 
-      <section className="bg-background py-16">
-        <div className="container mx-auto max-w-xl px-4 text-center">
-          <h2 className="mb-3 font-heading text-3xl font-bold">Craving something special?</h2>
-          <p className="caption-text mb-6">
-            Explore our full menu of swallows, soups, proteins, and snacks.
-          </p>
-          <Link
-            to="/shop"
-            className="inline-flex min-h-12 items-center justify-center rounded-button bg-primary px-8 py-3.5 font-semibold text-on-accent transition-colors hover:bg-primary/90 active:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          >
-            Explore menu
-          </Link>
+      <section aria-label="Newsletter" className="bg-background px-3 py-10 sm:px-4 sm:py-12">
+        <div className="mx-auto w-full max-w-screen-2xl rounded-card bg-text px-6 py-10 sm:px-10 sm:py-12 lg:px-14">
+          <div className="flex flex-col items-start justify-between gap-10 lg:flex-row lg:items-center lg:gap-16">
+            <div className="w-full lg:max-w-xl">
+              <h2 className="font-heading text-3xl font-bold leading-tight text-on-accent sm:text-4xl lg:text-5xl">
+                Ready for what&rsquo;s cooking?
+              </h2>
+              <form onSubmit={handleSubscribe} className="mt-6 flex items-center gap-2 sm:mt-8" aria-busy={submitting}>
+                <label htmlFor="newsletter-email" className="sr-only">
+                  Email address
+                </label>
+                <input
+                  id="newsletter-email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="Your email"
+                  disabled={submitting}
+                  className="h-12 min-w-0 flex-1 rounded-full border border-border bg-background px-5 text-sm text-text outline-none transition-colors placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/15 sm:max-w-xs"
+                />
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="inline-flex min-h-12 shrink-0 items-center justify-center rounded-full bg-text px-6 py-3 text-sm font-semibold text-on-accent transition-colors hover:bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-on-accent focus-visible:ring-offset-2 focus-visible:ring-offset-text"
+                >
+                  {submitting ? "Subscribing…" : "Subscribe"}
+                </button>
+              </form>
+            </div>
+            <div className="lg:ml-auto lg:max-w-md lg:text-right">
+              <p className="text-sm font-bold text-on-accent sm:text-base">
+                Fresh dishes, seasonal specials &amp; subscriber deals
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-on-accent/70 sm:text-sm">
+                Subscribe to the Nriju newsletter to be the first to hear about new menu items,
+                seasonal specials, and exclusive offers - delivered straight to your inbox.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </div>
