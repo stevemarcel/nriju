@@ -33,11 +33,13 @@
     "express-validator": "^7.2.0",
     "joi": "^17.13.1",
     "jsonwebtoken": "^9.0.1",
+    "leaflet": "^1.9.4",
     "mongoose": "^8.7.0",
     "multer": "^2.0.2",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "react-confetti": "^2.1.4",
+    "react-leaflet": "^5.0.0",
     "recharts": "^3.1.0"
   },
   "devDependencies": {

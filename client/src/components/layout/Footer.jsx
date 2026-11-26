@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
-import { Phone, MapPin, Clock, Instagram, Facebook, MessageCircle } from "lucide-react";
+import { Phone, MapPin, Clock } from "lucide-react";
+import { FaInstagram, FaFacebookF, FaWhatsapp } from "react-icons/fa";
 import { usePublicSettings } from "../../hooks/usePublicSettings";
 import { phoneHref, socialProfileHref, whatsappHref } from "../../utils/contactLinks";
 
@@ -119,7 +120,7 @@ const Footer = () => {
                 </a>
               </li>
               <li className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 shrink-0 text-secondary" />
+                <FaWhatsapp className="w-4 h-4 shrink-0 text-secondary" />
                 <a
                   href={whatsappHref(whatsapp)}
                   target="_blank"
@@ -142,7 +143,7 @@ const Footer = () => {
                 aria-label="Instagram"
                 className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-secondary transition-colors"
               >
-                <Instagram className="w-4 h-4" />
+                <FaInstagram className="w-4 h-4" />
               </a>
               <a
                 href={facebookUrl}
@@ -151,7 +152,7 @@ const Footer = () => {
                 aria-label="Facebook"
                 className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center hover:bg-secondary transition-colors"
               >
-                <Facebook className="w-4 h-4" />
+                <FaFacebookF className="w-4 h-4" />
               </a>
             </div>
           </div>
