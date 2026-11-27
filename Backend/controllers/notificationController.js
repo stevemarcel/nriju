@@ -41,7 +41,10 @@ const getNotifications = asyncHandler(async (req, res) => {
 });
 
 const getUnreadCount = asyncHandler(async (req, res) => {
-  const unread = await Notification.countDocuments({ user: req.user._id, read: false });
+  const unread = await Notification.countDocuments({
+    user: req.user._id,
+    read: false,
+  });
   res.json({ success: true, data: { unread } });
 });
 

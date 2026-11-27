@@ -4,7 +4,13 @@ import EmailVerificationToken from "../models/EmailVerificationToken.js";
 import PasswordResetToken from "../models/PasswordResetToken.js";
 import { generateToken, setAuthCookie, clearAuthCookie } from "../utils/token.js";
 import { generateToken as genSecret } from "../utils/crypto.js";
-import { sendEmail, emailVerificationEmail, passwordResetEmail } from "../services/emailService.js";
+import {
+  sendEmail,
+  emailVerificationEmail,
+  passwordResetEmail,
+  passwordChangedEmail,
+} from "../services/emailService.js";
+import { createUserNotification } from "../services/notificationService.js";
 import {
   uploadAvatarToCloudinary,
   deleteFromCloudinary,
@@ -156,6 +162,27 @@ const resetPassword = asyncHandler(async (req, res) => {
   record.used = true;
   await record.save();
 
+  try {
+    await createUserNotification({
+      user: user._id,
+      type: "security",
+      eventKey: `security:password-reset:${record._id}`,
+      title: "Password changed",
+      message:
+        "Your password was reset successfully. Contact support if you did not make this change.",
+      link: "/account/change-password",
+      entityType: "user",
+      entityId: user._id,
+      email: {
+        to: user.email,
+        toName: user.name,
+        ...passwordChangedEmail(user.name),
+      },
+    });
+  } catch (error) {
+    console.error("Could not queue password-reset alert:", error.message);
+  }
+
   res.json({ success: true, message: "Password reset" });
 });
 
@@ -173,6 +200,26 @@ const changePassword = asyncHandler(async (req, res) => {
 
   user.password = newPassword;
   await user.save();
+
+  try {
+    await createUserNotification({
+      user: user._id,
+      type: "security",
+      eventKey: `security:password-change:${genSecret()}`,
+      title: "Password changed",
+      message: "Your account password was changed successfully.",
+      link: "/account/change-password",
+      entityType: "user",
+      entityId: user._id,
+      email: {
+        to: user.email,
+        toName: user.name,
+        ...passwordChangedEmail(user.name),
+      },
+    });
+  } catch (error) {
+    console.error("Could not queue password-change alert:", error.message);
+  }
 
   req.activity = {
     action: "password.changed",

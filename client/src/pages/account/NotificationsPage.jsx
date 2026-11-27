@@ -13,7 +13,11 @@ const NotificationsPage = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [unreadOnly, setUnreadOnly] = useState(false);
-  const { data, isPending, isError, refetch } = useNotifications({ page, limit: 20, unreadOnly });
+  const { data, isPending, isError, refetch } = useNotifications({
+    page,
+    limit: 20,
+    unreadOnly,
+  });
   const { data: unread = 0 } = useUnreadNotificationCount();
   const { markRead, markAllRead } = useNotificationActions();
   const notifications = data?.data || [];

@@ -540,12 +540,13 @@ Rate listeners apply to _register, login, forgot-password._
 
 ### Notification Endpoints
 
-| Method | Endpoint                  | Access | Purpose                      |
-| ------ | ------------------------- | ------ | ---------------------------- |
-| GET    | `/notifications`          | Auth   | List                         |
-| PATCH  | `/notifications/:id/read` | Auth   | Mark read                    |
-| PATCH  | `/notifications/read-all` | Auth   | Mark all read                |
-| POST   | `/notifications`          | Admin  | intended Create notification |
+| Method | Endpoint                      | Access | Purpose                        |
+| ------ | ----------------------------- | ------ | ------------------------------ |
+| GET    | `/notifications`              | Auth   | Paginated notification history |
+| GET    | `/notifications/unread-count` | Auth   | Get the unread count           |
+| PATCH  | `/notifications/:id/read`     | Auth   | Mark one notification read     |
+| PATCH  | `/notifications/read-all`     | Auth   | Mark all notifications read    |
+| POST   | `/notifications`              | Admin  | Create a user notification     |
 
 ### Admin Endpoints
 
@@ -691,8 +692,7 @@ Current files:
 ## Known Route‑Order Caveats
 
 - productRoutes.js – `router.use(auth)` and `router.use(admin)` are applied before `GET /products/:slug`. To expose the product detail publicly, move the public route before the authentication middleware.
-- reviewRoutes.js – Admin middleware is applied before the public review list route, blocking normal access. Move public `GET /reviews/:productId` above admin guards.
-- notificationRoutes.js – The `POST /notifications` uses `admin` guard without a prior `auth` middleware;`req.user` may be undefined. Add `router.use(auth)` before this route.
+- Static notification and review routes must remain before parameterized `/:id` routes when adding new endpoints.
 
 Review and adjust middleware ordering in each router before shipping the app to production.
 

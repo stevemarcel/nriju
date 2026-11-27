@@ -117,6 +117,12 @@ const orderStatusEmail = ({ order, name, status, link, reviewItems = [] }) => {
   };
 };
 
+const passwordChangedEmail = (name) => ({
+  subject: "Your Nriju password was changed",
+  html: `<h2>Hi ${escapeHtml(name)},</h2><p>Your Nriju account password was changed successfully.</p><p>If you did not make this change, reset your password immediately and contact Nriju support.</p>`,
+  text: `Hi ${name}. Your Nriju account password was changed successfully. If you did not make this change, reset your password immediately and contact Nriju support.`,
+});
+
 const orderConfirmationEmail = (order, name) => ({
   subject: `Order ${order.orderNumber} confirmed — Nriju`,
   html: `<h2>Hi ${name},</h2><p>Your order <strong>${order.orderNumber}</strong> has been received.</p><p>Total: ₦${(order.total / 100).toLocaleString()}</p>`,
@@ -128,6 +134,7 @@ export {
   send as sendEmail,
   emailVerificationEmail,
   passwordResetEmail,
+  passwordChangedEmail,
   orderConfirmationEmail,
   orderStatusEmail,
 };

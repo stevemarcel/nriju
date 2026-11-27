@@ -124,12 +124,27 @@ const createUserNotification = async (
       }
     : { $setOnInsert: insertedValues };
 
-  const notification = await Notification.findOneAndUpdate({ user, eventKey }, update, {
-    upsert: true,
-    new: true,
-    setDefaultsOnInsert: true,
-    session,
-  });
+  let notification;
+  try {
+    notification = await Notification.findOneAndUpdate(
+      { user, eventKey },
+      update,
+      {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+        session,
+      },
+    );
+  } catch (error) {
+    // Two workers may observe the same event at once. The unique event index
+    // is the final idempotency guard; return the winning row on that race.
+    if (error?.code !== 11000) throw error;
+    notification = await Notification.findOne({ user, eventKey }).session(
+      session || null,
+    );
+    if (!notification) throw error;
+  }
 
   if (email) {
     await EmailOutbox.findOneAndUpdate(
@@ -158,7 +173,12 @@ const createOrderReceivedNotification = async (order, { session } = {}) => {
   if (!user) return null;
 
   const link = `/account/orders?order=${order._id}`;
-  const email = orderStatusEmail({ order, name: user.name, status: "received", link });
+  const email = orderStatusEmail({
+    order,
+    name: user.name,
+    status: "received",
+    link,
+  });
 
   return createUserNotification(
     {
@@ -170,7 +190,11 @@ const createOrderReceivedNotification = async (order, { session } = {}) => {
       link,
       entityType: "order",
       entityId: order._id,
-      data: { orderId: order._id, orderNumber: order.orderNumber, status: order.status },
+      data: {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+      },
       email: { to: user.email, toName: user.name, ...email },
     },
     { session },
@@ -227,10 +251,16 @@ const createOrderStatusNotification = async (
         status,
         reviewProductIds: reviewItems.map((item) => item.product),
       },
-      ...(email ? { email: { to: user.email, toName: user.name, ...email } } : {}),
+      ...(email
+        ? { email: { to: user.email, toName: user.name, ...email } }
+        : {}),
     },
     { session },
   );
 };
 
-export { createOrderReceivedNotification, createOrderStatusNotification, createUserNotification };
+export {
+  createOrderReceivedNotification,
+  createOrderStatusNotification,
+  createUserNotification,
+};

@@ -22,7 +22,9 @@ const ProductReviewForm = ({ item, orderId }) => {
     onSuccess: async () => {
       toast.success("Review submitted. Thank you.");
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["reviews", "order", orderId] }),
+        queryClient.invalidateQueries({
+          queryKey: ["reviews", "order", orderId],
+        }),
         queryClient.invalidateQueries({ queryKey: notificationKeys.all }),
       ]);
     },

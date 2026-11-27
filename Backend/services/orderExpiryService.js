@@ -37,16 +37,13 @@ const expireOrder = async (orderId) => {
       order.paymentStatus = "failed";
       order.stockRestoredAt = new Date();
       await order.save({ session });
+      await createOrderStatusNotification(order, "cancelled", { session });
       expiredOrder = order;
     });
   } finally {
     await session.endSession();
   }
-  if (expiredOrder) {
-    createOrderStatusNotification(expiredOrder, "cancelled").catch((error) =>
-      console.error("Could not create expired-order notification:", error.message),
-    );
-  }
+  return expiredOrder;
 };
 
 const expirePendingPaymentOrders = async ({ limit = 50 } = {}) => {
