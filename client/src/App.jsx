@@ -8,6 +8,7 @@ import ProtectedRoute from "./components/guards/ProtectedRoute";
 import AdminRoute from "./components/guards/AdminRoute";
 import CourierRoute from "./components/guards/CourierRoute";
 import AdminLayout from "./components/layout/AdminLayout";
+import CourierLayout from "./components/layout/CourierLayout";
 import ErrorBoundary from "./components/layout/ErrorBoundary";
 
 // Lazy-load route chunks so the initial bundle stays small.
@@ -198,10 +199,12 @@ const App = () => {
             path="/courier"
             element={
               <CourierRoute>
-                <CourierOrdersPage />
+                <CourierLayout />
               </CourierRoute>
             }
-          />
+          >
+            <Route index element={<CourierOrdersPage />} />
+          </Route>
 
           {/* ── Admin area ──────────────────────────────────────── */}
           <Route
