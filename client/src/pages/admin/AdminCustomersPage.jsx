@@ -10,10 +10,12 @@ import {
   EmptyState,
   FilterBar,
 } from "../../components/admin/AdminPrimitives";
+import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import { formatDate } from "../../utils/formatDate";
 import { Users, UserCheck, UserX, Mail } from "lucide-react";
 
 const AdminCustomersPage = () => {
+  useAdminRealtimeRefresh();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);

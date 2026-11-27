@@ -8,6 +8,7 @@ import {
   EmptyState,
   StatusPill,
 } from "../../components/admin/AdminPrimitives";
+import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import { formatDate } from "../../utils/formatDate";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import Dropdown from "../../components/ui/Dropdown";
@@ -438,6 +439,7 @@ const AddressEditor = ({
 };
 
 const AdminUserDetailPage = () => {
+  useAdminRealtimeRefresh();
   const navigate = useNavigate();
   const { id } = useParams();
   const queryClient = useQueryClient();

@@ -20,6 +20,7 @@ import {
   StatusPill,
   TableSkeleton,
 } from "../../components/admin/AdminPrimitives";
+import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import {
   ADMIN_FIELD_CLASS,
   ADMIN_LABEL_CLASS,
@@ -236,6 +237,7 @@ const fetchSettings = async () => {
 };
 
 const AdminSettingsPage = () => {
+  useAdminRealtimeRefresh();
   const queryClient = useQueryClient();
   const {
     data: settingsByKey = {},

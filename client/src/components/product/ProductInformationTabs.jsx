@@ -131,7 +131,7 @@ const ProductInformationTabs = ({
               <div>
                 <h2 className="font-heading text-xl font-bold text-text">Customer reviews</h2>
                 <p className="mt-1 text-sm text-text-secondary">
-                  Reviews are published after purchase and moderation.
+                  Reviews are published after a valid purchase.
                 </p>
               </div>
               <div className="flex items-center gap-2 rounded-chip bg-background px-3 py-2">

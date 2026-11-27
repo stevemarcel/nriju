@@ -11,12 +11,14 @@ import {
   TableSkeleton,
   EmptyState,
 } from "../../components/admin/AdminPrimitives";
+import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import { formatDate } from "../../utils/formatDate";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
 import { Trash2, Download, Mail } from "lucide-react";
 import { toast } from "sonner";
 
 const AdminNewsletterPage = () => {
+  useAdminRealtimeRefresh();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);

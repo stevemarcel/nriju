@@ -12,6 +12,7 @@ import {
   EmptyState,
   StatusPill,
 } from "../../components/admin/AdminPrimitives";
+import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import { formatDate } from "../../utils/formatDate";
 import { formatNaira } from "../../utils/formatMoney";
 import { ConfirmModal } from "../../components/ui/ConfirmModal";
@@ -39,6 +40,7 @@ const isCouponActive = (c) => {
 };
 
 const AdminCouponsPage = () => {
+  useAdminRealtimeRefresh();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);

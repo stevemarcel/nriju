@@ -13,6 +13,7 @@ import {
   EmptyState,
   StatusPill,
 } from "../../components/admin/AdminPrimitives";
+import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import { formatNaira } from "../../utils/formatMoney";
 import { formatDate } from "../../utils/formatDate";
 import ProductFormModal from "../../components/admin/ProductFormModal";
@@ -66,6 +67,7 @@ const PRODUCT_SORT_OPTIONS = [
 ];
 
 const AdminProductsPage = () => {
+  useAdminRealtimeRefresh();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");

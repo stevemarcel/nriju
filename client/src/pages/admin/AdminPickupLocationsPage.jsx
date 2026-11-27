@@ -4,6 +4,7 @@ import { MapPin, Plus, Save } from "lucide-react";
 import { toast } from "sonner";
 import api from "../../services/api";
 import { AdminPageHeader, EmptyState, TableSkeleton } from "../../components/admin/AdminPrimitives";
+import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import {
   ADMIN_FIELD_CLASS,
   ADMIN_LABEL_CLASS,
@@ -117,6 +118,7 @@ const LocationForm = ({
 };
 
 const AdminPickupLocationsPage = () => {
+  useAdminRealtimeRefresh();
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [editingId, setEditingId] = useState(null);

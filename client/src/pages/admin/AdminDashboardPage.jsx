@@ -10,6 +10,7 @@ import {
   StatusPill,
   TableSkeleton,
 } from "../../components/admin/AdminPrimitives";
+import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import { formatNaira } from "../../utils/formatMoney";
 import { formatDate } from "../../utils/formatDate";
 import {
@@ -303,6 +304,7 @@ const SummaryCard = ({ title, description, to, linkLabel, icon: Icon, tone, chil
 );
 
 const AdminDashboardPage = () => {
+  useAdminRealtimeRefresh();
   const { data: stats, isPending } = useQuery({
     queryKey: ["admin", "stats"],
     queryFn: async () => (await api.get("/admin/stats")).data.data,

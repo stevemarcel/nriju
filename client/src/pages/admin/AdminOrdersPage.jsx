@@ -12,6 +12,7 @@ import {
   EmptyState,
   StatusPill,
 } from "../../components/admin/AdminPrimitives";
+import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import { formatNaira } from "../../utils/formatMoney";
 import { formatDate } from "../../utils/formatDate";
 import OrderDetailsModal from "../../components/admin/OrderDetailsModal";
@@ -130,6 +131,7 @@ const STATUS_MAP = {
 };
 
 const AdminOrdersPage = () => {
+  useAdminRealtimeRefresh();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");

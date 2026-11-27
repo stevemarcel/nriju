@@ -92,6 +92,7 @@ const ROLE_ICON_MAP = {
 };
 
 const AdminActivitiesPage = () => {
+  useAdminRealtimeRefresh();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);

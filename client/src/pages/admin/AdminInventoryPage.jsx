@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import api from "../../services/api";
 import {
   AdminPageHeader,
@@ -118,6 +119,7 @@ const STOCK_ACTIONS = [
 ];
 
 const AdminInventoryPage = () => {
+  useAdminRealtimeRefresh();
   const [search, setSearch] = useState("");
   const [stockFilter, setStockFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
