@@ -155,7 +155,7 @@ const ContactPage = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Instagram"
-                  className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center hover:border-primary transition-colors"
+                  className="w-10 h-10 rounded-full text-primary bg-surface border border-border flex items-center justify-center hover:border-primary transition-colors"
                 >
                   <FaInstagram className="w-4 h-4" />
                 </a>
@@ -164,18 +164,9 @@ const ContactPage = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Facebook"
-                  className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center hover:border-primary transition-colors"
+                  className="w-10 h-10 rounded-full text-primary bg-surface border border-border flex items-center justify-center hover:border-primary transition-colors"
                 >
                   <FaFacebookF className="w-4 h-4" />
-                </a>
-                <a
-                  href={whatsappHref(whatsapp)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="WhatsApp"
-                  className="w-10 h-10 rounded-full bg-surface border border-border flex items-center justify-center hover:border-primary transition-colors"
-                >
-                  <FaWhatsapp className="w-4 h-4" />
                 </a>
               </div>
             </div>
