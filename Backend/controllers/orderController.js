@@ -9,6 +9,7 @@ import { syncOrderProductSales } from "../services/productSalesService.js";
 import { recordActivity } from "../utils/activityUtils.js";
 import { calculateCheckoutPricing } from "../services/checkoutPricingService.js";
 import {
+  createHandoffCodeReissuedNotification,
   createOrderReceivedNotification,
   createOrderStatusNotification,
 } from "../services/notificationService.js";
@@ -220,7 +221,13 @@ const createOrder = asyncHandler(async (req, res) => {
     entityId: result._id,
     entityName: `Order #${result.orderNumber}`,
     actionType: "create",
-    changes: [{ field: "Order total", from: "—", to: result.total }],
+    changes: [
+      { field: "Order total", from: "Not placed", to: result.total },
+      { field: "Order status", from: "Not placed", to: result.status },
+      { field: "Payment method", from: "Not selected", to: result.paymentMethod },
+      { field: "Payment status", from: "Not placed", to: result.paymentStatus },
+      { field: "Delivery method", from: "Not selected", to: result.deliveryMethod },
+    ],
     description: `placed order #${result.orderNumber} for ₦${(result.total / 100).toLocaleString("en-NG")}`,
   });
 
@@ -282,7 +289,7 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   }
 
   const result = await runInTransaction(async (session) => {
-    const order = await Order.findById(req.params.id).session(session);
+    const order = await Order.findById(req.params.id).select("+handoffOtpVersion").session(session);
     if (!order) fail("Order not found.", 404);
 
     const previousStatus = order.status;
@@ -429,13 +436,39 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
       order.deliveryMethod === "pickup" &&
       order.paymentMethod === "pay_at_pickup"
     ) {
+      if (
+        nextStatus === previousStatus &&
+        order.handoffOtpGeneratedAt &&
+        order.handoffOtpGeneratedAt.getTime() > Date.now() - 60 * 1000
+      ) {
+        fail("Please wait one minute before issuing another pickup handoff code.", 429);
+      }
+      const hadActiveCode = Boolean(order.handoffOtpVersion);
+      const previousExpiry = order.handoffOtpExpiresAt;
       const otpSetting = await Setting.findOne({ key: "handoff_otp_expiry_minutes" })
         .session(session)
         .lean();
       issueHandoffOtp(order, Math.max(15, Number(otpSetting?.value) || 240));
       handoffOtpIssued = true;
+      changes.push({
+        field: "Pickup handoff code",
+        from: hadActiveCode ? "Previous code" : "Not issued",
+        to: hadActiveCode ? "Reissued" : "Issued",
+      });
+      changes.push({
+        field: "Code expiry",
+        from: previousExpiry || "Not set",
+        to: order.handoffOtpExpiresAt,
+      });
     }
     if (changes.length || handoffOtpIssued || firstCompletion) await order.save({ session });
+
+    if (handoffOtpIssued && nextStatus === previousStatus) {
+      await createHandoffCodeReissuedNotification(order, {
+        session,
+        issuerLabel: "Nriju",
+      });
+    }
 
     if (nextStatus !== previousStatus) {
       await createOrderStatusNotification(order, nextStatus, {
@@ -450,30 +483,37 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
 
   if (result.changes.length) {
     const orderNumber = result.order.orderNumber;
-    const descriptions = result.changes.map((change) => {
-      if (change.field === "Status" && change.to === "cancelled") {
-        return `cancelled order #${orderNumber} and released its reserved stock`;
-      }
-      if (change.field === "Status") {
-        return `changed order #${orderNumber} status from ${change.from} to ${change.to}`;
-      }
-      if (change.field === "Tracking code") {
-        return `updated the tracking code for order #${orderNumber} from "${change.from}" to "${change.to}"`;
-      }
-      if (change.field === "Product sales") {
-        return change.to === "Counted"
-          ? `counted fulfilled quantities from order #${orderNumber} in product sales`
-          : `reversed product sales quantities for refunded order #${orderNumber}`;
-      }
-      return `released inventory reserved for order #${orderNumber}`;
-    });
+    const descriptions = result.changes
+      .map((change) => {
+        if (change.field === "Status" && change.to === "cancelled") {
+          return `cancelled order #${orderNumber} and released its reserved stock`;
+        }
+        if (change.field === "Status") {
+          return `changed order #${orderNumber} status from ${change.from} to ${change.to}`;
+        }
+        if (change.field === "Tracking code") {
+          return `updated the tracking code for order #${orderNumber} from "${change.from}" to "${change.to}"`;
+        }
+        if (change.field === "Product sales") {
+          return change.to === "Counted"
+            ? `counted fulfilled quantities from order #${orderNumber} in product sales`
+            : `reversed product sales quantities for refunded order #${orderNumber}`;
+        }
+        if (change.field === "Pickup handoff code") {
+          return `${change.to === "Reissued" ? "reissued" : "issued"} the pickup handoff code for order #${orderNumber}`;
+        }
+        if (change.field === "Code expiry") return null;
+        return `released inventory reserved for order #${orderNumber}`;
+      })
+      .filter(Boolean);
 
+    const statusChanged = result.nextStatus !== result.previousStatus;
     recordActivity(req, {
       action: result.nextStatus === "cancelled" ? "order.cancelled" : "order.updated",
       entity: "order",
       entityId: result.order._id,
       entityName: `Order #${orderNumber}`,
-      actionType: result.nextStatus === "cancelled" ? "status_toggle" : "update",
+      actionType: statusChanged ? "status_toggle" : "update",
       changes: result.changes,
       description: descriptions.join("; "),
     });

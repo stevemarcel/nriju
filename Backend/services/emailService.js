@@ -122,6 +122,27 @@ const orderStatusEmail = ({ order, name, status, link, reviewItems = [] }) => {
   };
 };
 
+const handoffCodeReissuedEmail = ({
+  order,
+  name,
+  link,
+  expiresAt,
+  issuerLabel = "Your courier",
+}) => {
+  const url = `${String(process.env.CLIENT_URL || "").replace(/\/$/, "")}${link}`;
+  const expiry = new Intl.DateTimeFormat("en-NG", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Africa/Lagos",
+  }).format(new Date(expiresAt));
+
+  return {
+    subject: `New handoff code for ${order.orderNumber}`,
+    html: `<h2>Hi ${escapeHtml(name)},</h2><h3>A new handoff code is available</h3><p>${escapeHtml(issuerLabel)} issued a new handoff code for order <strong>${escapeHtml(order.orderNumber)}</strong>. The previous code no longer works.</p><p>The new code expires ${escapeHtml(expiry)}. Open your order to view it, and share it only after you receive your order and complete any payment due.</p><p><a href="${escapeHtml(url)}">View your order</a></p>`,
+    text: `Hi ${name}. ${issuerLabel} issued a new handoff code for order ${order.orderNumber}. The previous code no longer works. The new code expires ${expiry}. View your order: ${url}`,
+  };
+};
+
 const passwordChangedEmail = (name) => ({
   subject: "Your Nriju password was changed",
   html: `<h2>Hi ${escapeHtml(name)},</h2><p>Your Nriju account password was changed successfully.</p><p>If you did not make this change, reset your password immediately and contact Nriju support.</p>`,
@@ -142,4 +163,5 @@ export {
   passwordChangedEmail,
   orderConfirmationEmail,
   orderStatusEmail,
+  handoffCodeReissuedEmail,
 };

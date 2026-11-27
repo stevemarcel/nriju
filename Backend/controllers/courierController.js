@@ -4,13 +4,18 @@ import Order from "../models/Order.js";
 import Payment from "../models/Payment.js";
 import Setting from "../models/Setting.js";
 import User from "../models/User.js";
-import { createOrderStatusNotification } from "../services/notificationService.js";
+import ActivityLog from "../models/ActivityLog.js";
+import {
+  createHandoffCodeReissuedNotification,
+  createOrderStatusNotification,
+} from "../services/notificationService.js";
 import { deriveHandoffOtp, issueHandoffOtp } from "../services/handoffOtpService.js";
 import { syncOrderProductSales } from "../services/productSalesService.js";
 import {
   getUnreviewedOrderItems,
   scheduleReviewReminders,
 } from "../services/reviewReminderService.js";
+import { formatNairaFromKobo, recordActivity } from "../utils/activityUtils.js";
 
 const COLLECTION_METHODS = ["cash", "pos", "transfer"];
 
@@ -34,6 +39,33 @@ const runInTransaction = async (callback) => {
   }
 };
 
+const logRejectedHandoffAttempt = async ({ req, order, context }) => {
+  const previousAttempts = Math.max(0, order.handoffOtpAttemptCount - 1);
+  try {
+    await ActivityLog.create({
+      user: req.user._id,
+      actorRole: req.user.role,
+      action: "order.handoff_code_rejected",
+      entity: "order",
+      entityId: order._id,
+      entityName: `Order #${order.orderNumber}`,
+      actionType: "update",
+      description: `${req.user.name} submitted an incorrect handoff code for ${context} on order #${order.orderNumber}.`,
+      changes: [
+        {
+          field: "Failed handoff attempts",
+          from: previousAttempts,
+          to: order.handoffOtpAttemptCount,
+        },
+      ],
+      ip: req.ip,
+      userAgent: req.get("User-Agent") || "",
+    });
+  } catch (error) {
+    console.error("Could not record rejected handoff attempt:", error.message);
+  }
+};
+
 const listCourierOrders = asyncHandler(async (req, res) => {
   const orders = await Order.find({
     assignedCourier: req.user._id,
@@ -50,7 +82,7 @@ const assignCourier = asyncHandler(async (req, res) => {
     fail("A valid order and courier are required.");
   }
   const [order, courier] = await Promise.all([
-    Order.findById(req.params.id),
+    Order.findById(req.params.id).populate("assignedCourier", "name"),
     User.findOne({ _id: req.body.courierId, role: "courier", isActive: true }),
   ]);
   if (!order) fail("Order not found.", 404);
@@ -67,10 +99,20 @@ const assignCourier = asyncHandler(async (req, res) => {
     fail("This order can no longer be assigned.", 409);
   }
 
+  const previousCourier = order.assignedCourier?.name || "Unassigned";
   order.assignedCourier = courier._id;
   order.courierAssignedAt = new Date();
   await order.save();
   await order.populate("assignedCourier", "name email phone");
+  recordActivity(req, {
+    action: "order.courier_assigned",
+    entity: "order",
+    entityId: order._id,
+    entityName: `Order #${order.orderNumber}`,
+    actionType: "update",
+    changes: [{ field: "Assigned courier", from: previousCourier, to: courier.name }],
+    description: `assigned ${courier.name} to order #${order.orderNumber}`,
+  });
   res.json({ success: true, data: order });
 });
 
@@ -84,7 +126,7 @@ const startDelivery = asyncHandler(async (req, res) => {
       .session(session);
     if (!order) fail("Assigned order not found.", 404);
     if (order.deliveryMethod !== "own") fail("This is not an own-fleet delivery.", 409);
-    if (!["confirmed", "preparing", "on_the_way"].includes(order.status)) {
+    if (!["confirmed", "preparing"].includes(order.status)) {
       fail("This order cannot be started from its current status.", 409);
     }
     if (
@@ -98,17 +140,97 @@ const startDelivery = asyncHandler(async (req, res) => {
       .session(session)
       .lean();
     const expiryMinutes = Math.max(15, Number(setting?.value) || 240);
-    const statusChanged = order.status !== "on_the_way";
+    const previousStatus = order.status;
     order.status = "on_the_way";
     issueHandoffOtp(order, expiryMinutes);
     await order.save({ session });
 
-    if (statusChanged) {
-      await createOrderStatusNotification(order, "on_the_way", { session });
-    }
-    return { orderId: order._id, expiresAt: order.handoffOtpExpiresAt };
+    await createOrderStatusNotification(order, "on_the_way", { session });
+    return {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      previousStatus,
+      expiresAt: order.handoffOtpExpiresAt,
+    };
   });
-  res.json({ success: true, data: delivery });
+  recordActivity(req, {
+    action: "order.delivery_started",
+    entity: "order",
+    entityId: delivery.orderId,
+    entityName: `Order #${delivery.orderNumber}`,
+    actionType: "status_toggle",
+    changes: [
+      { field: "Order status", from: delivery.previousStatus, to: "on_the_way" },
+      { field: "Handoff code", from: "Not active", to: "Issued" },
+    ],
+    description: `started delivery for order #${delivery.orderNumber} and issued its handoff code`,
+  });
+  res.json({
+    success: true,
+    data: { orderId: delivery.orderId, expiresAt: delivery.expiresAt },
+  });
+});
+
+const reissueHandoffCode = asyncHandler(async (req, res) => {
+  const result = await runInTransaction(async (session) => {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      assignedCourier: req.user._id,
+    })
+      .select("+handoffOtpVersion")
+      .session(session);
+    if (!order) fail("Assigned order not found.", 404);
+    if (order.deliveryMethod !== "own" || order.status !== "on_the_way") {
+      fail("A handoff code can only be reissued for an active own-fleet delivery.", 409);
+    }
+    if (
+      order.handoffOtpGeneratedAt &&
+      order.handoffOtpGeneratedAt.getTime() > Date.now() - 60 * 1000
+    ) {
+      fail("Please wait one minute before issuing another handoff code.", 429);
+    }
+
+    const previousExpiry = order.handoffOtpExpiresAt;
+    const setting = await Setting.findOne({ key: "handoff_otp_expiry_minutes" })
+      .session(session)
+      .lean();
+    const expiryMinutes = Math.max(15, Number(setting?.value) || 240);
+    issueHandoffOtp(order, expiryMinutes);
+    await order.save({ session });
+    await createHandoffCodeReissuedNotification(order, { session });
+
+    return {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      previousExpiry,
+      issuedAt: order.handoffOtpGeneratedAt,
+      expiresAt: order.handoffOtpExpiresAt,
+    };
+  });
+
+  recordActivity(req, {
+    action: "order.handoff_code_reissued",
+    entity: "order",
+    entityId: result.orderId,
+    entityName: `Order #${result.orderNumber}`,
+    actionType: "update",
+    changes: [
+      { field: "Previous handoff code", from: "Active or expired", to: "Invalidated" },
+      { field: "Handoff code", from: "Previous code", to: "Reissued" },
+      { field: "Code expiry", from: result.previousExpiry, to: result.expiresAt },
+    ],
+    description: `reissued the handoff code for order #${result.orderNumber} and notified the customer`,
+  });
+
+  res.json({
+    success: true,
+    message: "A new handoff code was issued and the customer was notified.",
+    data: {
+      orderId: result.orderId,
+      issuedAt: result.issuedAt,
+      expiresAt: result.expiresAt,
+    },
+  });
 });
 
 const getHandoffCode = asyncHandler(async (req, res) => {
@@ -152,7 +274,7 @@ const confirmCollection = asyncHandler(async (req, res) => {
   if (order.status !== "on_the_way") fail("Start the delivery before confirming handoff.", 409);
   if (!order.handoffOtpVersion || order.handoffOtpExpiresAt?.getTime() <= Date.now()) {
     fail(
-      "The handoff code is missing or expired. Start the delivery again to issue a new code.",
+      "The handoff code is missing or expired. Reissue the handoff code before continuing.",
       409,
     );
   }
@@ -164,6 +286,7 @@ const confirmCollection = asyncHandler(async (req, res) => {
   if (!/^\d{6}$/.test(String(otp)) || String(otp) !== expected) {
     order.handoffOtpAttemptCount += 1;
     await order.save();
+    await logRejectedHandoffAttempt({ req, order, context: "delivery payment collection" });
     fail("The handoff code is incorrect.", 409);
   }
 
@@ -227,6 +350,20 @@ const confirmCollection = asyncHandler(async (req, res) => {
     });
     return currentOrder;
   });
+  recordActivity(req, {
+    action: "order.delivery_payment_collected",
+    entity: "order",
+    entityId: completedOrder._id,
+    entityName: `Order #${completedOrder.orderNumber}`,
+    actionType: "status_toggle",
+    changes: [
+      { field: "Order status", from: "on_the_way", to: "delivered" },
+      { field: "Payment status", from: "unpaid", to: "collected" },
+      { field: "Collection method", from: "Not recorded", to: method },
+      { field: "Handoff code", from: "Issued", to: "Verified" },
+    ],
+    description: `collected ${formatNairaFromKobo(amount)} by ${method.toUpperCase()} and confirmed handoff for order #${completedOrder.orderNumber}`,
+  });
   res.json({ success: true, data: completedOrder });
 });
 
@@ -242,7 +379,7 @@ const confirmPrepaidHandoff = asyncHandler(async (req, res) => {
   if (order.status !== "on_the_way") fail("Start the delivery before confirming handoff.", 409);
   if (!order.handoffOtpVersion || order.handoffOtpExpiresAt?.getTime() <= Date.now()) {
     fail(
-      "The handoff code is missing or expired. Start the delivery again to issue a new code.",
+      "The handoff code is missing or expired. Reissue the handoff code before continuing.",
       409,
     );
   }
@@ -251,6 +388,7 @@ const confirmPrepaidHandoff = asyncHandler(async (req, res) => {
   if (!/^\d{6}$/.test(String(req.body.otp)) || String(req.body.otp) !== deriveHandoffOtp(order)) {
     order.handoffOtpAttemptCount += 1;
     await order.save();
+    await logRejectedHandoffAttempt({ req, order, context: "prepaid delivery handoff" });
     fail("The handoff code is incorrect.", 409);
   }
 
@@ -287,6 +425,18 @@ const confirmPrepaidHandoff = asyncHandler(async (req, res) => {
     });
     return currentOrder;
   });
+  recordActivity(req, {
+    action: "order.prepaid_handoff_confirmed",
+    entity: "order",
+    entityId: completedOrder._id,
+    entityName: `Order #${completedOrder.orderNumber}`,
+    actionType: "status_toggle",
+    changes: [
+      { field: "Order status", from: "on_the_way", to: "delivered" },
+      { field: "Handoff code", from: "Issued", to: "Verified" },
+    ],
+    description: `confirmed the prepaid customer handoff for order #${completedOrder.orderNumber}`,
+  });
   res.json({ success: true, data: completedOrder });
 });
 
@@ -312,6 +462,18 @@ const reconcileCollection = asyncHandler(async (req, res) => {
       },
     },
   );
+  recordActivity(req, {
+    action: "order.collection_reconciled",
+    entity: "order",
+    entityId: order._id,
+    entityName: `Order #${order.orderNumber}`,
+    actionType: "status_toggle",
+    changes: [
+      { field: "Payment status", from: "collected", to: "reconciled" },
+      { field: "Reconciliation status", from: "pending", to: "reconciled" },
+    ],
+    description: `reconciled the offline collection for order #${order.orderNumber}`,
+  });
   res.json({ success: true, data: order });
 });
 
@@ -342,6 +504,7 @@ const confirmPickupCollection = asyncHandler(async (req, res) => {
   if (!/^\d{6}$/.test(String(otp)) || String(otp) !== deriveHandoffOtp(order)) {
     order.handoffOtpAttemptCount += 1;
     await order.save();
+    await logRejectedHandoffAttempt({ req, order, context: "store pickup" });
     fail("The handoff code is incorrect.", 409);
   }
 
@@ -405,6 +568,20 @@ const confirmPickupCollection = asyncHandler(async (req, res) => {
     });
     return currentOrder;
   });
+  recordActivity(req, {
+    action: "order.pickup_payment_collected",
+    entity: "order",
+    entityId: completedOrder._id,
+    entityName: `Order #${completedOrder.orderNumber}`,
+    actionType: "status_toggle",
+    changes: [
+      { field: "Order status", from: "ready_for_pickup", to: "picked_up" },
+      { field: "Payment status", from: "unpaid", to: "collected" },
+      { field: "Collection method", from: "Not recorded", to: method },
+      { field: "Handoff code", from: "Issued", to: "Verified" },
+    ],
+    description: `collected ${formatNairaFromKobo(amount)} by ${method.toUpperCase()} and confirmed pickup for order #${completedOrder.orderNumber}`,
+  });
   res.json({ success: true, data: completedOrder });
 });
 
@@ -415,6 +592,7 @@ export {
   confirmPrepaidHandoff,
   getHandoffCode,
   listCourierOrders,
+  reissueHandoffCode,
   reconcileCollection,
   startDelivery,
 };

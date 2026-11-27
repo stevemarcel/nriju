@@ -1,5 +1,6 @@
 const ACTOR_ROLE_LABELS = {
   customer: "Customer",
+  courier: "Courier",
   admin: "Admin",
   superAdmin: "Super Admin",
 };

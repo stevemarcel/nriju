@@ -1,7 +1,7 @@
 import Notification from "../models/Notification.js";
 import EmailOutbox from "../models/EmailOutbox.js";
 import User from "../models/User.js";
-import { orderStatusEmail } from "./emailService.js";
+import { handoffCodeReissuedEmail, orderStatusEmail } from "./emailService.js";
 
 const ORDER_STATUS_CONTENT = {
   confirmed: {
@@ -126,23 +126,17 @@ const createUserNotification = async (
 
   let notification;
   try {
-    notification = await Notification.findOneAndUpdate(
-      { user, eventKey },
-      update,
-      {
-        upsert: true,
-        new: true,
-        setDefaultsOnInsert: true,
-        session,
-      },
-    );
+    notification = await Notification.findOneAndUpdate({ user, eventKey }, update, {
+      upsert: true,
+      new: true,
+      setDefaultsOnInsert: true,
+      session,
+    });
   } catch (error) {
     // Two workers may observe the same event at once. The unique event index
     // is the final idempotency guard; return the winning row on that race.
     if (error?.code !== 11000) throw error;
-    notification = await Notification.findOne({ user, eventKey }).session(
-      session || null,
-    );
+    notification = await Notification.findOne({ user, eventKey }).session(session || null);
     if (!notification) throw error;
   }
 
@@ -251,15 +245,55 @@ const createOrderStatusNotification = async (
         status,
         reviewProductIds: reviewItems.map((item) => item.product),
       },
-      ...(email
-        ? { email: { to: user.email, toName: user.name, ...email } }
-        : {}),
+      ...(email ? { email: { to: user.email, toName: user.name, ...email } } : {}),
+    },
+    { session },
+  );
+};
+
+const createHandoffCodeReissuedNotification = async (
+  order,
+  { session, issuerLabel = "Your courier" } = {},
+) => {
+  if (!order.user) return null;
+  const user = await User.findById(order.user)
+    .select("name email")
+    .session(session || null);
+  if (!user) return null;
+
+  const link = `/account/orders?order=${order._id}`;
+  const email = handoffCodeReissuedEmail({
+    order,
+    name: user.name,
+    link,
+    expiresAt: order.handoffOtpExpiresAt,
+    issuerLabel,
+  });
+
+  return createUserNotification(
+    {
+      user: user._id,
+      type: "order",
+      eventKey: `order:${order._id}:handoff-code:${order.handoffOtpVersion}`,
+      title: "New handoff code available",
+      message: `${issuerLabel} issued a new handoff code for order ${order.orderNumber}. The previous code no longer works.`,
+      link,
+      entityType: "order",
+      entityId: order._id,
+      data: {
+        orderId: order._id,
+        orderNumber: order.orderNumber,
+        status: order.status,
+        expiresAt: order.handoffOtpExpiresAt,
+      },
+      email: { to: user.email, toName: user.name, ...email },
     },
     { session },
   );
 };
 
 export {
+  createHandoffCodeReissuedNotification,
   createOrderReceivedNotification,
   createOrderStatusNotification,
   createUserNotification,

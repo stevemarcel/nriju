@@ -17,6 +17,7 @@ import { expirePendingPaymentOrders } from "./services/orderExpiryService.js";
 import { startNotificationWorkers } from "./services/notificationWorker.js";
 import Notification from "./models/Notification.js";
 import EmailOutbox from "./models/EmailOutbox.js";
+import ActivityLog from "./models/ActivityLog.js";
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
@@ -114,7 +115,7 @@ const startServer = async () => {
   await connectDB();
   // Create the notification collections and their idempotency indexes before
   // order transactions attempt to write to them for the first time.
-  await Promise.all([Notification.init(), EmailOutbox.init()]);
+  await Promise.all([Notification.init(), EmailOutbox.init(), ActivityLog.init()]);
 
   app.listen(port, () => {
     console.log(`Nriju server started on port ${port}`.yellow.bold);

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
+import ActivityLog from "../models/ActivityLog.js";
 import { restoreStockAllocations } from "./inventoryService.js";
 import { createOrderStatusNotification } from "./notificationService.js";
 
@@ -38,6 +39,25 @@ const expireOrder = async (orderId) => {
       order.stockRestoredAt = new Date();
       await order.save({ session });
       await createOrderStatusNotification(order, "cancelled", { session });
+      await ActivityLog.create(
+        [
+          {
+            actorRole: "system",
+            action: "order.payment_expired",
+            entity: "order",
+            entityId: order._id,
+            entityName: `Order #${order.orderNumber}`,
+            actionType: "status_toggle",
+            description: `Nriju system cancelled order #${order.orderNumber} after its payment window expired and released the reserved stock.`,
+            changes: [
+              { field: "Order status", from: "pending", to: "cancelled" },
+              { field: "Payment status", from: "pending", to: "failed" },
+              { field: "Inventory reservation", from: "Reserved", to: "Released" },
+            ],
+          },
+        ],
+        { session },
+      );
       expiredOrder = order;
     });
   } finally {

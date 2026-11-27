@@ -104,10 +104,11 @@ const ActivityDetailsModal = ({ activity, onClose }) => {
                 Performer
               </span>
               <p className="mt-1 text-sm font-medium text-text">
-                {activity.user?.name || "Unknown"}{" "}
-                {activity.user?.role && (
+                {activity.user?.name ||
+                  (activity.actorRole === "system" ? "Nriju system" : "Unknown")}{" "}
+                {(activity.user?.role || activity.actorRole) && (
                   <span className="ml-2 rounded bg-primary/10 px-2 py-0.5 text-xs capitalize text-primary">
-                    {activity.user.role.replace(/([A-Z])/g, " $1").trim()}
+                    {(activity.user?.role || activity.actorRole).replace(/([A-Z])/g, " $1").trim()}
                   </span>
                 )}
               </p>

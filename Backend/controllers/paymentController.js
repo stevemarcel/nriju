@@ -5,7 +5,9 @@ import mongoose from "mongoose";
 import Coupon from "../models/Coupon.js";
 import Order from "../models/Order.js";
 import Payment from "../models/Payment.js";
+import ActivityLog from "../models/ActivityLog.js";
 import { createOrderStatusNotification } from "../services/notificationService.js";
+import { formatNairaFromKobo, recordActivity } from "../utils/activityUtils.js";
 
 const fail = (message, status = 400) => {
   const error = new Error(message);
@@ -116,6 +118,8 @@ const applySuccessfulCharge = async (payment, paystackData) => {
       await freshPayment.save({ session });
 
       if (order.paymentStatus !== "paid") {
+        const previousPaymentStatus = order.paymentStatus;
+        const previousOrderStatus = order.status;
         const changedToConfirmed = order.status === "pending";
         if (changedToConfirmed) order.status = "confirmed";
         order.paymentStatus = "paid";
@@ -131,6 +135,38 @@ const applySuccessfulCharge = async (payment, paystackData) => {
         if (changedToConfirmed) {
           await createOrderStatusNotification(order, "confirmed", { session });
         }
+        await ActivityLog.create(
+          [
+            {
+              user: order.user,
+              actorRole: "customer",
+              action: "payment.paystack_confirmed",
+              entity: "order",
+              entityId: order._id,
+              entityName: `Order #${order.orderNumber}`,
+              actionType: "status_toggle",
+              description: `Paystack confirmed ${formatNairaFromKobo(order.total)} for order #${order.orderNumber}.`,
+              changes: [
+                {
+                  field: "Payment status",
+                  from: previousPaymentStatus,
+                  to: "paid",
+                },
+                ...(changedToConfirmed
+                  ? [
+                      {
+                        field: "Order status",
+                        from: previousOrderStatus,
+                        to: "confirmed",
+                      },
+                    ]
+                  : []),
+                { field: "Payment channel", from: "Not recorded", to: paystackData.channel },
+              ],
+            },
+          ],
+          { session },
+        );
       }
       confirmedOrder = order;
     });
@@ -185,6 +221,16 @@ const initializePayment = asyncHandler(async (req, res) => {
     status: "pending",
     customerEmail: req.user.email,
     metadata: paystackRes.data,
+  });
+
+  recordActivity(req, {
+    action: "payment.paystack_initialized",
+    entity: "order",
+    entityId: order._id,
+    entityName: `Order #${order.orderNumber}`,
+    actionType: "update",
+    changes: [{ field: "Payment session", from: "Not initialized", to: "Pending" }],
+    description: `started Paystack checkout for order #${order.orderNumber} totalling ${formatNairaFromKobo(order.total)}`,
   });
 
   res.json({

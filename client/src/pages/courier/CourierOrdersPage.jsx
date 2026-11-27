@@ -1,11 +1,22 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Banknote, Check, Loader2, LogOut, MapPin, PackageCheck, Truck } from "lucide-react";
+import {
+  Banknote,
+  Check,
+  CircleAlert,
+  Loader2,
+  LogOut,
+  MapPin,
+  PackageCheck,
+  RefreshCw,
+  Truck,
+} from "lucide-react";
 import { toast } from "sonner";
 import api from "../../services/api";
 import { clearAuth } from "../../slices/authSlice";
 import { useAppDispatch, useAppSelector } from "../../store/store";
 import { formatNaira, toKobo } from "../../utils/formatMoney";
+import { ConfirmModal } from "../../components/ui/ConfirmModal";
 
 const COLLECTION_METHODS = [
   { value: "cash", label: "Cash" },
@@ -13,11 +24,15 @@ const COLLECTION_METHODS = [
   { value: "transfer", label: "Transfer" },
 ];
 
+const handoffCodeHasExpired = (order) =>
+  Boolean(order.handoffOtpExpiresAt) && new Date(order.handoffOtpExpiresAt).getTime() <= Date.now();
+
 const CourierOrdersPage = () => {
   const dispatch = useAppDispatch();
   const queryClient = useQueryClient();
   const { user } = useAppSelector((state) => state.auth);
   const [collecting, setCollecting] = useState(null);
+  const [reissueOrderId, setReissueOrderId] = useState(null);
   const [collection, setCollection] = useState({
     otp: "",
     method: "cash",
@@ -51,6 +66,15 @@ const CourierOrdersPage = () => {
     },
     onError: (error) =>
       toast.error(error?.response?.data?.message || "Could not confirm collection."),
+  });
+  const reissueMutation = useMutation({
+    mutationFn: (orderId) => api.post(`/courier/orders/${orderId}/handoff-code/reissue`),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courier", "orders"] });
+      toast.success("New handoff code issued. The customer has been notified.");
+    },
+    onError: (error) =>
+      toast.error(error?.response?.data?.message || "Could not reissue the handoff code."),
   });
 
   const openCollection = (order) => {
@@ -157,6 +181,21 @@ const CourierOrdersPage = () => {
                   </li>
                 ))}
               </ul>
+
+              {order.status === "on_the_way" && handoffCodeHasExpired(order) ? (
+                <div className="mt-5 flex items-start gap-3 rounded-xl border border-border bg-background-soft p-4 text-sm text-text-secondary">
+                  <CircleAlert
+                    className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+                    aria-hidden="true"
+                  />
+                  <div>
+                    <p className="font-semibold text-text">Handoff code expired</p>
+                    <p className="mt-1 text-xs leading-5">
+                      Issue a new code before collecting payment or confirming delivery.
+                    </p>
+                  </div>
+                </div>
+              ) : null}
 
               {collecting === order._id ? (
                 <form
@@ -282,20 +321,49 @@ const CourierOrdersPage = () => {
                     </button>
                   ) : null}
                   {order.status === "on_the_way" ? (
-                    <button
-                      type="button"
-                      onClick={() => openCollection(order)}
-                      className="inline-flex min-h-11 items-center gap-2 rounded-button bg-primary px-5 font-semibold text-on-accent"
-                    >
-                      {order.paymentMethod === "pay_on_delivery" ? (
-                        <Banknote className="h-4 w-4" />
-                      ) : (
-                        <PackageCheck className="h-4 w-4" />
-                      )}
-                      {order.paymentMethod === "pay_on_delivery"
-                        ? "Confirm payment and handoff"
-                        : "Confirm handoff"}
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => setReissueOrderId(order._id)}
+                        disabled={reissueMutation.isPending}
+                        aria-busy={
+                          reissueMutation.isPending && reissueMutation.variables === order._id
+                        }
+                        className={`inline-flex min-h-11 items-center gap-2 rounded-button px-4 font-semibold disabled:cursor-not-allowed disabled:opacity-60 ${
+                          handoffCodeHasExpired(order)
+                            ? "bg-primary text-on-accent"
+                            : "border border-primary text-primary"
+                        }`}
+                      >
+                        <RefreshCw
+                          className={`h-4 w-4 ${
+                            reissueMutation.isPending && reissueMutation.variables === order._id
+                              ? "animate-spin"
+                              : ""
+                          }`}
+                          aria-hidden="true"
+                        />
+                        {handoffCodeHasExpired(order)
+                          ? "Reissue expired code"
+                          : "Reissue handoff code"}
+                      </button>
+                      {!handoffCodeHasExpired(order) ? (
+                        <button
+                          type="button"
+                          onClick={() => openCollection(order)}
+                          className="inline-flex min-h-11 items-center gap-2 rounded-button bg-primary px-5 font-semibold text-on-accent"
+                        >
+                          {order.paymentMethod === "pay_on_delivery" ? (
+                            <Banknote className="h-4 w-4" />
+                          ) : (
+                            <PackageCheck className="h-4 w-4" />
+                          )}
+                          {order.paymentMethod === "pay_on_delivery"
+                            ? "Confirm payment and handoff"
+                            : "Confirm handoff"}
+                        </button>
+                      ) : null}
+                    </>
                   ) : null}
                 </div>
               )}
@@ -303,6 +371,19 @@ const CourierOrdersPage = () => {
           ))}
         </div>
       </div>
+      <ConfirmModal
+        open={Boolean(reissueOrderId)}
+        title="Issue a new handoff code?"
+        description="The customer's current code will stop working immediately. A new code and expiry time will appear in their order, and they will receive a notification."
+        confirmLabel="Issue new code"
+        variant="primary"
+        onConfirm={() => {
+          const orderId = reissueOrderId;
+          setReissueOrderId(null);
+          if (orderId) reissueMutation.mutate(orderId);
+        }}
+        onCancel={() => setReissueOrderId(null)}
+      />
     </main>
   );
 };

@@ -2,7 +2,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import api from "../../services/api";
 import { Breadcrumb } from "../../components/ui/Navigation";
-import { KeyRound, Package, Star } from "lucide-react";
+import { CircleAlert, KeyRound, Package, RefreshCw, Star } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { formatNaira } from "../../utils/formatMoney";
 import AccountOrderReviewModal from "../../components/account/AccountOrderReviewModal";
@@ -23,11 +23,30 @@ const STATUS_MAP = {
 };
 
 const HandoffCode = ({ orderId }) => {
+  const [now, setNow] = useState(Date.now());
   const codeMutation = useMutation({
-    mutationFn: async () => (await api.get(`/orders/${orderId}/handoff-code`)).data.data,
+    mutationFn: async () =>
+      (
+        await api.get(`/orders/${orderId}/handoff-code`, {
+          skipGlobalErrorToast: true,
+        })
+      ).data.data,
   });
+  const expiresAt = codeMutation.data?.expiresAt
+    ? new Date(codeMutation.data.expiresAt).getTime()
+    : null;
+  const expired = Boolean(expiresAt) && expiresAt <= now;
 
-  if (codeMutation.data) {
+  useEffect(() => {
+    if (!expiresAt || expired) return undefined;
+    const timeout = window.setTimeout(
+      () => setNow(Date.now()),
+      Math.min(expiresAt - Date.now() + 250, 2_147_483_647),
+    );
+    return () => window.clearTimeout(timeout);
+  }, [expired, expiresAt]);
+
+  if (codeMutation.data && !expired) {
     return (
       <div className="rounded-xl border border-primary/20 bg-accent-soft p-3 text-left">
         <p className="text-xs font-semibold text-primary">Handoff code</p>
@@ -37,20 +56,50 @@ const HandoffCode = ({ orderId }) => {
         <p className="mt-1 text-xs leading-5 text-text-secondary">
           Show this only after you have received the order and completed payment.
         </p>
+        <p className="mt-1 text-xs text-text-muted">
+          Expires {new Date(codeMutation.data.expiresAt).toLocaleString("en-NG")}.
+        </p>
       </div>
     );
   }
 
+  const errorMessage = expired
+    ? "This handoff code has expired. Your courier must issue a new one."
+    : codeMutation.error?.response?.data?.message;
+
   return (
-    <button
-      type="button"
-      onClick={() => codeMutation.mutate()}
-      disabled={codeMutation.isPending}
-      className="inline-flex min-h-10 items-center gap-2 rounded-button border border-primary px-3 text-sm font-semibold text-primary disabled:opacity-50"
-    >
-      <KeyRound className="h-4 w-4" aria-hidden="true" />
-      {codeMutation.isPending ? "Loading code" : "Show handoff code"}
-    </button>
+    <div className="space-y-3">
+      {errorMessage ? (
+        <div
+          className="flex items-start gap-2 rounded-xl border border-border bg-background-soft p-3 text-xs leading-5 text-text-secondary"
+          role="status"
+        >
+          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+          <span>{errorMessage}</span>
+        </div>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => codeMutation.mutate()}
+        disabled={codeMutation.isPending}
+        aria-busy={codeMutation.isPending}
+        className="inline-flex min-h-10 items-center gap-2 rounded-button border border-primary px-3 text-sm font-semibold text-primary outline-none hover:bg-accent-soft focus-visible:ring-2 focus-visible:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {expired || codeMutation.isError ? (
+          <RefreshCw
+            className={`h-4 w-4 ${codeMutation.isPending ? "animate-spin" : ""}`}
+            aria-hidden="true"
+          />
+        ) : (
+          <KeyRound className="h-4 w-4" aria-hidden="true" />
+        )}
+        {codeMutation.isPending
+          ? "Checking for a new code"
+          : expired || codeMutation.isError
+            ? "Check for new code"
+            : "Show handoff code"}
+      </button>
+    </div>
   );
 };
 

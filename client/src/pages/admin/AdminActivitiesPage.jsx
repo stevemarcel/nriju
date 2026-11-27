@@ -24,6 +24,7 @@ import {
   User,
   Users,
   ShoppingCart,
+  Truck,
   Package,
   Ticket,
   Check,
@@ -83,8 +84,10 @@ const ENTITY_TYPE_OPTIONS = [
 ];
 
 const ROLE_ICON_MAP = {
+  system: <Clock className="w-4 h-4 text-text-muted" />,
   superAdmin: <ShieldCheck className="w-4 h-4 text-amber-400" />,
   admin: <Shield className="w-4 h-4 text-blue-500" />,
+  courier: <Truck className="w-4 h-4 text-primary" />,
   customer: <User className="w-4 h-4 text-text-muted" />,
 };
 
@@ -128,7 +131,7 @@ const AdminActivitiesPage = () => {
     <div className="space-y-6">
       <AdminPageHeader
         title="Activity Log"
-        subtitle="Review important admin actions and changes across the store."
+        subtitle="Review important customer, payment, fulfilment and administrative changes."
       />
 
       {/* Filter bar */}
@@ -223,7 +226,7 @@ const AdminActivitiesPage = () => {
       <div className="bg-surface rounded-[20px] shadow-sm border border-border/60 overflow-hidden">
         <AdminTableHeader
           title="Recent activity"
-          description="Review important changes made across the admin."
+          description="Review important changes across the complete order workflow."
           total={meta.total}
           countLabel="activities"
         />
@@ -257,16 +260,20 @@ const AdminActivitiesPage = () => {
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex flex-col items-start leading-tight">
-                        <span className="font-medium text-text">{a.user?.name || "Unknown"}</span>
+                        <span className="font-medium text-text">
+                          {a.user?.name || (a.actorRole === "system" ? "Nriju system" : "Unknown")}
+                        </span>
 
-                        {a.user?.role && (
+                        {(a.user?.role || a.actorRole) && (
                           <div className="flex items-center gap-1 mt-0.5">
                             <div className="w-3 h-3 flex items-center">
-                              {ROLE_ICON_MAP[a.user?.role] || <User className=" text-text-muted" />}
+                              {ROLE_ICON_MAP[a.user?.role || a.actorRole] || (
+                                <User className="text-text-muted" />
+                              )}
                             </div>
 
                             <span className="text-xs text-text-muted capitalize w-fit">
-                              {a.user.role
+                              {(a.user?.role || a.actorRole)
                                 .replace(/([A-Z])/g, " $1")
                                 .trim()
                                 .replace(/^\w/, (c) => c.toUpperCase())}
