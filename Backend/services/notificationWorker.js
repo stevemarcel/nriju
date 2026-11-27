@@ -34,16 +34,21 @@ const processPendingEmails = async ({ limit = MAX_EMAILS_PER_RUN } = {}) => {
     const email = await claimNextEmail();
     if (!email) break;
 
-    const sent = await sendEmail({
-      to: email.to,
-      toName: email.toName,
-      subject: email.subject,
-      html: email.html,
-      text: email.text,
-    });
+    let sendError = null;
+    try {
+      await sendEmail({
+        to: email.to,
+        toName: email.toName,
+        subject: email.subject,
+        html: email.html,
+        text: email.text,
+      });
+    } catch (error) {
+      sendError = error;
+    }
     const now = new Date();
 
-    if (sent) {
+    if (!sendError) {
       email.status = "sent";
       email.sentAt = now;
       email.claimedAt = null;
@@ -52,7 +57,9 @@ const processPendingEmails = async ({ limit = MAX_EMAILS_PER_RUN } = {}) => {
       const retryMinutes = Math.min(60, 2 ** Math.min(email.attempts, 6));
       email.status = "failed";
       email.claimedAt = null;
-      email.lastError = "Email provider rejected the delivery attempt.";
+      email.lastError = String(
+        sendError?.message || "Email provider rejected the delivery attempt.",
+      ).slice(0, 1000);
       email.nextAttemptAt = new Date(now.getTime() + retryMinutes * 60 * 1000);
     }
 

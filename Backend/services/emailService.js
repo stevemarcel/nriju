@@ -17,7 +17,7 @@ const send = async ({ to, toName, subject, html, text }) => {
   }
 
   try {
-    await getClient().transactionalEmails.sendEmail({
+    await getClient().transactionalEmails.sendTransacEmail({
       sender: {
         email: process.env.EMAIL_FROM || "orders@nriju.com",
         name: process.env.EMAIL_FROM_NAME || "Nriju Store",
@@ -29,8 +29,13 @@ const send = async ({ to, toName, subject, html, text }) => {
     });
     return true;
   } catch (error) {
-    console.error("Brevo send failed:", error.message);
-    return false;
+    const providerMessage =
+      error?.body?.message ||
+      error?.response?.body?.message ||
+      error?.message ||
+      "Unknown email provider error";
+    console.error("Brevo send failed:", providerMessage);
+    throw new Error(providerMessage);
   }
 };
 

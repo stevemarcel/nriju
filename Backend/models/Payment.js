@@ -31,19 +31,8 @@ const paymentSchema = new mongoose.Schema(
     }, // integer kobo — Paystack expects this natively, passes through unchanged
     channel: {
       type: String,
-      enum: [
-        "card",
-        "bank",
-        "bank_transfer",
-        "ussd",
-        "qr",
-        "apple_pay",
-        "mobile_money",
-        "payattitude",
-        "cash",
-        "pos",
-        "transfer",
-      ],
+      trim: true,
+      maxlength: 50,
     },
     status: {
       type: String,

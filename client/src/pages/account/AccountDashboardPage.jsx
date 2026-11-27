@@ -41,10 +41,17 @@ const AccountDashboardPage = () => {
 
   const orders = ordersData?.data || [];
   const activeOrders = orders.filter((o) =>
-    ["pending", "confirmed", "preparing", "ready_for_pickup", "on_the_way"].includes(o.status),
+    [
+      "pending",
+      "confirmed",
+      "preparing",
+      "ready_for_pickup",
+      "on_the_way",
+    ].includes(o.status),
   );
 
-  const defaultAddress = user?.addresses?.find((a) => a.isDefault) || user?.addresses?.[0];
+  const defaultAddress =
+    user?.addresses?.find((a) => a.isDefault) || user?.addresses?.[0];
   const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
   const isCourier = user?.role === "courier";
   const isSuperAdmin = user?.role === "superAdmin";
@@ -64,7 +71,9 @@ const AccountDashboardPage = () => {
       {/* Top breadcrumb bar */}
       <div className="bg-surface border-b border-border-soft">
         <div className="container mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
-          <Breadcrumb crumbs={[{ label: "Store", to: "/" }, { label: "Account" }]} />
+          <Breadcrumb
+            crumbs={[{ label: "Store", to: "/" }, { label: "Account" }]}
+          />
         </div>
       </div>
 
@@ -100,7 +109,9 @@ const AccountDashboardPage = () => {
                   </div>
                 </div>
 
-                <h2 className="font-heading text-2xl font-bold text-text">{user?.name}</h2>
+                <h2 className="font-heading text-2xl font-bold text-text">
+                  {user?.name}
+                </h2>
                 {isAdmin && (
                   <div className="mt-3">
                     <span
@@ -111,8 +122,14 @@ const AccountDashboardPage = () => {
                             : "bg-blue-100 text-blue-700"
                         }`}
                     >
-                      {isSuperAdmin ? <Zap className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
-                      {user?.role?.replace("superAdmin", "Super Admin").replace("admin", "Admin")}
+                      {isSuperAdmin ? (
+                        <Zap className="w-3 h-3" />
+                      ) : (
+                        <Shield className="w-3 h-3" />
+                      )}
+                      {user?.role
+                        ?.replace("superAdmin", "Super Admin")
+                        .replace("admin", "Admin")}
                     </span>
                   </div>
                 )}
@@ -120,7 +137,9 @@ const AccountDashboardPage = () => {
                 {/* Stats */}
                 <div className="w-full grid gap-4 mt-8 pt-8 border-t border-border-soft md:grid-cols-2">
                   <div className="bg-background-soft rounded-xl p-4">
-                    <div className="font-heading text-2xl font-bold text-text">{orders.length}</div>
+                    <div className="font-heading text-2xl font-bold text-text">
+                      {orders.length}
+                    </div>
                     <div className="text-[10px] uppercase font-bold text-text-muted tracking-tight">
                       Total Orders
                     </div>
@@ -137,19 +156,45 @@ const AccountDashboardPage = () => {
 
                 {/* Quick actions */}
                 <div className="w-full mt-6 space-y-2">
-                  <QuickActionLink to="/account/orders" icon={Package} label="My Orders" />
+                  <QuickActionLink
+                    to="/account/orders"
+                    icon={Package}
+                    label="My Orders"
+                  />
                   <QuickActionLink
                     to="/account/wishlist"
                     icon={Heart}
                     label="Wish List"
                     count={wishlistItems.length}
                   />
-                  <QuickActionLink to="/account/profile" icon={User} label="Profile" />
-                  <QuickActionLink to="/account/notifications" icon={Bell} label="Notifications" />
-                  <QuickActionLink to="/account/change-password" icon={Lock} label="Password" />
-                  {isAdmin && <QuickActionLink to="/admin" icon={Shield} label="Admin Dashboard" />}
+                  <QuickActionLink
+                    to="/account/profile"
+                    icon={User}
+                    label="Profile"
+                  />
+                  <QuickActionLink
+                    to="/account/notifications"
+                    icon={Bell}
+                    label="Notifications"
+                  />
+                  <QuickActionLink
+                    to="/account/change-password"
+                    icon={Lock}
+                    label="Password"
+                  />
+                  {isAdmin && (
+                    <QuickActionLink
+                      to="/admin"
+                      icon={Shield}
+                      label="Admin Dashboard"
+                    />
+                  )}
                   {isCourier && (
-                    <QuickActionLink to="/courier" icon={Truck} label="Courier Portal" />
+                    <QuickActionLink
+                      to="/courier"
+                      icon={Truck}
+                      label="Courier Portal"
+                    />
                   )}
                 </div>
 
@@ -189,7 +234,9 @@ const AccountDashboardPage = () => {
                       <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
                         Full Name
                       </div>
-                      <div className="text-base font-semibold text-text">{user?.name}</div>
+                      <div className="text-base font-semibold text-text">
+                        {user?.name}
+                      </div>
                     </div>
                     <div>
                       <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
@@ -206,7 +253,9 @@ const AccountDashboardPage = () => {
                         <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
                           Phone Number
                         </div>
-                        <div className="text-base font-semibold text-text">{user?.phone}</div>
+                        <div className="text-base font-semibold text-text">
+                          {user?.phone}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -247,7 +296,9 @@ const AccountDashboardPage = () => {
                         <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
                           City
                         </div>
-                        <div className="text-sm font-semibold text-text">{defaultAddress.city}</div>
+                        <div className="text-sm font-semibold text-text">
+                          {defaultAddress.city}
+                        </div>
                       </div>
                       <div>
                         <div className="text-[10px] uppercase font-bold text-text-muted tracking-widest mb-1.5">
@@ -321,7 +372,9 @@ const AccountDashboardPage = () => {
                           <Package className="w-6 h-6 text-primary" />
                         </div>
                         <div>
-                          <div className="font-bold text-text text-sm">{o.orderNumber}</div>
+                          <div className="font-bold text-text text-sm">
+                            {o.orderNumber}
+                          </div>
                           <div className="text-xs text-text-muted font-medium mt-0.5">
                             {o.items.length} item(s) ·{" "}
                             {new Date(o.createdAt).toLocaleDateString("en-NG", {
@@ -355,7 +408,9 @@ const AccountDashboardPage = () => {
                 <Heart className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h2 className="font-heading text-xl font-bold text-text">Wish List</h2>
+                <h2 className="font-heading text-xl font-bold text-text">
+                  Wish List
+                </h2>
                 <p className="text-xs text-text-muted font-medium mt-0.5">
                   {wishlistItems.length} item
                   {wishlistItems.length !== 1 ? "s" : ""} saved
@@ -415,7 +470,9 @@ const AccountDashboardPage = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="text-[10px] font-bold text-text-muted uppercase tracking-widest">
-                        {product.category?.name || product.category || "General"}
+                        {product.category?.name ||
+                          product.category ||
+                          "General"}
                       </div>
                       <h3 className="font-heading font-bold text-text group-hover:text-primary transition-colors truncate">
                         {product.name}

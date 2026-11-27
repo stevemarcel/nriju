@@ -46,8 +46,18 @@ const DELIVERY_OPTIONS = [
 ];
 
 const ADDRESS_FIELDS = [
-  { key: "name", label: "Full name", autoComplete: "name", placeholder: "Your full name" },
-  { key: "phone", label: "Phone number", autoComplete: "tel", placeholder: "+234" },
+  {
+    key: "name",
+    label: "Full name",
+    autoComplete: "name",
+    placeholder: "Your full name",
+  },
+  {
+    key: "phone",
+    label: "Phone number",
+    autoComplete: "tel",
+    placeholder: "+234",
+  },
   {
     key: "line1",
     label: "Street address",
@@ -61,8 +71,18 @@ const ADDRESS_FIELDS = [
     placeholder: "Optional",
     optional: true,
   },
-  { key: "city", label: "City", autoComplete: "address-level2", placeholder: "City" },
-  { key: "state", label: "State", autoComplete: "address-level1", placeholder: "State" },
+  {
+    key: "city",
+    label: "City",
+    autoComplete: "address-level2",
+    placeholder: "City",
+  },
+  {
+    key: "state",
+    label: "State",
+    autoComplete: "address-level1",
+    placeholder: "State",
+  },
 ];
 
 const methodsForCart = (items) => {
@@ -292,7 +312,9 @@ const CheckoutPage = () => {
     },
   });
 
-  const createOrder = useMutation({ mutationFn: (payload) => api.post("/orders", payload) });
+  const createOrder = useMutation({
+    mutationFn: (payload) => api.post("/orders", payload),
+  });
   const initializePayment = useMutation({
     mutationFn: (orderId) =>
       api.post("/payments/initialize", {
@@ -373,7 +395,9 @@ const CheckoutPage = () => {
       }
 
       dispatch(clearAll());
-      navigate(`/checkout/result?order=${order._id}&mode=offline`, { replace: true });
+      navigate(`/checkout/result?order=${order._id}&mode=offline`, {
+        replace: true,
+      });
     } catch (error) {
       setFormError(
         error?.response?.data?.message || "We could not place your order. Please try again.",

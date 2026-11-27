@@ -48,7 +48,12 @@ const paystackRequest = ({ path, method = "GET", body }) =>
   });
 
 const callbackUrlFor = (req, requestedUrl) => {
-  const allowedOrigins = [req.get("origin"), process.env.CLIENT_URL, process.env.APP_URL]
+  const allowedOrigins = [
+    req.get("origin"),
+    req.get("referer"),
+    process.env.CLIENT_URL,
+    process.env.APP_URL,
+  ]
     .filter(Boolean)
     .map((value) => {
       try {
@@ -189,7 +194,9 @@ const initializePayment = asyncHandler(async (req, res) => {
 });
 
 const verifyPayment = asyncHandler(async (req, res) => {
-  const payment = await Payment.findOne({ paystackRef: req.params.reference }).populate("order");
+  const payment = await Payment.findOne({
+    paystackRef: req.params.reference,
+  }).populate("order");
   if (!payment) fail("Payment not found.", 404);
   if (!payment.order || String(payment.order.user) !== String(req.user._id)) {
     fail("Not authorized to verify this payment.", 403);
@@ -226,7 +233,9 @@ const handleWebhook = asyncHandler(async (req, res) => {
   if (!signatureIsValid) fail("Invalid Paystack webhook signature.", 401);
 
   if (req.body.event === "charge.success") {
-    const payment = await Payment.findOne({ paystackRef: req.body.data.reference });
+    const payment = await Payment.findOne({
+      paystackRef: req.body.data.reference,
+    });
     if (payment) await applySuccessfulCharge(payment, req.body.data);
   }
 

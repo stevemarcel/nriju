@@ -83,7 +83,10 @@ const LocationForm = ({
           step="1"
           value={value.sortOrder}
           onChange={(event) =>
-            setValue((current) => ({ ...current, sortOrder: event.target.value }))
+            setValue((current) => ({
+              ...current,
+              sortOrder: event.target.value,
+            }))
           }
           className={`${ADMIN_FIELD_CLASS} mt-1.5`}
         />
@@ -125,7 +128,9 @@ const AdminPickupLocationsPage = () => {
     mutationFn: ({ id, payload }) =>
       id ? api.patch(`/pickup-locations/${id}`, payload) : api.post("/pickup-locations", payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin", "pickup-locations"] });
+      queryClient.invalidateQueries({
+        queryKey: ["admin", "pickup-locations"],
+      });
       queryClient.invalidateQueries({ queryKey: ["pickup-locations"] });
       setAdding(false);
       setEditingId(null);

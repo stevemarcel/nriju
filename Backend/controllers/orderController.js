@@ -288,6 +288,42 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
     const previousStatus = order.status;
     const nextStatus = status ?? previousStatus;
 
+    if (nextStatus !== previousStatus) {
+      const paymentIsConfirmed = ["paid", "collected", "reconciled"].includes(order.paymentStatus);
+      if (
+        order.paymentMethod === "paystack" &&
+        !paymentIsConfirmed &&
+        !["cancelled", "refunded"].includes(nextStatus)
+      ) {
+        fail("Online payment must be confirmed before fulfilment can begin.", 409);
+      }
+      if (
+        ["ready_for_pickup", "picked_up"].includes(nextStatus) &&
+        order.deliveryMethod !== "pickup"
+      ) {
+        fail("Pickup statuses can only be used for pickup orders.", 409);
+      }
+      if (["on_the_way", "delivered"].includes(nextStatus) && order.deliveryMethod === "pickup") {
+        fail("Delivery statuses cannot be used for pickup orders.", 409);
+      }
+      if (order.deliveryMethod === "own" && ["on_the_way", "delivered"].includes(nextStatus)) {
+        fail(
+          "Own-fleet trips must be started and completed in the courier portal so the handoff code is enforced.",
+          409,
+        );
+      }
+      if (
+        order.deliveryMethod === "pickup" &&
+        order.paymentMethod === "pay_at_pickup" &&
+        nextStatus === "picked_up"
+      ) {
+        fail(
+          "Use Confirm payment and pickup so collection and the handoff code are recorded.",
+          409,
+        );
+      }
+    }
+
     if (previousStatus === "refunded" && nextStatus !== "refunded") {
       fail("A refunded order cannot be moved back to another fulfilment status.", 409);
     }

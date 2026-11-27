@@ -99,6 +99,29 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
 
   // * Accessible title ID for modal dialog
   const titleId = "order-details-title";
+  const availableStatusOptions = statusOptions.filter((option) => {
+    if (!option.value || option.value === order.status) return true;
+    if (
+      ["ready_for_pickup", "picked_up"].includes(option.value) &&
+      order.deliveryMethod !== "pickup"
+    ) {
+      return false;
+    }
+    if (["on_the_way", "delivered"].includes(option.value) && order.deliveryMethod === "pickup") {
+      return false;
+    }
+    if (order.deliveryMethod === "own" && ["on_the_way", "delivered"].includes(option.value)) {
+      return false;
+    }
+    if (
+      order.deliveryMethod === "pickup" &&
+      order.paymentMethod === "pay_at_pickup" &&
+      option.value === "picked_up"
+    ) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <>
@@ -237,13 +260,14 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
                       <>
                         <div className="mr-2">
                           {(() => {
-                            const current = statusOptions.find((s) => s.value === status);
+                            const current = availableStatusOptions.find((s) => s.value === status);
                             const Icon = current?.Icon || Package;
                             return <Icon className="w-4 h-4 text-text-muted" />;
                           })()}
                         </div>
                         <span className="flex-1 text-left whitespace-nowrap">
-                          {statusOptions.find((s) => s.value === status)?.label || "Select Status"}
+                          {availableStatusOptions.find((s) => s.value === status)?.label ||
+                            "Select Status"}
                         </span>
                       </>
                     }
@@ -253,7 +277,7 @@ const OrderDetailsModal = ({ order, statusOptions, onClose, onUpdated }) => {
                     triggerClassName="min-h-10 rounded-xl focus-visible:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20"
                     menuClassName="sm:w-full"
                   >
-                    {statusOptions
+                    {availableStatusOptions
                       .filter((s) => s.value)
                       .map((s) => (
                         <button
