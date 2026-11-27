@@ -146,6 +146,14 @@ const SECTIONS = [
         type: "boolean",
         hint: "Enable or disable the pickup option on the Delivery page.",
       },
+      {
+        key: "pickup_instructions",
+        label: "Pickup instructions",
+        type: "textarea",
+        defaultValue:
+          "Show your order number at the pickup counter. Items are ready within 30 min of the 'ready for pickup' notification.",
+        hint: "Customer-facing instructions shown at checkout when pickup is selected.",
+      },
     ],
   },
   {

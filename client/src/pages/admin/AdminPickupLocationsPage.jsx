@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, MapPin, Plus, Save, X } from "lucide-react";
+import { Check, MapPin, Plus, Save, X, Search } from "lucide-react";
 import { toast } from "sonner";
 import api from "../../services/api";
 import { AdminPageHeader, EmptyState, TableSkeleton } from "../../components/admin/AdminPrimitives";
@@ -21,7 +21,7 @@ const EMPTY_LOCATION = {
   landmark: "",
   phone: "",
   openingHours: "",
-  instructions: "",
+  coordinates: { latitude: null, longitude: null },
   sortOrder: 0,
   isActive: true,
 };
@@ -35,7 +35,7 @@ const LOCATION_FIELDS = [
   ["landmark", "Landmark", "Optional"],
   ["phone", "Contact phone", "Optional"],
   ["openingHours", "Opening hours", "e.g. Mon–Sat, 9am–6pm"],
-  ["instructions", "Pickup instructions", "What customers should know"],
+  ["coordinates", "Coordinates", "Auto-filled from address"],
 ];
 
 const LocationForm = ({
@@ -46,33 +46,128 @@ const LocationForm = ({
   onCancel,
 }) => {
   const [value, setValue] = useState(initialValue);
+  const [geocoding, setGeocoding] = useState(false);
+
   const handleSubmit = (event) => {
     event.preventDefault();
     onSubmit({ ...value, sortOrder: Number(value.sortOrder) || 0 });
   };
 
+  const geocodeAddress = async () => {
+    const { addressLine, city, state } = value;
+    if (!addressLine || !city || !state) {
+      toast.error("Please fill in address, city, and state first.");
+      return;
+    }
+    setGeocoding(true);
+    try {
+      const query = encodeURIComponent([addressLine, city, state].filter(Boolean).join(", "));
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`,
+      );
+      const data = await response.json();
+      if (data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lon = parseFloat(data[0].lon);
+        setValue((current) => ({
+          ...current,
+          coordinates: { latitude: lat, longitude: lon },
+        }));
+        toast.success("Coordinates filled from address.");
+      } else {
+        toast.error("Could not find coordinates for this address.");
+      }
+    } catch {
+      toast.error("Geocoding failed. Please try again.");
+    } finally {
+      setGeocoding(false);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="grid gap-4 sm:grid-cols-2">
-      {LOCATION_FIELDS.map(([key, label, placeholder]) => (
-        <div
-          key={key}
-          className={key === "addressLine" || key === "instructions" ? "sm:col-span-2" : ""}
-        >
-          <label htmlFor={`${initialValue._id || "new"}-${key}`} className={ADMIN_LABEL_CLASS}>
-            {label}
-          </label>
-          <input
-            id={`${initialValue._id || "new"}-${key}`}
-            value={value[key] || ""}
-            required={["name", "code", "addressLine", "city", "state", "openingHours"].includes(
-              key,
+      {LOCATION_FIELDS.map(([key, label, placeholder]) => {
+        const isCoordinates = key === "coordinates";
+        const isWide = key === "addressLine" || key === "instructions";
+
+        return (
+          <div key={key} className={isWide ? "sm:col-span-2" : ""}>
+            <label htmlFor={`${initialValue._id || "new"}-${key}`} className={ADMIN_LABEL_CLASS}>
+              {label}
+            </label>
+            {isCoordinates ? (
+              <div className="flex gap-2 mt-1.5">
+                <input
+                  id={`${initialValue._id || "new"}-latitude`}
+                  type="number"
+                  step="0.000001"
+                  placeholder="Latitude"
+                  value={value.coordinates?.latitude ?? ""}
+                  onChange={(event) =>
+                    setValue((current) => ({
+                      ...current,
+                      coordinates: {
+                        ...current.coordinates,
+                        latitude: event.target.value ? parseFloat(event.target.value) : null,
+                      },
+                    }))
+                  }
+                  className={`${ADMIN_FIELD_CLASS} flex-1`}
+                />
+                <input
+                  id={`${initialValue._id || "new"}-longitude`}
+                  type="number"
+                  step="0.000001"
+                  placeholder="Longitude"
+                  value={value.coordinates?.longitude ?? ""}
+                  onChange={(event) =>
+                    setValue((current) => ({
+                      ...current,
+                      coordinates: {
+                        ...current.coordinates,
+                        longitude: event.target.value ? parseFloat(event.target.value) : null,
+                      },
+                    }))
+                  }
+                  className={`${ADMIN_FIELD_CLASS} flex-1`}
+                />
+                <button
+                  type="button"
+                  onClick={geocodeAddress}
+                  disabled={geocoding || pending}
+                  className={`${ADMIN_SECONDARY_BUTTON_CLASS} h-10 flex items-center gap-2`}
+                  title="Auto-fill coordinates from address, city, and state"
+                >
+                  {geocoding ? (
+                    <>
+                      <span className="animate-spin h-4 w-4 border-2 border-on-accent/30 border-t-on-accent rounded-full" />
+                      Geocoding...
+                    </>
+                  ) : (
+                    <>
+                      <Search className="h-4 w-4" />
+                      Fill from address
+                    </>
+                  )}
+                </button>
+              </div>
+            ) : (
+              <input
+                id={`${initialValue._id || "new"}-${key}`}
+                value={value[key] || ""}
+                required={["name", "code", "addressLine", "city", "state", "openingHours"].includes(
+                  key,
+                )}
+                placeholder={placeholder}
+                onChange={(event) =>
+                  setValue((current) => ({ ...current, [key]: event.target.value }))
+                }
+                className={`${ADMIN_FIELD_CLASS} mt-1.5`}
+              />
             )}
-            placeholder={placeholder}
-            onChange={(event) => setValue((current) => ({ ...current, [key]: event.target.value }))}
-            className={`${ADMIN_FIELD_CLASS} mt-1.5`}
-          />
-        </div>
-      ))}
+          </div>
+        );
+      })}
       <div>
         <label htmlFor={`${initialValue._id || "new"}-sortOrder`} className={ADMIN_LABEL_CLASS}>
           Display order

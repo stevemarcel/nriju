@@ -54,6 +54,11 @@ export default [
     value: true,
   },
   {
+    key: "pickup_instructions",
+    value:
+      "Show your order number at the pickup counter. Items are ready within 30 min of the 'ready for pickup' notification.",
+  },
+  {
     key: "whatsapp_number",
     value: "+234 800 000 0000",
   },

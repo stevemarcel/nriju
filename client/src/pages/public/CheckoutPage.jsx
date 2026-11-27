@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -326,6 +326,7 @@ const CheckoutPage = () => {
   const chooseDelivery = (method) => {
     if (!availableMethods.includes(method)) return;
     setDeliveryMethod(method);
+    setPickupLocationId("");
     setFormError("");
     if (method === "thirdparty" && paymentMethod !== "paystack") setPaymentMethod("paystack");
   };
@@ -426,6 +427,18 @@ const CheckoutPage = () => {
   const offlineAllowed =
     quote?.payOnDelivery?.enabled && ["own", "pickup"].includes(deliveryMethod);
   const busy = createOrder.isPending || initializePayment.isPending;
+
+  // * Auto-select first pickup location when pickup delivery is chosen
+  useEffect(() => {
+    if (
+      deliveryMethod === "pickup" &&
+      pickupQuery.isSuccess &&
+      pickupLocations.length > 0 &&
+      !pickupLocationId
+    ) {
+      setPickupLocationId(pickupLocations[0]._id);
+    }
+  }, [deliveryMethod, pickupQuery.isSuccess, pickupLocations, pickupLocationId]);
 
   return (
     <main className="min-h-screen bg-background-soft px-3 py-6 sm:px-4 sm:py-10 lg:py-14">
