@@ -174,7 +174,7 @@ const updateReview = asyncHandler(async (req, res) => {
 // @ACCESS      Admin
 const moderateReview = asyncHandler(async (req, res) => {
   const { status, moderationNote } = req.body;
-  const review = await Review.findById(req.params.id);
+  const review = await Review.findById(req.params.id).populate("product", "name");
 
   if (!review) {
     res.status(404);
@@ -190,6 +190,9 @@ const moderateReview = asyncHandler(async (req, res) => {
 
   const oldStatus = req.body.oldStatus || review.prev?.status || "unknown";
 
+  // ? Identifier: review title when present, otherwise the product name.
+  const reviewLabel = review.title || `on ${review.product?.name || "unknown product"}`;
+
   req.activity = {
     action: "review.moderated",
     entity: "review",
@@ -200,7 +203,7 @@ const moderateReview = asyncHandler(async (req, res) => {
       { field: "status", from: oldStatus, to: status },
       moderationNote ? { field: "note", from: "—", to: moderationNote } : null,
     ].filter(Boolean),
-    description: `${req.user.name} ${status === "approved" ? "approved" : "rejected"} review of "${review.title || "unnamed review"}"`,
+    description: `${req.user.name} ${status === "approved" ? "approved" : "rejected"} review ${reviewLabel}`,
   };
 
   // If approved, update the product's average rating

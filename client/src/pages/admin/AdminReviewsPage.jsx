@@ -152,7 +152,6 @@ const AdminReviewsPage = () => {
                   <th className="text-left py-4 px-4">Product</th>
                   <th className="text-left py-4 px-4">Reviewer</th>
                   <th className="text-center py-4 px-4">Rating</th>
-                  <th className="text-left py-4 px-4">Title</th>
                   <th className="text-center py-4 px-4">Status</th>
                   <th className="text-right py-4 px-4">Date</th>
                   <th className="text-center py-4 px-4">Actions</th>
@@ -161,7 +160,7 @@ const AdminReviewsPage = () => {
               <tbody className="divide-y divide-border admin-table">
                 {reviews.map((r) => (
                   <tr key={r._id} className="hover:bg-background-soft/30">
-                    <td className="py-3 px-4 text-text">{r.product?.name || "—"}</td>
+                    <td className="py-3 px-4 text-text">{`${r.product?.name} review` || "—"}</td>
                     <td className="py-3 px-4 text-text-muted">{r.user?.name || "—"}</td>
                     <td className="py-3 px-4 text-center">
                       <div className="flex items-center justify-center gap-1">
@@ -169,7 +168,6 @@ const AdminReviewsPage = () => {
                         <span className="font-medium">{r.rating}</span>
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-text-muted max-w-xs truncate">{r.title}</td>
                     <td className="py-3 px-4 text-center">
                       <StatusPill status={r.status} map={STATUS_MAP} />
                     </td>
@@ -216,8 +214,6 @@ const AdminReviewsPage = () => {
           open={!!moderateTarget}
           title="Moderate review"
           description={`Mark this review as ${moderateTarget.status}?`}
-          variant="primary"
-          confirmLabel="Continue"
           onConfirm={() => {
             moderateMutation.mutate({
               id: moderateTarget.review._id,
@@ -226,7 +222,50 @@ const AdminReviewsPage = () => {
             setModerateTarget(null);
           }}
           onCancel={() => setModerateTarget(null)}
-        />
+        >
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-1">
+                <div className="flex items-center justify-start gap-2">
+                  <div className="flex h-10 w-10 rounded-full bg-accent-soft text-primary">
+                    <Star className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-text-muted">
+                      {moderateTarget.review.product?.name}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-text-muted">
+                    Reviewed by
+                  </div>
+                  <div className="font-medium text-text-muted">
+                    {moderateTarget.review.user?.name}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-amber-500">
+                    {moderateTarget.review.rating}
+                  </div>
+                  <div className="text-sm text-text-muted">
+                    stars
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-start gap-2">
+                  <div className="flex h-10 w-10 rounded-full bg-accent-soft text-primary">
+                    <Check className="h-5 w-5" />
+                  </div>
+                  <div className="text-sm text-text-muted">
+                    {moderateTarget.review.title || `${moderateTarget.review.product?.name} review`}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ConfirmModal>
       )}
     </div>
   );

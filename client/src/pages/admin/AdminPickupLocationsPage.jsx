@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { MapPin, Plus, Save } from "lucide-react";
+import { Check, MapPin, Plus, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import api from "../../services/api";
 import { AdminPageHeader, EmptyState, TableSkeleton } from "../../components/admin/AdminPrimitives";
@@ -93,14 +93,33 @@ const LocationForm = ({
         />
       </div>
       <div>
-        <span className={ADMIN_LABEL_CLASS}>Availability</span>
+        <div>
+          <span className={ADMIN_LABEL_CLASS}>Availability</span>
+          <p className="mt-0.5 text-xs text-text-muted">
+            Select so customers can see this location for pickup at checkout
+          </p>
+        </div>
         <button
           type="button"
-          aria-pressed={value.isActive}
+          role="switch"
+          aria-checked={value.isActive}
+          aria-label="Toggle availability"
           onClick={() => setValue((current) => ({ ...current, isActive: !current.isActive }))}
-          className={`${ADMIN_SECONDARY_BUTTON_CLASS} mt-1.5 w-full`}
+          className={`relative mt-2 inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 ${
+            value.isActive ? "bg-primary" : "bg-slate-300"
+          }`}
         >
-          {value.isActive ? "Active for checkout" : "Hidden from checkout"}
+          <span
+            className={`inline-flex h-4 w-4 transform items-center justify-center rounded-full bg-white transition-transform duration-200 ${
+              value.isActive ? "translate-x-6" : "translate-x-1"
+            }`}
+          >
+            {value.isActive ? (
+              <Check className="h-3 w-3 text-on-accent" />
+            ) : (
+              <X className="h-3 w-3 text-slate-500" />
+            )}
+          </span>
         </button>
       </div>
       <div className="flex flex-wrap justify-end gap-3 sm:col-span-2">

@@ -118,6 +118,7 @@ const updateCoupon = asyncHandler(async (req, res) => {
   }
 
   const allowed = [
+    "code",
     "type",
     "value",
     "minOrder",
@@ -143,6 +144,7 @@ const updateCoupon = asyncHandler(async (req, res) => {
 
   if (changes.length > 0) {
     const fieldLabels = {
+      code: "code",
       value: "discount",
       minOrder: "minimum order",
       expiryDate: "expiry date",
