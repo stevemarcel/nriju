@@ -240,7 +240,7 @@ const getAllReviews = asyncHandler(async (req, res) => {
       .skip(skip)
       .limit(Number(limit))
       .populate("user", "name email")
-      .populate("product", "name slug"),
+      .populate("product", "name slug images"),
     Review.countDocuments(query),
   ]);
 

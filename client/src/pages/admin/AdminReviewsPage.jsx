@@ -14,9 +14,9 @@ import {
 } from "../../components/admin/AdminPrimitives";
 import { useAdminRealtimeRefresh } from "../../hooks/useAdminRealtimeRefresh";
 import { formatDate } from "../../utils/formatDate";
-import { ConfirmModal } from "../../components/ui/ConfirmModal";
+import ReviewDetailsModal from "../../components/admin/ReviewDetailsModal";
 import Dropdown from "../../components/ui/Dropdown";
-import { Star, Check, Clock, CheckCircle, X } from "lucide-react";
+import { Star, Check, Clock, CheckCircle, X, Eye } from "lucide-react";
 
 const FILTER_OPTIONS = [
   { value: "", label: "All", icon: Star, color: "text-text-muted" },
@@ -42,7 +42,7 @@ const AdminReviewsPage = () => {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [moderateTarget, setModerateTarget] = useState(null);
+  const [selectedReview, setSelectedReview] = useState(null);
 
   const { data, isPending } = useQuery({
     queryKey: ["admin", "reviews", page, search, statusFilter],
@@ -57,13 +57,6 @@ const AdminReviewsPage = () => {
 
   const reviews = data?.data ?? [];
   const meta = data?.meta ?? { total: 0, limit: 20 };
-
-  const moderateMutation = useMutation({
-    mutationFn: ({ id, patch }) => api.patch(`/reviews/${id}/moderate`, patch),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "reviews"] }),
-  });
-
-  const handleModerate = (r, newStatus) => setModerateTarget({ review: r, status: newStatus });
 
   return (
     <div className="space-y-6">
@@ -175,22 +168,13 @@ const AdminReviewsPage = () => {
                       {formatDate(r.createdAt)}
                     </td>
                     <td className="py-3 px-4 text-center">
-                      {r.status === "pending" && (
-                        <div className="flex justify-center gap-1.5">
-                          <button
-                            onClick={() => handleModerate(r, "approved")}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleModerate(r, "rejected")}
-                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors"
-                          >
-                            Reject
-                          </button>
-                        </div>
-                      )}
+                      <button
+                        onClick={() => setSelectedReview(r)}
+                        className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md bg-background-soft hover:bg-primary/10 text-text-muted hover:text-primary transition-colors"
+                      >
+                        <Eye className="w-3 h-3" />
+                        View
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -208,64 +192,8 @@ const AdminReviewsPage = () => {
         ) : null}
       </div>
 
-      {moderateTarget && (
-        <ConfirmModal
-          adminStyle
-          open={!!moderateTarget}
-          title="Moderate review"
-          description={`Mark this review as ${moderateTarget.status}?`}
-          onConfirm={() => {
-            moderateMutation.mutate({
-              id: moderateTarget.review._id,
-              patch: { status: moderateTarget.status },
-            });
-            setModerateTarget(null);
-          }}
-          onCancel={() => setModerateTarget(null)}
-        >
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="flex-1">
-                <div className="flex items-center justify-start gap-2">
-                  <div className="flex h-10 w-10 rounded-full bg-accent-soft text-primary">
-                    <Star className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium text-text-muted">
-                      {moderateTarget.review.product?.name}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-sm text-text-muted">
-                    Reviewed by
-                  </div>
-                  <div className="font-medium text-text-muted">
-                    {moderateTarget.review.user?.name}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-sm text-amber-500">
-                    {moderateTarget.review.rating}
-                  </div>
-                  <div className="text-sm text-text-muted">
-                    stars
-                  </div>
-                </div>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-start gap-2">
-                  <div className="flex h-10 w-10 rounded-full bg-accent-soft text-primary">
-                    <Check className="h-5 w-5" />
-                  </div>
-                  <div className="text-sm text-text-muted">
-                    {moderateTarget.review.title || `${moderateTarget.review.product?.name} review`}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ConfirmModal>
+      {selectedReview && (
+        <ReviewDetailsModal review={selectedReview} onClose={() => setSelectedReview(null)} />
       )}
     </div>
   );
