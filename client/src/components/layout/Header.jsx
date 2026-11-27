@@ -152,30 +152,30 @@ const Header = () => {
 
           {/* Actions */}
           <div className="flex shrink-0 justify-end">
-            <div className="flex shrink-0 items-center gap-0.5">
+            <div className="flex shrink-0 items-center gap-1.5">
               {/* Account dropdown — click to open */}
               {loading ? (
-                <div className="w-8 h-8 rounded-full bg-surface animate-pulse" />
+                <div className="w-8 h-8 rounded-full  animate-pulse" />
               ) : user ? (
                 <div className="group relative">
                   <button
                     type="button"
                     onClick={() => setAccountOpen(!accountOpen)}
-                    className="flex items-center gap-1 p-2 rounded-full hover:bg-background"
+                    className="flex items-center gap-1 p-2 rounded-full md:bg-accent-soft/50 hover:bg-background transition-colors"
                   >
                     {user?.avatar ? (
                       <img
                         src={user.avatar}
                         alt={user.name}
-                        className="w-8 h-8 rounded-full object-cover ring-2 ring-border"
+                        className="w-8 h-8 md:w-6 md:h-6 rounded-full object-cover ring-2 ring-border"
                       />
                     ) : (
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-heading font-bold text-sm ring-2 ring-border">
                         {user?.name?.charAt(0).toUpperCase() || "U"}
                       </div>
                     )}
-                    <span className="hidden md:block text-sm text-text font-medium truncate min-w-32">
-                      {user.name}
+                    <span className="hidden md:block text-sm text-text font-medium mx-2 ">
+                      {user.name?.split(" ")[0]}
                     </span>
                   </button>
 
