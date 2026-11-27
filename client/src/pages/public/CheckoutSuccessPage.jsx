@@ -19,8 +19,16 @@ import { formatNaira } from "../../utils/formatMoney";
 const CheckoutSuccessPage = () => {
   const dispatch = useAppDispatch();
   const [searchParams] = useSearchParams();
-  const reference = searchParams.get("reference") || searchParams.get("trxref");
-  const orderId = searchParams.get("order");
+  let pendingPayment = null;
+  try {
+    const stored = JSON.parse(sessionStorage.getItem("nriju:pending-payment") || "null");
+    if (stored?.createdAt > Date.now() - 60 * 60 * 1000) pendingPayment = stored;
+  } catch {
+    sessionStorage.removeItem("nriju:pending-payment");
+  }
+  const reference =
+    searchParams.get("reference") || searchParams.get("trxref") || pendingPayment?.reference;
+  const orderId = searchParams.get("order") || pendingPayment?.orderId;
   const offline = searchParams.get("mode") === "offline";
 
   const verification = useQuery({
@@ -43,7 +51,10 @@ const CheckoutSuccessPage = () => {
   const pending = offline ? orderQuery.isPending : verification.isPending;
 
   useEffect(() => {
-    if (success) dispatch(clearAll());
+    if (success) {
+      dispatch(clearAll());
+      sessionStorage.removeItem("nriju:pending-payment");
+    }
   }, [dispatch, success]);
 
   if (!offline && !reference) {

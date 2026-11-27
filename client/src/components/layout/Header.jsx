@@ -75,6 +75,7 @@ const Header = () => {
 
   // * True when user has admin or superAdmin role
   const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
+  const isCourier = user?.role === "courier";
 
   // * Categories data from API
   const { data: categories } = useQuery({
@@ -209,6 +210,16 @@ const Header = () => {
                       >
                         <Shield className="w-4 h-4 text-text-muted" />
                         Admin
+                      </Link>
+                    )}
+                    {isCourier && (
+                      <Link
+                        to="/courier"
+                        className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                        onClick={() => setAccountOpen(false)}
+                      >
+                        <Truck className="w-4 h-4 text-text-muted" />
+                        Courier portal
                       </Link>
                     )}
                     <button

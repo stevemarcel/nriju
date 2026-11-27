@@ -140,7 +140,7 @@ const AdminPickupLocationsPage = () => {
       <AdminPageHeader
         title="Pickup locations"
         subtitle="Manage the collection points customers can choose during checkout."
-        actions={
+        action={
           <button
             type="button"
             onClick={() => setAdding(true)}

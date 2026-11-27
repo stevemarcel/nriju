@@ -47,10 +47,38 @@ const paystackRequest = ({ path, method = "GET", body }) =>
     request.end();
   });
 
-const callbackUrlFor = (req, orderId) => {
+const callbackUrlFor = (req, requestedUrl) => {
+  const allowedOrigins = [req.get("origin"), process.env.CLIENT_URL, process.env.APP_URL]
+    .filter(Boolean)
+    .map((value) => {
+      try {
+        return new URL(value).origin;
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+
+  if (requestedUrl) {
+    try {
+      const callback = new URL(requestedUrl);
+      if (
+        ["http:", "https:"].includes(callback.protocol) &&
+        callback.pathname === "/checkout/result" &&
+        allowedOrigins.includes(callback.origin)
+      ) {
+        callback.search = "";
+        callback.hash = "";
+        return callback.toString();
+      }
+    } catch {
+      // Fall through to the configured application URL.
+    }
+  }
+
   const configuredBase = process.env.CLIENT_URL || process.env.APP_URL;
   const base = configuredBase || `${req.protocol}://${req.get("host")}`;
-  return `${base.replace(/\/$/, "")}/checkout/result?order=${orderId}`;
+  return `${base.replace(/\/$/, "")}/checkout/result`;
 };
 
 const isMatchingCharge = (payment, order, data) =>
@@ -133,7 +161,7 @@ const initializePayment = asyncHandler(async (req, res) => {
       amount: order.total,
       currency: "NGN",
       reference,
-      callback_url: callbackUrlFor(req, order._id),
+      callback_url: callbackUrlFor(req, req.body.callbackUrl),
       metadata: {
         orderId: order._id.toString(),
         orderNumber: order.orderNumber,

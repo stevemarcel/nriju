@@ -17,6 +17,7 @@ import {
   Plus,
   Zap,
   Bell,
+  Truck,
 } from "lucide-react";
 import { formatNaira } from "../../utils/formatMoney";
 
@@ -45,6 +46,7 @@ const AccountDashboardPage = () => {
 
   const defaultAddress = user?.addresses?.find((a) => a.isDefault) || user?.addresses?.[0];
   const isAdmin = user?.role === "admin" || user?.role === "superAdmin";
+  const isCourier = user?.role === "courier";
   const isSuperAdmin = user?.role === "superAdmin";
 
   const handleLogout = async () => {
@@ -146,6 +148,9 @@ const AccountDashboardPage = () => {
                   <QuickActionLink to="/account/notifications" icon={Bell} label="Notifications" />
                   <QuickActionLink to="/account/change-password" icon={Lock} label="Password" />
                   {isAdmin && <QuickActionLink to="/admin" icon={Shield} label="Admin Dashboard" />}
+                  {isCourier && (
+                    <QuickActionLink to="/courier" icon={Truck} label="Courier Portal" />
+                  )}
                 </div>
 
                 <div className="w-full mt-4 pt-6 border-t border-border-soft">

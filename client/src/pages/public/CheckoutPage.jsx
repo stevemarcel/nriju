@@ -294,7 +294,11 @@ const CheckoutPage = () => {
 
   const createOrder = useMutation({ mutationFn: (payload) => api.post("/orders", payload) });
   const initializePayment = useMutation({
-    mutationFn: (orderId) => api.post("/payments/initialize", { orderId }),
+    mutationFn: (orderId) =>
+      api.post("/payments/initialize", {
+        orderId,
+        callbackUrl: `${window.location.origin}/checkout/result`,
+      }),
   });
 
   const chooseDelivery = (method) => {
@@ -356,6 +360,14 @@ const CheckoutPage = () => {
 
       if (selectedPayment === "paystack") {
         const payment = await initializePayment.mutateAsync(order._id);
+        sessionStorage.setItem(
+          "nriju:pending-payment",
+          JSON.stringify({
+            orderId: order._id,
+            reference: payment.data.data.reference,
+            createdAt: Date.now(),
+          }),
+        );
         window.location.assign(payment.data.data.authorization_url);
         return;
       }
