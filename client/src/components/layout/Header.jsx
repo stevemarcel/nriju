@@ -20,6 +20,7 @@ import {
   FolderOpen,
   Truck,
   RotateCcw,
+  FileText,
 } from "lucide-react";
 import { getCategoryIcon } from "../../utils/categoryIcons";
 import NotificationBell from "../notifications/NotificationBell";
@@ -302,6 +303,22 @@ const Header = () => {
                   >
                     <MessageCircle className="w-4 h-4 text-text-muted" />
                     Contact
+                  </Link>
+                  <Link
+                    to="/privacy"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    onClick={() => setHelpOpen(false)}
+                  >
+                    <Shield className="w-4 h-4 text-text-muted" />
+                    Privacy Policy
+                  </Link>
+                  <Link
+                    to="/terms"
+                    className="px-4 py-2 text-sm text-text hover:bg-background flex items-center gap-2"
+                    onClick={() => setHelpOpen(false)}
+                  >
+                    <FileText className="w-4 h-4 text-text-muted" />
+                    Terms & Conditions
                   </Link>
                   <div className="px-4 py-1.5 text-xs font-medium uppercase tracking-wide text-text-muted flex items-center gap-2">
                     <FolderOpen className="w-4 h-4" />

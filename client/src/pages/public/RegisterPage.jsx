@@ -220,6 +220,17 @@ const RegisterPage = () => {
             {loading ? "Creating..." : "Create Account"}
             {!loading && <ChevronRight className="w-4 h-4" />}
           </button>
+          <p className="text-xs text-text-muted text-center">
+            By creating an account, you agree to our{" "}
+            <Link to="/terms" className="text-primary hover:underline">
+              Terms & Conditions
+            </Link>{" "}
+            and{" "}
+            <Link to="/privacy" className="text-primary hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </form>
 
         <div className="mt-6 text-center text-sm text-text-muted">

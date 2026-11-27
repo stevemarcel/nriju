@@ -67,14 +67,26 @@ const logRejectedHandoffAttempt = async ({ req, order, context }) => {
 };
 
 const listCourierOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({
-    assignedCourier: req.user._id,
-    status: { $in: ["confirmed", "preparing", "on_the_way"] },
-  })
-    .populate("items.product", "name images")
-    .populate("user", "name phone email")
-    .sort({ courierAssignedAt: -1, createdAt: -1 });
-  res.json({ success: true, data: orders });
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const [orders, completed] = await Promise.all([
+    Order.find({
+      assignedCourier: req.user._id,
+      status: { $in: ["confirmed", "preparing", "on_the_way"] },
+    })
+      .populate("items.product", "name images")
+      .populate("user", "name phone email")
+      .sort({ courierAssignedAt: -1, createdAt: -1 }),
+    Order.find({
+      assignedCourier: req.user._id,
+      status: { $in: ["delivered", "picked_up"] },
+      updatedAt: { $gte: startOfToday },
+    })
+      .select("orderNumber status total collectedAmount collectionMethod updatedAt")
+      .sort({ updatedAt: -1 })
+      .limit(5),
+  ]);
+  res.json({ success: true, data: orders, completed });
 });
 
 const assignCourier = asyncHandler(async (req, res) => {
